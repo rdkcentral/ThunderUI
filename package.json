@@ -1,0 +1,30 @@
+{
+  "name": "WPEFrameworkUI",
+  "version": "0.3.0",
+  "description": "Web Platform for Embedded Framework User Interface",
+  "main": "debug-server.js",
+  "scripts": {
+    "start": "node debug-server.js"
+  },
+  "dependencies": {
+    "node-static": "~0.6.7",
+    "grunt": "*",
+    "grunt-contrib-jshint": "*",
+    "grunt-contrib-uglify": "*",
+    "grunt-contrib-watch": "*",
+    "grunt-contrib-concat": "*",
+    "grunt-contrib-clean": "*",
+    "grunt-contrib-copy": "*",
+    "shelljs": "~0.7.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WebPlatformForEmbedded/WPEFrameworkUI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/WebPlatformForEmbedded/WPEFrameworkUI/issues"
+  },
+  "homepage": "https://github.com/WebPlatformForEmbedded/WPEFrameworkUI#readme",
+  "author": "",
+  "license": "ISC"
+}
