@@ -9,6 +9,7 @@ class RemoteControl extends Plugin {
         this.displayName = 'Remote Control';
         this.onScreenKeyBoardIsRendered     = false;
         this.doNotHandleKeys                = false;
+        this.devicesThatSupportPairing      = ['GreenPeakRF4CE'];
 
         /**
          * Human to WPE key codes.
@@ -224,8 +225,13 @@ class RemoteControl extends Plugin {
         document.getElementById('main').innerHTML = '';
     }
 
-    activatePairing() {
-        api.activatePairing();
+    activatePairing(deviceName) {
+        api.putPlugin(this.callsign + '/' + deviceName, 'PairingMode', null, (err, resp) => {
+            if (err !== null) {
+                console.error(err);
+                return;
+            }
+        });
     }
 
     render() {
@@ -242,28 +248,26 @@ class RemoteControl extends Plugin {
             -
           </div>
 
-          <div id="remoteControl_form"></div>`;
+          <div class="label grid__col grid__col--2-of-8">
+            Remotes
+          </div>
+          <div id="remotesList" class="text grid__col grid__col--6-of-8"></div>
+
+          <div id="pairingDiv"></div>
+          `;
 
         var self = this;
         api.getPluginData('RemoteControl', function (error, remotes) {
             if (remotes === undefined || remotes.devices === undefined)
                 return;
 
-            // if there is only 1 device, and its useless bail out
-            if (remotes.devices.length === 1 && remotes.devices[0].name === 'keymap')
+            // if there is only 1 keymap device, and its useless bail out
+            if (remotes.devices.length === 1 && remotes.devices[0] === 'keymap')
                 return;
 
             var devices = remotes.devices;
-            var form = document.getElementById('remoteControl_form');
-
-            // clearform
-            form.innerHTML = '';
-            var fieldset = document.createElement('fieldset');
-            form.appendChild(fieldset);
-
-            var legend = document.createElement('legend');
-            legend.innerHTML = 'Remotes';
-            fieldset.appendChild(legend);
+            var remotesDiv = document.getElementById('remotesList');
+            var pairingDiv = document.getElementById('pairingDiv');
 
             for (var i = 0; i < devices.length; i++) {
                 var device = devices[i];
@@ -272,24 +276,27 @@ class RemoteControl extends Plugin {
                 if (device === 'keymap')
                     continue;
 
-                var label = document.createElement('label');
-                label.innerHTML = device.name;
-                fieldset.appendChild(label);
+                remotesDiv.innerHTML += '' + device;
 
-                var p = document.createElement('p');
-                p.innerHTML = device.keys;
-                fieldset.appendChild(p);
+                if (i < devices.length-1)
+                    remotesDiv.innerHTML += ', ';
 
-                if (device.name == 'GreenPeakRF4CE') {
-                    var div = document.createElement('div');
-                    div.className = 'buttons';
-                    fieldset.appendChild(div);
+                if (self.devicesThatSupportPairing.indexOf(device) != -1) {
 
-                    var button = document.createElement('button');
-                    button.innerHTML = 'Pair remote';
-                    button.type = 'button';
-                    button.onclick = self.activatePairing.bind();
-                    div.appendChild(button);
+                    if (pairingDiv.innerHTML === '') {
+                        // add the title
+                        pairingDiv.innerHTML += `<div class="title grid__col grid__col--8-of-8">
+                          Pairing
+                        </div>`;
+                    }
+
+                    pairingDiv.innerHTML += `<div class="label grid__col grid__col--2-of-8">${device}</div>
+                        <div class="text grid__col grid__col--6-of-8">
+                            <button type="button" id="${device}-PairingMode">Enable Pairing</button>
+                        </div>`;
+
+                    var pairingButton = document.getElementById(device + '-PairingMode');
+                    pairingButton.onclick = self.activatePairing.bind(self, device);
                 }
             }
         });

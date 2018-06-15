@@ -237,10 +237,6 @@
                 this.socketListeners.splice(index, 1);
         };
 
-        activatePairing(callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + 'Controller/PairingMode', null, callback);
-        };
-
         getSnapshotLocator(callback) {
             return this.getURLStart('http') + 'Snapshot/Capture?' + new Date().getTime();
         };
