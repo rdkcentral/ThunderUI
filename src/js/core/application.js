@@ -100,7 +100,7 @@
         } else if (bootStep === 4){
             console.debug('Rendering menu');
             plugins.menu = new Menu();
-            plugins.menu.render();
+            plugins.menu.render(activePlugin !== undefined ? activePlugin : conf.startPlugin);
             initNext();
         /*
          * Boot step 5 - render the default plugin from conf.startPlugin or the last visited from local

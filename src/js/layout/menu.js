@@ -65,7 +65,7 @@ class Menu {
         this.nav.innerHTML = '';
     }
 
-    render() {
+    render(activePlugin) {
         this.clear();
 
         api.getControllerPlugins( (err, data) => {
@@ -85,11 +85,15 @@ class Menu {
                     console.debug('Menu :: rendering ' + plugin.callsign);
                     var li = document.createElement('li');
                     li.id = "item_" + plugin.callsign;
-                    if (i === 0) {
+
+                    if (activePlugin === undefined && i === 0) {
+                        li.className = 'menu-item active';
+                    } else if (activePlugin === plugin.callsign) {
                         li.className = 'menu-item active';
                     } else {
                         li.className = 'menu-item';
                     }
+
                     li.appendChild(document.createTextNode(plugins[ plugin.callsign ].displayName !== undefined ? plugins[ plugin.callsign ].displayName : plugin.callsign));
                     li.onclick = this.toggleMenuItem.bind(null, plugin.callsign);
                     ul.appendChild(li);
