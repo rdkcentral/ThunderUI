@@ -48,6 +48,15 @@ class Provisioning extends Plugin {
 
     update() {
         api.getPluginData('Provisioning', function(error, response, status) {
+            if (error !== null) {
+                console.error(err);
+                this.status(err);
+                return;
+            }
+
+            if (response === null || response === undefined || response === '')
+              return;
+
             var id = response.id;
             var tokens = response.tokens || [];
 
