@@ -1,6 +1,5 @@
 /** The bluetooth plugin provides details on the available bluetooth devices, scans for new devices and allows the user to connect the device through UI
  */
-
 class Bluetooth extends Plugin {
 
     constructor(pluginData) {
@@ -10,7 +9,6 @@ class Bluetooth extends Plugin {
         this.pairedDevices = [];
         this.scanning = false;
         this.connected = undefined;
-        this.rendered = false;
         this.displayName = 'Bluetooth';
     }
 
@@ -30,7 +28,7 @@ class Bluetooth extends Plugin {
             Scanning
         </div>
         <div id="BT_Scanning" class="text grid__col grid__col--6-of-8">
-            False
+            OFF
         </div>
 
         <div class="label grid__col grid__col--2-of-8">
@@ -94,10 +92,9 @@ class Bluetooth extends Plugin {
         // ---- Discovered Devices ----
         this.discoveredDevicesEl        = document.getElementById('BT_DiscoveredDevices');
 
-        this.update();
-        setTimeout(this.getPairedDevices.bind(this), 200);
-
-        this.rendered = true;
+        this.checkDeviceScanning();
+        this.getPairedDevices();
+        setTimeout(this.update.bind(this), 2000);
     }
 
     /* ----------------------------- DATA ------------------------------*/
@@ -133,10 +130,8 @@ class Bluetooth extends Plugin {
             if (resp === undefined || resp.DeviceList.length < 0)
                 return;
 
-            if (this.rendered === false)
-                return;
-
             this.pairedDevices = resp.DeviceList;
+
             this.renderPairedDevices();
         });
     }
@@ -159,14 +154,24 @@ class Bluetooth extends Plugin {
         }
     }
 
+    checkDeviceScanning() {
+        api.getPluginData(this.callsign, (err, resp) => {
+            if (resp.scanning) {
+                this.stopScan();
+            }
+        });
+    }
+
     /* ----------------------------- RENDERING ------------------------------*/
 
     renderStatus () {
-        if (this.rendered === false)
-            return;
+        if (this.connected !== '') {
+            var deviceInfo = this.pairedDevices.find(deviceInfo=>deviceInfo.Address==this.connected);
+            this.connectedStatus.innerHTML = deviceInfo.Name;
+        } else
+            this.connectedStatus.innerHTML = 'Not Connected';
 
-        this.connectedStatus.innerHTML = this.connected !== '' ? this.connected : 'Not Connected';
-        this.scanningStatus.innerHTML = this.scanning === true ? 'True' : 'False';
+        this.scanningStatus.innerHTML = this.scanning === true ? 'ON' : 'OFF';
     }
 
     renderPairedDevices () {
@@ -204,40 +209,41 @@ class Bluetooth extends Plugin {
     /* ----------------------------- BUTTONS ------------------------------*/
 
     scanForDevices() {
+        this.status(`Start scanning`);
         api.putPlugin(this.callsign, 'Scan', null, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
             }
 
-            // update after 5s
+            // update after 2s
             setTimeout(this.update.bind(this), 2000);
 
-            // get the results
-            this.Timer = setInterval(this.getDiscoveredDevices.bind(this), 5000);
+            // update discovered device list in every 4s
+            this.Timer = setInterval(this.getDiscoveredDevices.bind(this), 4000);
+
+            this.status(`Scanning...`);
+            // stop scan after 1 min
+            setTimeout(this.stopScan.bind(this), 60000);
 
         });
     }
 
     stopScan() {
+        this.status(`Stopping Scan`);
         api.putPlugin(this.callsign, 'StopScan', null, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
             }
 
-            // update after 5s
+            clearInterval(this.Timer);
             setTimeout(this.update.bind(this), 2000);
+            this.status(`Scan stopped`);
         });
     }
 
     pairDevice() {
-        if (this.scanning === true) {
-            // stop Scanning;
-            this.stopScan();
-            clearInterval(this.Timer);
-        }
-
         var val = JSON.parse(document.getElementById('BT_DiscoveredDevices').value);
         if (val.Name === "")
             this.status(`Pairing with ${val.Address}`);
@@ -250,8 +256,9 @@ class Bluetooth extends Plugin {
                 return;
             }
 
-            // update after 5s
-            setTimeout(this.update.bind(this), 5000);
+            // update Paired device list after 2s
+            setTimeout(this.getPairedDevices.bind(this), 2000);
+            setTimeout(this.renderPairedDevices.bind(this), 3000);
         });
     }
 
@@ -265,8 +272,8 @@ class Bluetooth extends Plugin {
                 return;
             }
 
-            // update after 5s
-            setTimeout(this.update.bind(this), 5000);
+            // update after 2s
+            setTimeout(this.update.bind(this), 2000);
         });
     }
 
@@ -278,8 +285,8 @@ class Bluetooth extends Plugin {
                 return;
             }
 
-            // update after 5s
-            setTimeout(this.update.bind(this), 5000);
+            // update after 2s
+            setTimeout(this.update.bind(this), 2000);
         });
     }
 
