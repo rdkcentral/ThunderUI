@@ -5,6 +5,8 @@ class Compositor extends Plugin {
 
     constructor(pluginData) {
         super(pluginData);
+
+        this.resolutions = ['720p', '720p50Hz', '1080p24Hz', '1080i50Hz', '1080p50Hz', '1080p60Hz'];
     }
 
     render()        {
@@ -12,6 +14,12 @@ class Compositor extends Plugin {
 
         mainDiv.innerHTML = `<div class="title grid__col grid__col--8-of-8">
             Compositor
+        </div>
+        <div class="label grid__col grid__col--2-of-8">
+            <label for="compositorResolutions">Resolution</label>
+        </div>
+        <div class="text grid__col grid__col--6-of-8">
+            <select id="compositorResolutions"></select>
         </div>
         <div class="label grid__col grid__col--2-of-8">
             <label for="compositorClients">Clients</label>
@@ -71,6 +79,7 @@ class Compositor extends Plugin {
 
 
         // bind buttons & sliders
+        document.getElementById('compositorResolutions').onclick     = this.setResolution.bind(this);
         document.getElementById('compositorSetTop').onclick         = this.compositorAction.bind(this, 'Top');
         document.getElementById('compositorSetInput').onclick       = this.compositorAction.bind(this, 'Input');
         document.getElementById('sliderOpacity').onchange           = this.updateValue.bind(this, 'sliderOpacity', 'numOpacity');
@@ -85,19 +94,30 @@ class Compositor extends Plugin {
 
 
         // bind fields
+        this.resolutionsList = document.getElementById('compositorResolutions');
         this.menu = document.getElementById('compositorClients');
+
+
+        // update resolutions field
+        this.resolutionsList.innerHTML = '';
+
+        for (var i = 0; i < this.resolutions.length; i++) {
+            var _item = document.createElement('option');
+            _item.value = this.resolutions[i];
+            _item.innerHTML = this.resolutions[i];
+            this.resolutionsList.appendChild(_item);
+        }
 
         // get clients
         api.getPluginData(this.callsign, (err, resp) => {
             if (err !== null) {
                 console.error(err);
-                // HACK. Ignore error here, Bram thinks a 400 is OKAY. Parse or die trying
-                try {
-                    resp = JSON.parse(err);
-                } catch (e) {
-                    return;
-                }
+                return;
             }
+
+            // compositor is not returning anything, guess we're in client mode and not managing nxserver
+            if (resp === undefined || resp === null || resp.clients === undefined)
+                return;
 
             var clients = resp.clients;
             if (clients.length > 0) {
@@ -162,7 +182,15 @@ class Compositor extends Plugin {
             if (err)
                 console.error(err);
         });
+    }
 
+    setResolution() {
+        var _res = this.resolutionsList.options[this.resolutionsList.selectedIndex].value;
+
+        api.postPlugin(this.callsign, 'Resolution/' + _res, null, (err, resp) => {
+            if (err)
+                console.error(err);
+        });
     }
 
 }
