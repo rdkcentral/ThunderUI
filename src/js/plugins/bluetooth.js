@@ -178,7 +178,7 @@ class Bluetooth extends Plugin {
         this.devicesListEl.innerHTML = '';
         for (var i=0; i<this.pairedDevices.length; i++) {
             var newChild = this.devicesListEl.appendChild(document.createElement("option"));
-            if (this.pairedDevices[i].Name === "")
+            if (this.pairedDevices[i].Name === '')
                 newChild.innerHTML = `${this.pairedDevices[i].Address}`;
             else
                 newChild.innerHTML = `${this.pairedDevices[i].Name}`;
@@ -189,7 +189,7 @@ class Bluetooth extends Plugin {
         this.discoveredDevicesEl.innerHTML = '';
         for (var i=0; i<this.discoveredDevices.length; i++) {
             var newChild = this.discoveredDevicesEl.appendChild(document.createElement("option"));
-            if (this.discoveredDevices[i].Name === "")
+            if (this.discoveredDevices[i].Name === '')
                 newChild.innerHTML = `${this.discoveredDevices[i].Address}`;
             else
                 newChild.innerHTML = `${this.discoveredDevices[i].Name}`;
@@ -231,13 +231,13 @@ class Bluetooth extends Plugin {
 
     stopScan() {
         this.status(`Stopping Scan`);
+        clearInterval(this.Timer);
         api.putPlugin(this.callsign, 'StopScan', null, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
             }
 
-            clearInterval(this.Timer);
             setTimeout(this.update.bind(this), 2000);
             this.status(`Scan stopped`);
         });
@@ -245,7 +245,7 @@ class Bluetooth extends Plugin {
 
     pairDevice() {
         var val = JSON.parse(document.getElementById('BT_DiscoveredDevices').value);
-        if (val.Name === "")
+        if (val.Name === '')
             this.status(`Pairing with ${val.Address}`);
         else
             this.status(`Pairing with ${val.Name}`);
@@ -258,7 +258,6 @@ class Bluetooth extends Plugin {
 
             // update Paired device list after 2s
             setTimeout(this.getPairedDevices.bind(this), 2000);
-            setTimeout(this.renderPairedDevices.bind(this), 3000);
         });
     }
 
