@@ -817,12 +817,17 @@ class Notifications {
 ;/** The wifi plugin provides details on the available Wifi Adapters, scans for networks and allows the user to join networks through the UI
  */
 
+/** The bluetooth plugin provides details on the available bluetooth devices, scans for new devices and allows the user to connect the device through UI
+ */
 class Bluetooth extends Plugin {
 
     constructor(pluginData) {
         super(pluginData);
 
-        this.devices = [];
+        this.discoveredDevices = [];
+        this.pairedDevices = [];
+        this.scanning = false;
+        this.connected = undefined;
         this.displayName = 'Bluetooth';
     }
 
@@ -831,6 +836,18 @@ class Bluetooth extends Plugin {
 
         mainDiv.innerHTML = `<div class="title grid__col grid__col--8-of-8">
             Status
+        </div>
+
+        <div class="label grid__col grid__col--2-of-8">
+            Connected to
+        </div>
+        <div id="BT_Connected" class="text grid__col grid__col--6-of-8"></div>
+
+        <div class="label grid__col grid__col--2-of-8">
+            Scanning
+        </div>
+        <div id="BT_Scanning" class="text grid__col grid__col--6-of-8">
+            OFF
         </div>
 
         <div class="label grid__col grid__col--2-of-8">
@@ -865,6 +882,7 @@ class Bluetooth extends Plugin {
         </div>
 
         <br>
+
         <div id="statusMessages" class="text grid__col grid__col--8-of-8"></div>
         `;
 
@@ -872,7 +890,7 @@ class Bluetooth extends Plugin {
 
         // ---- button ----
         this.scanButton                 = document.getElementById('BT_ScanForDevices');
-        this.pairButton                 = document.getElementById('BT_Connect');
+        this.pairButton                 = document.getElementById('BT_Pair');
         this.connectButton              = document.getElementById('BT_Connect');
         this.disconnectButton           = document.getElementById('BT_Disconnect');
 
@@ -882,42 +900,120 @@ class Bluetooth extends Plugin {
         this.disconnectButton.onclick   = this.disconnect.bind(this);
         this.connectButton.onclick      = this.connect.bind(this);
 
+        // ---- Status -----
+        this.connectedStatus            = document.getElementById('BT_Connected');
+        this.scanningStatus             = document.getElementById('BT_Scanning');
+        this.statusMessages             = document.getElementById('statusMessages');
+
         // ---- Devices -----
         this.devicesListEl              = document.getElementById('BT_Devices');
-        //this.devicesListEl.onchange     = this.renderDeviceDetails.bind(this);
 
         // ---- Discovered Devices ----
         this.discoveredDevicesEl        = document.getElementById('BT_DiscoveredDevices');
-        //this.discoveredDevicesEl.onchange = this.renderConfigDetails.bind(this);
 
-        this.update();
+        this.checkDeviceScanning();
+        this.getPairedDevices();
+        setTimeout(this.update.bind(this), 2000);
     }
 
     /* ----------------------------- DATA ------------------------------*/
 
     update() {
-        api.getPluginData(this.callsign + '/ShowDeviceList', (err, resp) => {
+        api.getPluginData(this.callsign, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
             }
 
             // bail out if the plugin returns nothing
-            if (this.resp === undefined || this.resp.DeviceInfoList.length > 0)
+            if (resp === undefined)
                 return;
 
-            this.devices = this.resp.DeviceInfoList;
+            this.connected = resp.connected;
+
+            if (typeof resp.scanning === 'boolean')
+                this.scanning = resp.scanning;
+
             this.renderStatus();
+        });
+    }
+
+    getPairedDevices() {
+        api.getPluginData(this.callsign + '/PairedDevices', (err, resp) => {
+            if (err !== null) {
+                console.error(err);
+                return;
+            }
+
+            // bail out if the plugin returns nothing
+            if (resp === undefined || resp.DeviceList.length < 0)
+                return;
+
+            this.pairedDevices = resp.DeviceList;
+
+            this.renderPairedDevices();
+        });
+    }
+
+    getDiscoveredDevices() {
+        if (this.scanning === true) {
+            api.getPluginData(this.callsign + '/DiscoveredDevices', (err, resp) => {
+                    if (err !== null) {
+                    console.error(err);
+                    return;
+                }
+
+                // bail out if the plugin returns nothing
+                if (resp === undefined || resp.DeviceList.length < 0)
+                    return;
+
+                this.discoveredDevices = resp.DeviceList;
+                this.renderDiscoveredDevices();
+            });
+        }
+    }
+
+    checkDeviceScanning() {
+        api.getPluginData(this.callsign, (err, resp) => {
+            if (resp.scanning) {
+                this.stopScan();
+            }
         });
     }
 
     /* ----------------------------- RENDERING ------------------------------*/
 
     renderStatus () {
+        if (this.connected !== '') {
+            var deviceInfo = this.pairedDevices.find(deviceInfo=>deviceInfo.Address==this.connected);
+            this.connectedStatus.innerHTML = deviceInfo.Name;
+        } else
+            this.connectedStatus.innerHTML = 'Not Connected';
+
+        this.scanningStatus.innerHTML = this.scanning === true ? 'ON' : 'OFF';
+    }
+
+    renderPairedDevices () {
         this.devicesListEl.innerHTML = '';
-        for (var i=0; i<this.devices.length; i++) {
+        for (var i=0; i<this.pairedDevices.length; i++) {
             var newChild = this.devicesListEl.appendChild(document.createElement("option"));
-            newChild.innerHTML = `${this.devices[i].name}`;
+            if (this.pairedDevices[i].Name === "")
+                newChild.innerHTML = `${this.pairedDevices[i].Address}`;
+            else
+                newChild.innerHTML = `${this.pairedDevices[i].Name}`;
+        }
+    }
+
+    renderDiscoveredDevices () {
+        this.discoveredDevicesEl.innerHTML = '';
+        for (var i=0; i<this.discoveredDevices.length; i++) {
+            var newChild = this.discoveredDevicesEl.appendChild(document.createElement("option"));
+            if (this.discoveredDevices[i].Name === "")
+                newChild.innerHTML = `${this.discoveredDevices[i].Address}`;
+            else
+                newChild.innerHTML = `${this.discoveredDevices[i].Name}`;
+
+            newChild.value = JSON.stringify(this.discoveredDevices[i]);
         }
     }
 
@@ -932,62 +1028,95 @@ class Bluetooth extends Plugin {
     /* ----------------------------- BUTTONS ------------------------------*/
 
     scanForDevices() {
-        var idx = this.devicesListEl.selectedIndex;
-        api.putPlugin(this.callsign, 'StartScan', null, (err, resp) => {
+        this.status(`Start scanning`);
+        api.putPlugin(this.callsign, 'Scan', null, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
             }
 
-            // get the results
-            // FIXME, there should be a seperate API to provide results on the "scanned results". For now go back to this.update
-            setTimeout(this.update.bind(this), 5000);
+            // update after 2s
+            setTimeout(this.update.bind(this), 2000);
+
+            // update discovered device list in every 4s
+            this.Timer = setInterval(this.getDiscoveredDevices.bind(this), 4000);
+
+            this.status(`Scanning...`);
+            // stop scan after 1 min
+            setTimeout(this.stopScan.bind(this), 60000);
+
+        });
+    }
+
+    stopScan() {
+        this.status(`Stopping Scan`);
+        api.putPlugin(this.callsign, 'StopScan', null, (err, resp) => {
+            if (err !== null) {
+                console.error(err);
+                return;
+            }
+
+            clearInterval(this.Timer);
+            setTimeout(this.update.bind(this), 2000);
+            this.status(`Scan stopped`);
         });
     }
 
     pairDevice() {
-        var idx = this.devicesListEl.selectedIndex;
+        var val = JSON.parse(document.getElementById('BT_DiscoveredDevices').value);
+        if (val.Name === "")
+            this.status(`Pairing with ${val.Address}`);
+        else
+            this.status(`Pairing with ${val.Name}`);
 
-        this.status(`Pairing with ${this.devices[idx].name}`);
-
-        api.putPlugin(this.callsign, 'PairDevice', this,devices[idx].id, (err, resp) => {
+        api.putPlugin(this.callsign, 'Pair', '{"Address" : "' + val.Address + '"}', (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
             }
 
-            // get the results
-            // FIXME, there should be a seperate API to provide results on the "scanned results"
-            setTimeout(this.update.bind(this), 5000);
+            // update Paired device list after 2s
+            setTimeout(this.getPairedDevices.bind(this), 2000);
+            setTimeout(this.renderPairedDevices.bind(this), 3000);
         });
     }
 
     connect() {
         var idx = this.devicesListEl.selectedIndex;
 
-        this.status(`Connecting to ${this.devices[idx].name}`);
+        this.status(`Connecting to ${this.pairedDevices[idx].Name}`);
+        api.putPlugin(this.callsign, 'Connect', '{"Address" : "' + this.pairedDevices[idx].Address + '"}', (err,resp) =>{
+            if (err !== null) {
+                console.error(err);
+                return;
+            }
 
-        api.putPlugin(this.callsign, `Connect/${this.devices[idx].id}`, null, () =>{
-            // update after 5s
-            setTimeout(this.update.bind(this), 5000);
+            // update after 2s
+            setTimeout(this.update.bind(this), 2000);
         });
     }
 
     disconnect() {
-        var idx = this.devicesListEl.selectedIndex;
+        this.status(`Disconnecting to ${this.connected}`);
+        api.deletePlugin(this.callsign, 'Connect', null, (err,resp) =>{
+            if (err !== null) {
+                console.error(err);
+                return;
+            }
 
-        this.status(`Connecting to ${this.devices[idx].name}`);
-
-        api.deletePlugin(this.callsign, 'Connect/' + this.connected, null);
+            // update after 2s
+            setTimeout(this.update.bind(this), 2000);
+        });
     }
 
 }
 
 window.pluginClasses = window.pluginClasses || {};
 window.pluginClasses.Bluetooth = Bluetooth;
-;/** The compositor plugin manages the Westeros compositor and its cliens through the webui
- */
+;
 
+/** The compositor plugin manages the Westeros compositor and its cliens through the webui
+ */
 class Compositor extends Plugin {
 
     constructor(pluginData) {
