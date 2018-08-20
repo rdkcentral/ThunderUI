@@ -226,7 +226,7 @@ class RemoteControl extends Plugin {
     }
 
     activatePairing(deviceName) {
-        api.putPlugin(this.callsign + '/' + deviceName, 'PairingMode', null, (err, resp) => {
+        api.putPlugin(this.callsign + '/' + deviceName, 'Pair', null, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
