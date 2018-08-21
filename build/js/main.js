@@ -2153,7 +2153,7 @@ class RemoteControl extends Plugin {
         this.displayName = 'Remote Control';
         this.onScreenKeyBoardIsRendered     = false;
         this.doNotHandleKeys                = false;
-        this.devicesThatSupportPairing      = ['GreenPeakRF4CE'];
+        this.devicesThatSupportPairing      = ['GreenPeakRF4CE', 'GreenPeak'];
 
         /**
          * Human to WPE key codes.
@@ -2370,7 +2370,7 @@ class RemoteControl extends Plugin {
     }
 
     activatePairing(deviceName) {
-        api.putPlugin(this.callsign + '/' + deviceName, 'PairingMode', null, (err, resp) => {
+        api.putPlugin(this.callsign + '/' + deviceName, 'Pair', null, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
