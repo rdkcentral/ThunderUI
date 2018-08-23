@@ -161,6 +161,9 @@ conf = {
 
     /** (global) refresh current active plugin */
     renderCurrentPlugin = function() {
+        // lets re-render menu too, just to be sure
+        plugins.menu.render(activePlugin);
+
         document.getElementById('main').innerHTML = '';
         plugins[ activePlugin ].render();
     };
@@ -187,14 +190,19 @@ class Plugin {
         this.supportsVisibility = false;
         this.renderInMenu = true;
         this.displayName = undefined;
+        this.rendered = false;
     }
 
     /** The render function is called when the plugin needs to render on screen */
-    render()        {}
+    render()        {
+        this.rendered = true;
+    }
 
 
     /** Theclose function is called when the plugin needs to clean up */
-    close()         {}
+    close()         {
+        this.rendered = false;
+    }
 }
 ;/*
  * WPE Framework API
@@ -403,28 +411,34 @@ class Plugin {
                 var callsign = '';
                 try {
                     data = JSON.parse(e.data);
-                    for (var i in data) {
-                        if (i === 'callsign') {
-                            callsign = data[i];
-                            break;
-                        }
-                    }
+
+                    if (data.callsign === undefined)
+                        return
+
+                    for (var i=0; i<self.socketListeners.length; i++)
+                        if (data.callsign === self.socketListeners[i].callsign || self.socketListeners[i].callsign === 'all')
+                            self.socketListeners[i].fn(data);
+
                 } catch (e) {
                     return console.error('SocketNotificationError', e);
                 }
+            };
 
-                for(var i in self.socketListeners)
-                    if (!self.socketListeners[i].callsign || callsign === self.socketListeners[i].callsign) self.socketListeners[i].fn(data);
+            this.socket.onclose = function(e) {
+                setTimeout(self.startWebSocket.bind(self), conf.refresh_interval);
+            };
 
+            this.socket.onerror = function(err) {
+                this.socket.close();
             };
         };
 
-        addWebSocketListener(method, callsign) {
+        addWebSocketListener(callsign, callback) {
             var obj = {
-                fn: method,
+                fn: callback,
                 callsign: callsign
             };
-            if (typeof method === 'function' && this.socketListeners.indexOf(obj) === -1)
+            if (typeof callback === 'function' && this.socketListeners.indexOf(obj) === -1)
                 this.socketListeners.push(obj);
 
             return this.socketListeners.length - 1;
@@ -678,6 +692,12 @@ class Menu {
                 menu.style.left = '-600px';
             }
         };
+
+        api.addWebSocketListener('all', (data) => {
+            // check if we have a state change
+            if (data.state !== undefined)
+                this.render();
+        });
     }
 
     clear() {
@@ -1330,6 +1350,20 @@ class Controller extends Plugin {
         super(pluginData);
         this.plugins = undefined;
         this.mainDiv = undefined;
+
+        api.addWebSocketListener('all', (data) => {
+            if (this.rendered === false)
+                return;
+
+            // check if we have a state change
+            if (data.state !== undefined)
+                this.render();
+
+            // data.data? ¯\_( ͡° ͜ʖ ͡°)_/¯
+            if (data.data !== undefined && data.data.suspended !== undefined)
+                this.render();
+
+        });
     }
 
     toggleActivity(callsign) {
@@ -1355,7 +1389,6 @@ class Controller extends Plugin {
                     plugins[ callsign ].state = 'activated';
 
                 plugin.state = 'activated';
-                this.reloadMenu();
             });
         } else {
             console.debug('Deactivating ' + callsign);
@@ -1369,7 +1402,6 @@ class Controller extends Plugin {
                     plugins[ callsign ].state = 'deactivated';
 
                 plugin.state = 'deactivated';
-                this.reloadMenu();
             });
         }
     }
@@ -1569,6 +1601,8 @@ class Controller extends Plugin {
                 }
             }
         });
+
+        this.rendered = true;
     }
 
     updateSuspendLabel(callsign, nextState) {
@@ -1576,10 +1610,6 @@ class Controller extends Plugin {
         suspendLabel.innerHTML = nextState;
     }
 
-    reloadMenu() {
-        if (plugins.menu !== undefined)
-            plugins.menu.render();
-    }
 }
 
 window.pluginClasses = window.pluginClasses || {};
@@ -2751,7 +2781,7 @@ class WebKitBrowser extends Plugin {
 
     constructor(pluginData) {
         super(pluginData);
-        this.socketListenerId = api.addWebSocketListener(this.handleNotification.bind(this), this.callsign);
+        this.socketListenerId = api.addWebSocketListener(this.callsign, this.handleNotification.bind(this));
         this.url = '';
         this.fps = 0;
         this.isHidden = false;
@@ -2759,6 +2789,7 @@ class WebKitBrowser extends Plugin {
         this.lastSetUrlKey = 'lastSetUrl';
         this.lastSetUrl = window.localStorage.getItem(this.lastSetUrlKey) || '';
         this.inspectorPort = '9998';
+        this.updateLoopInterval = undefined;
 
         this.template = `<div id="content_{{callsign}}" class="grid">
 
@@ -2840,6 +2871,8 @@ class WebKitBrowser extends Plugin {
     }
 
     handleNotification(json) {
+        if (this.rendered === false)
+            return;
 
         //this only receives webkit events;
         var data = json.data || {};
@@ -2907,6 +2940,16 @@ class WebKitBrowser extends Plugin {
                 plugins.RemoteControl.doNotHandleKeys = true;
         };
 
+        this.updateLoopInterval = setInterval(this.updateLoop.bind(this), conf.refresh_interval);
+
+        this.rendered = true;
+        this.updateLoop();
+    }
+
+    updateLoop() {
+        if (this.rendered === false)
+            return;
+
         var self = this;
         api.getPluginData(this.callsign, (err, resp) => {
             if (err) {
@@ -2921,14 +2964,19 @@ class WebKitBrowser extends Plugin {
         });
     }
 
+
     close() {
         window.removeEventListener('keydown', this.handleKey.bind(this), false);
-        api.removeWebSocketListener(this.socketListenerId);
+        clearInterval(this.updateLoopInterval);
+
+        delete this.updateLoopInterval;
         delete this.socketListenerId;
         delete this.url;
         delete this.fps;
         delete this.isHidden;
         delete this.isSuspended;
+
+        this.rendered = false;
     }
 
     update() {
@@ -3126,7 +3174,7 @@ class WifiControl extends Plugin {
         this.statusMessageTimer = null;
         this.rendered = false;
         this.wlanInterface = 'wlan0'; //FIXME, this can be anything really...
-        this.socketListenerId = api.addWebSocketListener(this.handleNotification.bind(this), this.callsign);
+        this.socketListenerId = api.addWebSocketListener(this.callsign, this.handleNotification.bind(this));
     }
 
     render()        {
@@ -3360,6 +3408,9 @@ class WifiControl extends Plugin {
     }
 
     handleNotification(json) {
+        if (this.rendered === false)
+            return;
+
         var data = json.data || {};
 
         // the event connected just provides an async boolean, rerender the network status
