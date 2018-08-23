@@ -8,6 +8,20 @@ class Controller extends Plugin {
         super(pluginData);
         this.plugins = undefined;
         this.mainDiv = undefined;
+
+        api.addWebSocketListener('all', (data) => {
+            if (this.rendered === false)
+                return;
+
+            // check if we have a state change
+            if (data.state !== undefined)
+                this.render();
+
+            // data.data? ¯\_( ͡° ͜ʖ ͡°)_/¯
+            if (data.data !== undefined && data.data.suspended !== undefined)
+                this.render();
+
+        });
     }
 
     toggleActivity(callsign) {
@@ -33,7 +47,6 @@ class Controller extends Plugin {
                     plugins[ callsign ].state = 'activated';
 
                 plugin.state = 'activated';
-                this.reloadMenu();
             });
         } else {
             console.debug('Deactivating ' + callsign);
@@ -47,7 +60,6 @@ class Controller extends Plugin {
                     plugins[ callsign ].state = 'deactivated';
 
                 plugin.state = 'deactivated';
-                this.reloadMenu();
             });
         }
     }
@@ -247,6 +259,8 @@ class Controller extends Plugin {
                 }
             }
         });
+
+        this.rendered = true;
     }
 
     updateSuspendLabel(callsign, nextState) {
@@ -254,10 +268,6 @@ class Controller extends Plugin {
         suspendLabel.innerHTML = nextState;
     }
 
-    reloadMenu() {
-        if (plugins.menu !== undefined)
-            plugins.menu.render();
-    }
 }
 
 window.pluginClasses = window.pluginClasses || {};

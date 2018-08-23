@@ -59,6 +59,12 @@ class Menu {
                 menu.style.left = '-600px';
             }
         };
+
+        api.addWebSocketListener('all', (data) => {
+            // check if we have a state change
+            if (data.state !== undefined)
+                this.render();
+        });
     }
 
     clear() {

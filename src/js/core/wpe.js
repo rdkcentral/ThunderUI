@@ -205,28 +205,34 @@
                 var callsign = '';
                 try {
                     data = JSON.parse(e.data);
-                    for (var i in data) {
-                        if (i === 'callsign') {
-                            callsign = data[i];
-                            break;
-                        }
-                    }
+
+                    if (data.callsign === undefined)
+                        return
+
+                    for (var i=0; i<self.socketListeners.length; i++)
+                        if (data.callsign === self.socketListeners[i].callsign || self.socketListeners[i].callsign === 'all')
+                            self.socketListeners[i].fn(data);
+
                 } catch (e) {
                     return console.error('SocketNotificationError', e);
                 }
+            };
 
-                for(var i in self.socketListeners)
-                    if (!self.socketListeners[i].callsign || callsign === self.socketListeners[i].callsign) self.socketListeners[i].fn(data);
+            this.socket.onclose = function(e) {
+                setTimeout(self.startWebSocket.bind(self), conf.refresh_interval);
+            };
 
+            this.socket.onerror = function(err) {
+                this.socket.close();
             };
         };
 
-        addWebSocketListener(method, callsign) {
+        addWebSocketListener(callsign, callback) {
             var obj = {
-                fn: method,
+                fn: callback,
                 callsign: callsign
             };
-            if (typeof method === 'function' && this.socketListeners.indexOf(obj) === -1)
+            if (typeof callback === 'function' && this.socketListeners.indexOf(obj) === -1)
                 this.socketListeners.push(obj);
 
             return this.socketListeners.length - 1;

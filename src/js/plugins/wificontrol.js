@@ -15,7 +15,7 @@ class WifiControl extends Plugin {
         this.statusMessageTimer = null;
         this.rendered = false;
         this.wlanInterface = 'wlan0'; //FIXME, this can be anything really...
-        this.socketListenerId = api.addWebSocketListener(this.handleNotification.bind(this), this.callsign);
+        this.socketListenerId = api.addWebSocketListener(this.callsign, this.handleNotification.bind(this));
     }
 
     render()        {
@@ -249,6 +249,9 @@ class WifiControl extends Plugin {
     }
 
     handleNotification(json) {
+        if (this.rendered === false)
+            return;
+
         var data = json.data || {};
 
         // the event connected just provides an async boolean, rerender the network status

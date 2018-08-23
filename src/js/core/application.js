@@ -153,6 +153,9 @@
 
     /** (global) refresh current active plugin */
     renderCurrentPlugin = function() {
+        // lets re-render menu too, just to be sure
+        plugins.menu.render(activePlugin);
+
         document.getElementById('main').innerHTML = '';
         plugins[ activePlugin ].render();
     };

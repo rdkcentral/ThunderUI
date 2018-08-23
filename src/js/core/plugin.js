@@ -17,12 +17,17 @@ class Plugin {
         this.supportsVisibility = false;
         this.renderInMenu = true;
         this.displayName = undefined;
+        this.rendered = false;
     }
 
     /** The render function is called when the plugin needs to render on screen */
-    render()        {}
+    render()        {
+        this.rendered = true;
+    }
 
 
     /** Theclose function is called when the plugin needs to clean up */
-    close()         {}
+    close()         {
+        this.rendered = false;
+    }
 }

@@ -5,7 +5,7 @@ class WebKitBrowser extends Plugin {
 
     constructor(pluginData) {
         super(pluginData);
-        this.socketListenerId = api.addWebSocketListener(this.handleNotification.bind(this), this.callsign);
+        this.socketListenerId = api.addWebSocketListener(this.callsign, this.handleNotification.bind(this));
         this.url = '';
         this.fps = 0;
         this.isHidden = false;
@@ -13,6 +13,7 @@ class WebKitBrowser extends Plugin {
         this.lastSetUrlKey = 'lastSetUrl';
         this.lastSetUrl = window.localStorage.getItem(this.lastSetUrlKey) || '';
         this.inspectorPort = '9998';
+        this.updateLoopInterval = undefined;
 
         this.template = `<div id="content_{{callsign}}" class="grid">
 
@@ -94,6 +95,8 @@ class WebKitBrowser extends Plugin {
     }
 
     handleNotification(json) {
+        if (this.rendered === false)
+            return;
 
         //this only receives webkit events;
         var data = json.data || {};
@@ -161,6 +164,16 @@ class WebKitBrowser extends Plugin {
                 plugins.RemoteControl.doNotHandleKeys = true;
         };
 
+        this.updateLoopInterval = setInterval(this.updateLoop.bind(this), conf.refresh_interval);
+
+        this.rendered = true;
+        this.updateLoop();
+    }
+
+    updateLoop() {
+        if (this.rendered === false)
+            return;
+
         var self = this;
         api.getPluginData(this.callsign, (err, resp) => {
             if (err) {
@@ -175,14 +188,19 @@ class WebKitBrowser extends Plugin {
         });
     }
 
+
     close() {
         window.removeEventListener('keydown', this.handleKey.bind(this), false);
-        api.removeWebSocketListener(this.socketListenerId);
+        clearInterval(this.updateLoopInterval);
+
+        delete this.updateLoopInterval;
         delete this.socketListenerId;
         delete this.url;
         delete this.fps;
         delete this.isHidden;
         delete this.isSuspended;
+
+        this.rendered = false;
     }
 
     update() {
