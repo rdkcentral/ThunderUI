@@ -261,20 +261,12 @@ class RemoteControl extends Plugin {
             if (remotes === undefined || remotes.devices === undefined)
                 return;
 
-            // if there is only 1 keymap device, and its useless bail out
-            if (remotes.devices.length === 1 && remotes.devices[0] === 'keymap')
-                return;
-
             var devices = remotes.devices;
             var remotesDiv = document.getElementById('remotesList');
             var pairingDiv = document.getElementById('pairingDiv');
 
             for (var i = 0; i < devices.length; i++) {
                 var device = devices[i];
-
-                // for some reason WPE Framework returns a keymap device? Silly embedded developers.
-                if (device === 'keymap')
-                    continue;
 
                 remotesDiv.innerHTML += '' + device;
 
