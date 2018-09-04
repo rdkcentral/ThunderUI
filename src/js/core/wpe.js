@@ -169,17 +169,17 @@
 
         sendKey(key, callback) {
             var body = '{"code":"' + key + '"}';
-            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/keymap/Send', body, callback);
+            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/Web/Send', body, callback);
         };
 
         sendKeyPress(key, callback) {
             var body = '{"code":"' + key + '"}';
-            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/keymap/Press', body, callback);
+            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/Web/Press', body, callback);
         };
 
         sendKeyRelease(key, callback) {
             var body = '{"code":"' + key + '"}';
-            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/keymap/Release', body, callback);
+            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/Web/Release', body, callback);
         };
 
         toggleTracing(module, id, state, callback) {
