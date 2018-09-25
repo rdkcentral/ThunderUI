@@ -204,6 +204,32 @@ input:not([type=radio]):not([type=checkbox]) {
     -o-transition: border 0.2s ease-in-out, background 0.2s ease-in-out;
 }
 
+input[type=range] {
+    -webkit-appearance: none;
+    width: calc(60% + 10px)!important;
+    height: 25px;
+    background: #d3d3d3;
+    outline: none;
+    padding: 0 5px!important;
+    margin: 0;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 25px;
+    background: #2b2b2b;
+    cursor: pointer;
+}
+
+input[type=range]::-moz-range-thumb {
+    width: 15px;
+    height: 25px;
+    background: #2b2b2b;
+    cursor: pointer;
+}
+
 input:focus, textarea:focus {
     border: 1px solid rgba(255,255,255,0.4);
     background: #d0d6ed;

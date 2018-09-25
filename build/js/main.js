@@ -1205,7 +1205,7 @@ class Compositor extends Plugin {
         this.controlDiv.innerHTML = `<div class="title grid__col grid__col--8-of-8">
             Controls
         </div>        
-        <div class="text grid__col grid__col--2-of-8">
+        <div class="label grid__col grid__col--2-of-8">
             Focus
         </div>
         <div class="text grid__col grid__col--6-of-8">
@@ -1213,22 +1213,18 @@ class Compositor extends Plugin {
             <button type="button" id="compositorSetInput">Set Input</button>
         </div>
         <div class="text grid__col grid__col--8-of-8"></div>
-        <div class="text grid__col grid__col--2-of-8">
+        <div class="label grid__col grid__col--2-of-8">
             Opacity
         </div>
-        <div class="text grid__col grid__col--3-of-8">
-            <div width=100px>
-                <input id="sliderOpacity" type="range" min="0" max="256" step="1" value="256"/>
-            </div>
-        </div>
-        <div class="text grid__col grid__col--2-of-8">
+        <div class="text grid__col grid__col--6-of-8">
+            <input id="sliderOpacity" type="range" min="0" max="256" step="1" value="256"/>
             <input type="number" min="0" max="256" id="numOpacity" size="5" value="256"/>
         </div>
-        <div class="text grid__col grid__col--1-of-8">
+        <div class="label grid__col grid__col--2-of-8"></div>
+        <div class="text grid__col grid__col--6-of-8">
             <button type="button" id="compositorSetOpacity">Set</button>
         </div>
-        <div class="text grid__col grid__col--8-of-8"></div>
-        <div class="text grid__col grid__col--2-of-8">
+        <div class="label grid__col grid__col--2-of-8">
             Visibility
         </div>
         <div class="text grid__col grid__col--6-of-8">
@@ -1236,22 +1232,35 @@ class Compositor extends Plugin {
             <button type="button" id="webkit_show">Show</button>
         </div>
         <div class="text grid__col grid__col--8-of-8"></div>
-        <div class="text grid__col grid__col--2-of-8">
+        <div class="title grid__col grid__col--8-of-8">
             Geometry
         </div>
-        <div class="text grid__col grid__col--1-of-8">
+        <div class="label grid__col grid__col--2-of-8">
+            X
+        </div>
+        <div class="text grid__col grid__col--6-of-8">
             <input id="compositorXGeometry" type="number" value="0"/>
         </div>
-        <div class="text grid__col grid__col--1-of-8">
+        <div class="label grid__col grid__col--2-of-8">
+            Y
+        </div>
+        <div class="text grid__col grid__col--6-of-8">
             <input id="compositorYGeometry" type="number" value="0"/>
         </div>
-        <div class="text grid__col grid__col--1-of-8">
+        <div class="label grid__col grid__col--2-of-8">
+            Width
+        </div>
+        <div class="text grid__col grid__col--6-of-8">
             <input id="compositorWidthGeometry" type="number" value="1280" min="0"/>
         </div>
-        <div class="text grid__col grid__col--1-of-8">
+        <div class="label grid__col grid__col--2-of-8">
+            Height
+        </div>
+        <div class="text grid__col grid__col--6-of-8">
             <input id="compositorHeightGeometry" type="number" value="720" min="0"/>
         </div>
-        <div class="text grid__col grid__col--1-of-8">
+        <div class="label grid__col grid__col--2-of-8"></div>
+        <div class="text grid__col grid__col--6-of-8">
             <button type="button" id="compositorGeometry">Set</button>
         </div>`;
 
