@@ -3,7 +3,7 @@
 class Notifications {
     constructor() {
         this.renderInMenu = false;
-        api.addWebSocketListener(this.handleNotification.bind());
+        api.addWebSocketListener('all',this.handleNotification.bind());
 
         document.getElementById('hide-notifications').onclick = this.toggleVisibility.bind(this);
     }
