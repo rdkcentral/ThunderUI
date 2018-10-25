@@ -56,14 +56,14 @@ class Monitor extends Plugin {
             newChild.innerHTML = `${this.observablesList[i]}`;
          }
          var restartLimit= [];
-         for (var i=1; i<=20; i++) {
+         for (i=1; i<=20; i++) {
             restartLimit[i] = i;
          }
          this.restartList = restartLimit;
          this.restartListEl.innerHTML = '';
-         for (var i=1; i<=20; i++) {
-           var newChild = this.restartListEl.appendChild(document.createElement("option"));
-           newChild.innerHTML = `${this.restartList[i]}`;
+         for (i=1; i<=20; i++) {
+           var newOptionChild = this.restartListEl.appendChild(document.createElement("option"));
+           newOptionChild.innerHTML = `${this.restartList[i]}`;
         }
     }
     setRestartThreshold(){
