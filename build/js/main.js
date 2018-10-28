@@ -2292,7 +2292,7 @@ class RemoteControl extends Plugin {
         this.displayName = 'Remote Control';
         this.onScreenKeyBoardIsRendered     = false;
         this.doNotHandleKeys                = false;
-        this.devicesThatSupportPairing      = ['GreenPeakRF4CE', 'GreenPeak'];
+        this.devicesThatSupportPairing      = ['GreenPeakRF4CE', 'GreenPeak', 'RF4CE'];
 
         /**
          * Human to WPE key codes.
