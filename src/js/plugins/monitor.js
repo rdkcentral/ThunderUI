@@ -8,7 +8,73 @@ class Monitor extends Plugin {
 
     constructor(pluginData) {
         super(pluginData);
-        this.renderInMenu = false; // this plugin has no tab in the menu
+        this.observablesList = [];
+        this.restartList = [];
+    }
+
+    render() {
+
+        var mainDiv = document.getElementById('main');
+        mainDiv.innerHTML = `<div class="title grid__col grid__col--8-of-8"></div>
+        <table class="title grid__col grid__col--8-of-8">
+        <tr><td><div class="text grid__col grid__col--6-of-8">Observables</div></td>
+        <td><div class="text grid__col grid__col--6-of-8">
+            <select id="observables" style="width: fit-content;"></select>                   </div></td><td rowspan="4">
+        <div id="plugOutput"></div></td></tr><tr><td>
+        <div class="text grid__col grid__col--6-of-8">RestartThreshold</div></td><td><div class="text grid__col grid__col--6-of-8"><select id="restart" style="width: -webkit-fill-available;"> </select>
+        </div> </td></tr><tr><td></td><td>
+        <div class="text grid__col grid__col--6-of-8">
+            <button type="button" id="setRestart" style="width: 100%;"> Set</button></div></td></tr></table>`;
+
+        this.getObservableList();
+
+        this.observableListEl              = document.getElementById('observables');
+        this.restartListEl                 = document.getElementById('restart');
+
+        this.bt_setRestart                 = document.getElementById('setRestart');
+        this.bt_setRestart.onclick         = this.setRestartThreshold.bind(this);
+    }
+
+    getObservableList() {
+        api.getPluginData(this.callsign, (error, data) => {
+        if (error) {
+            console.error(error);
+            return;
+        }
+        var plugins = [];
+        for (var i=0; i<data.length; i++) {
+            plugins[i] = data[i].name;
+        }
+        this.observablesList = plugins;
+        this.renderObservables();
+        });
+    }
+    renderObservables() {
+         this.observableListEl.innerHTML = '';
+         for (var i=0; i<this.observablesList.length; i++){
+            var newChild = this.observableListEl.appendChild(document.createElement("option"));
+            newChild.innerHTML = `${this.observablesList[i]}`;
+         }
+         var restartLimit= [];
+         for (i=1; i<=20; i++) {
+            restartLimit[i] = i;
+         }
+         this.restartList = restartLimit;
+         this.restartListEl.innerHTML = '';
+         for (i=1; i<=20; i++) {
+           var newOptionChild = this.restartListEl.appendChild(document.createElement("option"));
+           newOptionChild.innerHTML = `${this.restartList[i]}`;
+        }
+    }
+    setRestartThreshold(){
+       var i = observables.selectedIndex;
+       var body = '{"observable" : "' + observables.options[i].text + '","restartlimit" :"' +restart.value+'"}';
+       api.postPlugin(this.callsign,'',body, (err, resp) => {
+       if (err !== null) {
+           console.error(err);
+           return;
+       }
+       });
     }
 
     getMonitorDataAndDiv(plugin, callback) {
