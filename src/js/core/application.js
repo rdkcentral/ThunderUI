@@ -51,7 +51,7 @@
             // check if wpe.js is already loaded, if not wait
             if (window.WpeApi === undefined) {
                 console.debug('WPE API is not ready yet, retrying...');
-                setTimeout(init, 1000);
+                setTimeout(init, 50);
                 return;
             }
 
