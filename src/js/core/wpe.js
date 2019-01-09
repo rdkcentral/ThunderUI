@@ -183,7 +183,7 @@
         };
 
         toggleTracing(module, id, state, callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + 'Tracing' +  '/' + module + '/' + id + '/' + state, null, callback);
+            this.handleRequest('PUT', this.getURLStart('http') + 'TraceControl' +  '/' + module + '/' + id + '/' + state, null, callback);
         };
 
         setUrl(plugin, url, callback) {

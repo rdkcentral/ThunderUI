@@ -31,7 +31,7 @@ class TraceControl extends Plugin {
 
         document.getElementById('tracingModules').onchange = this.getSelectedModuleAndShowCategories.bind(this);
 
-        api.getPluginData('Tracing', function(error, response) {
+        api.getPluginData('TraceControl', function(error, response) {
             self.traceModules = response.settings ? response.settings : [];
             self.uniqueTraceModules = [];
             var traceModulesSelectElement = document.getElementById('tracingModules');

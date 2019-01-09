@@ -389,7 +389,7 @@ class Plugin {
         };
 
         toggleTracing(module, id, state, callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + 'Tracing' +  '/' + module + '/' + id + '/' + state, null, callback);
+            this.handleRequest('PUT', this.getURLStart('http') + 'TraceControl' +  '/' + module + '/' + id + '/' + state, null, callback);
         };
 
         setUrl(plugin, url, callback) {
@@ -2850,7 +2850,7 @@ class TraceControl extends Plugin {
 
         document.getElementById('tracingModules').onchange = this.getSelectedModuleAndShowCategories.bind(this);
 
-        api.getPluginData('Tracing', function(error, response) {
+        api.getPluginData('TraceControl', function(error, response) {
             self.traceModules = response.settings ? response.settings : [];
             self.uniqueTraceModules = [];
             var traceModulesSelectElement = document.getElementById('tracingModules');
