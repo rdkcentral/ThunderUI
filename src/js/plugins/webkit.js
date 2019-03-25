@@ -79,7 +79,7 @@ class WebKitBrowser extends Plugin {
             { Name:"EME 2018",          URL:"http://yt-dash-mse-test.commondatastorage.googleapis.com/unit-tests/2018.html?test_type=encryptedmedia-test" },
             { Name:"Progressive",       URL:"http://yt-dash-mse-test.commondatastorage.googleapis.com/unit-tests/2018.html?test_type=progressive-test" },
             { Name:"YouTube",           URL:"http://youtube.com/tv" },
-            { Name:"HelloRacer",        URL:"http://helloracer.com/webgl" },
+            { Name:"HelloRacer",        URL:"http://www.emerveille.fr/lab/helloracer/index.html" },
             { Name:"Leaves",            URL:"http://www.webkit.org/blog-files/leaves" },
             { Name:"Canvas Dots",       URL:"http://themaninblue.com/experiment/AnimationBenchmark/canvas/" },
             { Name:"Anisotropic",       URL:"http://whiteflashwhitehit.com/content/2011/02/anisotropic_webgl.html" },
