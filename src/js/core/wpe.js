@@ -11,7 +11,10 @@
 
             this.requestCache = {};
             this.socket = null;
+            this.jsonRpcSocket = null;
             this.socketListeners = [];
+            this.jsonRpcCallbackQueue = {};
+            this.jsonRpcId = 1;
         };
 
 
@@ -111,15 +114,39 @@
             return url;
         };
 
+        getJSONRPCUrl() {
+            return `http://${this.host}/jsonrpc`;
+        }
+
+        jsonRPCRequest(method, params, cb){
+            var body = {
+                "jsonrpc": "2.0",
+                "id": this.jsonRpcId,
+                "method": method,
+                "params": params
+            };
+
+            if (this.jsonRpcSocket) {
+                if (this.jsonRpcSocket.readyState === 0) {
+                    console.log('retry json rpc message')
+                    return setTimeout(this.jsonRPCRequest.bind(this,method,params,cb), 50);
+                }
+                this.jsonRpcCallbackQueue[this.jsonRpcId] = cb;
+                this.jsonRpcSocket.send(JSON.stringify(body));
+            }
+            this.jsonRpcId++;
+        }
+
         activatePlugin(plugin, callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + 'Controller/Activate/' + plugin, null, callback);
+            this.jsonRPCRequest('Controller.1.activate', {callsign: plugin}, callback);
         };
 
         deactivatePlugin(plugin, callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + 'Controller/Deactivate/' + plugin, null, callback);
+            this.jsonRPCRequest('Controller.1.deactivate', {callsign: plugin}, callback);
         };
 
         suspendPlugin(plugin, callback) {
+
             this.handleRequest('POST', this.getURLStart('http') + plugin + '/Suspend', null, callback);
         };
 
@@ -144,51 +171,68 @@
         };
 
         getControllerPlugins(callback) {
-            this.handleRequest('GET', this.getURLStart('http') + 'Controller/Plugins', null, callback);
+            this.jsonRPCRequest('Controller.1.status', {}, (err,res)=>{
+                //reformat the data to be aligned with depracated REST call
+                callback(err, {plugins: res});
+            });
         };
 
         getMemoryInfo(plugin, callback) {
-            this.handleRequest('GET', this.getURLStart('http') + 'Monitor/' + plugin, null, callback);
+            this.jsonRPCRequest('Monitor.1.status', {callsign: plugin}, callback);
         };
 
         initiateDiscovery(callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + 'Controller/Discovery', null);
+            this.jsonRPCRequest('Controller.1.startdiscovery', {ttl: 1}, callback);
         };
 
         getDiscovery(callback) {
-            this.handleRequest('GET', this.getURLStart('http') + 'Controller/Discovery', null, callback);
+            this.jsonRPCRequest('Controller.1.discover', {ttl: 1}, callback);
         };
 
         persist(callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + "Controller/Persist", null, callback);
+            this.jsonRPCRequest('Controller.1.storeconfig', {}, callback);
         };
 
         reboot(callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + "Controller/Harakiri", null, callback);
+            this.jsonRPCRequest('Controller.1.harakiri', {}, callback);
         };
 
         sendKey(key, callback) {
-            var body = '{"code":"' + key + '"}';
-            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/Web/Send', body, callback);
+            var body = {
+                "device": "Web",
+                "code": key,
+            };
+            this.jsonRPCRequest('RemoteControl.1.send', body, callback);
         };
 
         sendKeyPress(key, callback) {
-            var body = '{"code":"' + key + '"}';
-            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/Web/Press', body, callback);
+            var body = {
+                "device": "Web",
+                "code": key,
+            };
+            this.jsonRPCRequest('RemoteControl.1.press', body, callback);
         };
 
         sendKeyRelease(key, callback) {
-            var body = '{"code":"' + key + '"}';
-            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/Web/Release', body, callback);
+            var body = {
+                "device": "Web",
+                "code": key,
+            };
+            this.jsonRPCRequest('RemoteControl.1.release', body, callback);
         };
 
         toggleTracing(module, id, state, callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + 'TraceControl' +  '/' + module + '/' + id + '/' + state, null, callback);
+            var body = {
+                "module": module,
+                "category": id,
+                "state": state === 'on' ? 'enabled' : 'disabled'
+            };
+            this.jsonRPCRequest('TraceControl.1.set', body, callback);
         };
 
         setUrl(plugin, url, callback) {
-            var body = '{"url":"' + url + '"}';
-            this.handleRequest('POST', this.getURLStart('http') + plugin + '/URL', body, callback);
+            var body = {"url":  url };
+            this.jsonRPCRequest('WebKitBrowser.1.seturl', body, callback);
         };
 
         startWebShell(callback) {
@@ -226,6 +270,34 @@
                 this.socket.close();
             };
         };
+
+        startJSONRPCSocket() {
+            if (this.jsonRpcSocket) this.jsonRpcSocket.close();
+            this.jsonRpcSocket = new WebSocket( `ws://${this.host}/jsonrpc`, 'notification');
+            var self = this;
+            this.jsonRpcSocket.onmessage = function(e){
+                var data = {};
+                try {
+                    data = JSON.parse(e.data);
+
+                    var id = data && data.id || null;
+                    if (self.jsonRpcCallbackQueue[id]){
+                        self.jsonRpcCallbackQueue[data.id](null, data.result);
+                    }
+
+                } catch (e) {
+                    return console.error('jsonRpcSocket socket error', e);
+                }
+            };
+
+            this.jsonRpcSocket.onclose = function(e) {
+                setTimeout(self.startJSONRPCSocket.bind(self), conf.refresh_interval);
+            };
+
+            this.jsonRpcSocket.onerror = function(err) {
+                this.socket.close();
+            };
+        }
 
         addWebSocketListener(callsign, callback) {
             var obj = {

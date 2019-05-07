@@ -57,6 +57,7 @@
 
             // initialize the WPE Framework API
             api = new window.WpeApi(hostname);
+            api.startJSONRPCSocket();
             initNext();
         /*
          * BOOT Step 2 - Get the list of plugins and init each plugin
@@ -119,7 +120,9 @@
          * Boot step 7 - start the notification socket
          */
         } else if (bootStep === 7){
+
             api.startWebSocket();
+
             initNext();
         /*
          * Boot step 8 - start the socket notification console

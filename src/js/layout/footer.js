@@ -84,21 +84,21 @@ class Footer {
 
         this.deviceIsConnected(true);
 
-        this.versionSpan.innerHTML      = deviceInfo.systeminfo.version;
-        this.serialSpan.innerHTML       = deviceInfo.systeminfo.deviceid;
-        this.uptimeSpan.innerHTML       = deviceInfo.systeminfo.uptime;
-        this.totalRamSpan.innerHTML     = this.bytesToMbString(deviceInfo.systeminfo.totalram);
-        this.usedRamSpan.innerHTML      = this.bytesToMbString(deviceInfo.systeminfo.totalram - deviceInfo.systeminfo.freeram);
-        this.gpuTotalRamSpan.innerHTML  = this.bytesToMbString(deviceInfo.systeminfo.totalgpuram);
-        this.gpuUsedRamSpan.innerHTML   = this.bytesToMbString(deviceInfo.systeminfo.totalgpuram - deviceInfo.systeminfo.freegpuram);
-        this.cpuLoadSpan.innerHTML      = parseFloat(deviceInfo.systeminfo.cpuload).toFixed(1) + " %";
+        this.versionSpan.innerHTML      = deviceInfo.version;
+        this.serialSpan.innerHTML       = deviceInfo.deviceid;
+        this.uptimeSpan.innerHTML       = deviceInfo.uptime;
+        this.totalRamSpan.innerHTML     = this.bytesToMbString(deviceInfo.totalram);
+        this.usedRamSpan.innerHTML      = this.bytesToMbString(deviceInfo.totalram - deviceInfo.freeram);
+        this.gpuTotalRamSpan.innerHTML  = this.bytesToMbString(deviceInfo.totalgpuram);
+        this.gpuUsedRamSpan.innerHTML   = this.bytesToMbString(deviceInfo.totalgpuram - deviceInfo.freegpuram);
+        this.cpuLoadSpan.innerHTML      = parseFloat(deviceInfo.cpuload).toFixed(1) + " %";
     }
 
     update() {
         if (this.paused === true || plugins.DeviceInfo.state === 'deactivated')
             return;
 
-        api.getPluginData('DeviceInfo', this.render.bind(this));
+        api.jsonRPCRequest('DeviceInfo.1.system', {}, this.render.bind(this));
     }
 
     togglePause() {

@@ -176,7 +176,9 @@ class WebKitBrowser extends Plugin {
             return;
 
         var self = this;
-        api.getPluginData(this.callsign, (err, resp) => {
+
+
+        api.jsonRPCRequest('WebKitBrowser.1.status', {}, (err, resp) => {
             if (err) {
                 console.error(err);
                 return;
