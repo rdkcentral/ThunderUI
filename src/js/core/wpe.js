@@ -283,6 +283,7 @@
                     var id = data && data.id || null;
                     if (self.jsonRpcCallbackQueue[id]){
                         self.jsonRpcCallbackQueue[data.id](null, data.result);
+                        delete self.jsonRpcCallbackQueue[data.id];
                     }
 
                 } catch (e) {
