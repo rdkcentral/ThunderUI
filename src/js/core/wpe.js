@@ -232,7 +232,7 @@
 
         setUrl(plugin, url, callback) {
             var body = {"url":  url };
-            this.jsonRPCRequest('WebKitBrowser.1.seturl', body, callback);
+            this.jsonRPCRequest(plugin + '.1.seturl', body, callback);
         };
 
         startWebShell(callback) {
