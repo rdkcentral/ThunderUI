@@ -65,6 +65,7 @@ conf = {
 
             // initialize the WPE Framework API
             api = new window.WpeApi(hostname);
+            api.startJSONRPCSocket();
             initNext();
         /*
          * BOOT Step 2 - Get the list of plugins and init each plugin
@@ -127,7 +128,9 @@ conf = {
          * Boot step 7 - start the notification socket
          */
         } else if (bootStep === 7){
+
             api.startWebSocket();
+
             initNext();
         /*
          * Boot step 8 - start the socket notification console
@@ -217,7 +220,10 @@ class Plugin {
 
             this.requestCache = {};
             this.socket = null;
+            this.jsonRpcSocket = null;
             this.socketListeners = [];
+            this.jsonRpcCallbackQueue = {};
+            this.jsonRpcId = 1;
         };
 
 
@@ -317,15 +323,39 @@ class Plugin {
             return url;
         };
 
+        getJSONRPCUrl() {
+            return `http://${this.host}/jsonrpc`;
+        }
+
+        jsonRPCRequest(method, params, cb){
+            var body = {
+                "jsonrpc": "2.0",
+                "id": this.jsonRpcId,
+                "method": method,
+                "params": params
+            };
+
+            if (this.jsonRpcSocket) {
+                if (this.jsonRpcSocket.readyState === 0) {
+                    console.log('retry json rpc message')
+                    return setTimeout(this.jsonRPCRequest.bind(this,method,params,cb), 50);
+                }
+                this.jsonRpcCallbackQueue[this.jsonRpcId] = cb;
+                this.jsonRpcSocket.send(JSON.stringify(body));
+            }
+            this.jsonRpcId++;
+        }
+
         activatePlugin(plugin, callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + 'Controller/Activate/' + plugin, null, callback);
+            this.jsonRPCRequest('Controller.1.activate', {callsign: plugin}, callback);
         };
 
         deactivatePlugin(plugin, callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + 'Controller/Deactivate/' + plugin, null, callback);
+            this.jsonRPCRequest('Controller.1.deactivate', {callsign: plugin}, callback);
         };
 
         suspendPlugin(plugin, callback) {
+
             this.handleRequest('POST', this.getURLStart('http') + plugin + '/Suspend', null, callback);
         };
 
@@ -350,51 +380,68 @@ class Plugin {
         };
 
         getControllerPlugins(callback) {
-            this.handleRequest('GET', this.getURLStart('http') + 'Controller/Plugins', null, callback);
+            this.jsonRPCRequest('Controller.1.status', {}, (err,res)=>{
+                //reformat the data to be aligned with depracated REST call
+                callback(err, {plugins: res});
+            });
         };
 
         getMemoryInfo(plugin, callback) {
-            this.handleRequest('GET', this.getURLStart('http') + 'Monitor/' + plugin, null, callback);
+            this.jsonRPCRequest('Monitor.1.status', {callsign: plugin}, callback);
         };
 
         initiateDiscovery(callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + 'Controller/Discovery', null);
+            this.jsonRPCRequest('Controller.1.startdiscovery', {ttl: 1}, callback);
         };
 
         getDiscovery(callback) {
-            this.handleRequest('GET', this.getURLStart('http') + 'Controller/Discovery', null, callback);
+            this.jsonRPCRequest('Controller.1.discover', {ttl: 1}, callback);
         };
 
         persist(callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + "Controller/Persist", null, callback);
+            this.jsonRPCRequest('Controller.1.storeconfig', {}, callback);
         };
 
         reboot(callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + "Controller/Harakiri", null, callback);
+            this.jsonRPCRequest('Controller.1.harakiri', {}, callback);
         };
 
         sendKey(key, callback) {
-            var body = '{"code":"' + key + '"}';
-            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/Web/Send', body, callback);
+            var body = {
+                "device": "Web",
+                "code": key,
+            };
+            this.jsonRPCRequest('RemoteControl.1.send', body, callback);
         };
 
         sendKeyPress(key, callback) {
-            var body = '{"code":"' + key + '"}';
-            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/Web/Press', body, callback);
+            var body = {
+                "device": "Web",
+                "code": key,
+            };
+            this.jsonRPCRequest('RemoteControl.1.press', body, callback);
         };
 
         sendKeyRelease(key, callback) {
-            var body = '{"code":"' + key + '"}';
-            this.handleRequest('PUT', this.getURLStart('http') + 'RemoteControl/Web/Release', body, callback);
+            var body = {
+                "device": "Web",
+                "code": key,
+            };
+            this.jsonRPCRequest('RemoteControl.1.release', body, callback);
         };
 
         toggleTracing(module, id, state, callback) {
-            this.handleRequest('PUT', this.getURLStart('http') + 'TraceControl' +  '/' + module + '/' + id + '/' + state, null, callback);
+            var body = {
+                "module": module,
+                "category": id,
+                "state": state === 'on' ? 'enabled' : 'disabled'
+            };
+            this.jsonRPCRequest('TraceControl.1.set', body, callback);
         };
 
         setUrl(plugin, url, callback) {
-            var body = '{"url":"' + url + '"}';
-            this.handleRequest('POST', this.getURLStart('http') + plugin + '/URL', body, callback);
+            var body = {"url":  url };
+            this.jsonRPCRequest(plugin + '.1.seturl', body, callback);
         };
 
         startWebShell(callback) {
@@ -432,6 +479,35 @@ class Plugin {
                 this.socket.close();
             };
         };
+
+        startJSONRPCSocket() {
+            if (this.jsonRpcSocket) this.jsonRpcSocket.close();
+            this.jsonRpcSocket = new WebSocket( `ws://${this.host}/jsonrpc`, 'notification');
+            var self = this;
+            this.jsonRpcSocket.onmessage = function(e){
+                var data = {};
+                try {
+                    data = JSON.parse(e.data);
+
+                    var id = data && data.id || null;
+                    if (self.jsonRpcCallbackQueue[id]){
+                        self.jsonRpcCallbackQueue[data.id](null, data.result);
+                        delete self.jsonRpcCallbackQueue[data.id];
+                    }
+
+                } catch (e) {
+                    return console.error('jsonRpcSocket socket error', e);
+                }
+            };
+
+            this.jsonRpcSocket.onclose = function(e) {
+                setTimeout(self.startJSONRPCSocket.bind(self), conf.refresh_interval);
+            };
+
+            this.jsonRpcSocket.onerror = function(err) {
+                this.socket.close();
+            };
+        }
 
         addWebSocketListener(callsign, callback) {
             var obj = {
@@ -561,21 +637,21 @@ class Footer {
 
         this.deviceIsConnected(true);
 
-        this.versionSpan.innerHTML      = deviceInfo.systeminfo.version;
-        this.serialSpan.innerHTML       = deviceInfo.systeminfo.deviceid;
-        this.uptimeSpan.innerHTML       = deviceInfo.systeminfo.uptime;
-        this.totalRamSpan.innerHTML     = this.bytesToMbString(deviceInfo.systeminfo.totalram);
-        this.usedRamSpan.innerHTML      = this.bytesToMbString(deviceInfo.systeminfo.totalram - deviceInfo.systeminfo.freeram);
-        this.gpuTotalRamSpan.innerHTML  = this.bytesToMbString(deviceInfo.systeminfo.totalgpuram);
-        this.gpuUsedRamSpan.innerHTML   = this.bytesToMbString(deviceInfo.systeminfo.totalgpuram - deviceInfo.systeminfo.freegpuram);
-        this.cpuLoadSpan.innerHTML      = parseFloat(deviceInfo.systeminfo.cpuload).toFixed(1) + " %";
+        this.versionSpan.innerHTML      = deviceInfo.version;
+        this.serialSpan.innerHTML       = deviceInfo.deviceid;
+        this.uptimeSpan.innerHTML       = deviceInfo.uptime;
+        this.totalRamSpan.innerHTML     = this.bytesToMbString(deviceInfo.totalram);
+        this.usedRamSpan.innerHTML      = this.bytesToMbString(deviceInfo.totalram - deviceInfo.freeram);
+        this.gpuTotalRamSpan.innerHTML  = this.bytesToMbString(deviceInfo.totalgpuram);
+        this.gpuUsedRamSpan.innerHTML   = this.bytesToMbString(deviceInfo.totalgpuram - deviceInfo.freegpuram);
+        this.cpuLoadSpan.innerHTML      = parseFloat(deviceInfo.cpuload).toFixed(1) + " %";
     }
 
     update() {
         if (this.paused === true || plugins.DeviceInfo.state === 'deactivated')
             return;
 
-        api.getPluginData('DeviceInfo', this.render.bind(this));
+        api.jsonRPCRequest('DeviceInfo.1.system', {}, this.render.bind(this));
     }
 
     togglePause() {
@@ -1918,7 +1994,7 @@ class Monitor extends Plugin {
 
     getMonitorDataAndDiv(plugin, callback) {
         var self = this;
-        api.getPluginData('Monitor', function (error, data) {
+        api.jsonRPCRequest('Monitor.1.status', {callsign: plugin}, function (error, data) {
             if (error) {
                 console.error(error);
                 self.callback('');
@@ -1929,7 +2005,7 @@ class Monitor extends Plugin {
             for (var i=0; i<data.length; i++) {
                 var _p = data[i];
 
-                if (_p.name === plugin) {
+                if (_p.observable === plugin) {
                     self.createMonitorDiv(_p, callback);
                     break;
                 }
@@ -1946,11 +2022,11 @@ class Monitor extends Plugin {
             callback();
 
         // we only care about resident memory data
-        if (data.measurment === undefined || data.measurment.resident === undefined)
+        if (data.measurements === undefined || data.measurements.resident === undefined)
             callback();
 
         // embedded dev's cant spell measurement
-        var measurementData = data.measurment;
+        var measurementData = data.measurements;
 
         var div = document.createElement('div');
 
@@ -2687,6 +2763,212 @@ class Snapshot extends Plugin {
 
 window.pluginClasses = window.pluginClasses || {};
 window.pluginClasses.Snapshot = Snapshot;
+;/** The WebKitBrowser plugin renders webkit information and provides control to the WPE WebKit browser
+ */
+
+class Spark extends Plugin {
+
+    constructor(pluginData) {
+        super(pluginData);
+        this.socketListenerId = api.addWebSocketListener(this.callsign, this.handleNotification.bind(this));
+        this.url = '';
+        this.isHidden = false;
+        this.isSuspended = false;
+        this.lastSetUrlKey = 'lastSetUrl' + this.callsign;
+        this.lastSetUrl = window.localStorage.getItem(this.lastSetUrlKey) || '';
+
+        this.template = `<div id="content_{{callsign}}" class="grid">
+
+            <div class="title grid__col grid__col--8-of-8">Presets / URL</div>
+
+            <div class="label grid__col grid__col--2-of-8">
+                <label for="{{callsign}}_url">Custom URL</label>
+            </div>
+            <div class="text grid__col grid__col--6-of-8">
+                <input type="text" id="{{callsign}}_url" size="20"/>
+                <button id="{{callsign}}_button" type="button">SET</button>
+            </div>
+
+            <div class="label grid__col grid__col--2-of-8">URL presets</div>
+            <div class="text grid__col grid__col--6-of-8">
+                <select id="{{callsign}}_linkPresets"></select>
+            </div>
+
+            <div class="title grid__col grid__col--8-of-8">Tools</div>
+
+            <div class="label grid__col grid__col--2-of-8">Current State</div>
+                <div id="{{callsign}}StateInfo" class="text grid__col grid__col--6-of-8"></div>
+                <div class="label grid__col grid__col--2-of-8"></div>
+                <div class="label grid__col grid__col--6-of-8">
+                    <button id="{{callsign}}SuspendButton" type="button"></button>
+            </div>
+
+            <div class="label grid__col grid__col--2-of-8">Visibility</div>
+            <div id="{{callsign}}VisibilityStateInfo" class="text grid__col grid__col--6-of-8"></div>
+            <div class="label grid__col grid__col--2-of-8"></div>
+            <div class="text grid__col grid__col--6-of-8">
+                <button type="button" id="{{callsign}}VisibilityButton">HIDE</button>
+            </div>
+        </div>`;
+
+        this.presets = [
+            { Name:"Select a preset",   URL:""},
+            { Name:"http://www.sparkui.org/examples/gallery/picturepile.js",        URL:"http://www.sparkui.org/examples/gallery/picturepile.js"},
+            { Name:"http://www.sparkui.org/examples/gallery/gallery.js",            URL:"http://www.sparkui.org/examples/gallery/gallery.js"},
+        ];
+    }
+
+    handleNotification(json) {
+        if (this.rendered === false)
+            return;
+
+        //this only receives webkit events;
+        var data = json.data || {};
+        if (typeof data.suspended === 'boolean')
+            this.isSuspended = data.suspended;
+
+        if (typeof data.hidden === 'boolean')
+            this.isHidden = data.hidden;
+
+        if (data.url && data.loaded)
+            this.url = data.url;
+
+        this.update();
+    }
+
+    render()        {
+        var mainDiv = document.getElementById('main');
+        var sparkHtmlString = this.template.replace(/{{callsign}}/g, this.callsign);
+        mainDiv.innerHTML = sparkHtmlString;
+
+        //updateUrl
+        document.getElementById(this.callsign + '_url').value = this.lastSetUrl;
+
+        // bind the button
+        var urlButton = document.getElementById(this.callsign + '_button');
+        urlButton.onclick = this.getAndSetUrl.bind(this);
+
+        // bind dropdown
+        var linkPresets = document.getElementById(this.callsign + '_linkPresets');
+        linkPresets.onchange = this.getAndSetUrlFromPresets.bind(this);
+
+        // add presets
+        var presetsElement = document.getElementById(this.callsign + '_linkPresets');
+        if (presetsElement.children.length === 0) {
+            for (var j=0; j<this.presets.length; j++) {
+                var option = document.createElement('option');
+                option.text = this.presets[j].Name;
+                option.value = this.presets[j].URL;
+
+                presetsElement.appendChild(option);
+            }
+        }
+
+        window.addEventListener('keydown', this.handleKey.bind(this));
+
+        var urlInputEl = document.getElementById(this.callsign + '_url');
+        urlInputEl.onblur = function() {
+            if (plugins.RemoteControl !== undefined)
+                plugins.RemoteControl.doNotHandleKeys = false;
+        };
+
+        urlInputEl.onfocus = function() {
+            if (plugins.RemoteControl !== undefined)
+                plugins.RemoteControl.doNotHandleKeys = true;
+        };
+
+        this.update();
+
+        this.rendered = true;
+    }
+
+    close() {
+        window.removeEventListener('keydown', this.handleKey.bind(this), false);
+
+        delete this.socketListenerId;
+        delete this.isHidden;
+        delete this.isSuspended;
+
+        this.rendered = false;
+    }
+
+    update() {
+        var state = this.isSuspended ? 'Suspended' : 'Resumed';
+        var nextState = this.isSuspended ? 'Resume' : 'Suspend';
+
+        var stateEl = document.getElementById(this.callsign + 'StateInfo');
+        stateEl.innerHTML = state;
+
+        var suspendButton = document.getElementById(this.callsign + 'SuspendButton');
+        suspendButton.innerHTML = nextState.toUpperCase();
+        suspendButton.onclick = this.toggleSuspend.bind(this, nextState);
+
+        var visibilityState = this.isHidden ? 'Hidden' : 'Visible';
+        var nextVisibilityState = this.isHidden ? 'Show' : 'Hide';
+
+        var visbilityStateEl = document.getElementById(this.callsign + 'VisibilityStateInfo');
+        visbilityStateEl.innerHTML = visibilityState.toUpperCase();
+
+        var visibilityButton = document.getElementById(this.callsign + 'VisibilityButton');
+        visibilityButton.innerHTML = nextVisibilityState.toUpperCase();
+        visibilityButton.onclick = this.toggleVisibility.bind(this, nextVisibilityState);
+    }
+
+    setUrl(url) {
+        if (url !== '') {
+            console.log('Setting url ' + url + ' for ' + this.callsign);
+            api.setUrl(this.callsign, url);
+        }
+
+
+        document.getElementById(this.callsign + '_linkPresets').selectedIndex = 0;
+    }
+
+    getAndSetUrl() {
+        this.lastSetUrl = document.getElementById(this.callsign + '_url').value;
+
+        this.setUrl(this.lastSetUrl);
+        window.localStorage.setItem(this.lastSetUrlKey, this.lastSetUrl);
+    }
+
+    getAndSetUrlFromPresets() {
+        var idx = document.getElementById(this.callsign + '_linkPresets').selectedIndex;
+        if (idx > 0) {
+            this.setUrl(this.presets[idx].URL);
+        }
+    }
+
+    handleKey(e) {
+        var input = document.getElementById(`${this.callsign}_url`);
+
+        if (e.which === 13 && input && input === document.activeElement) {
+            this.getAndSetUrl();
+        }
+    }
+
+    toggleSuspend(nextState) {
+        var self = this;
+
+        if (nextState === 'Resume') {
+            api.resumePlugin(self.callsign);
+        } else {
+            api.suspendPlugin(self.callsign);
+        }
+    }
+
+    toggleVisibility(nextState) {
+        var self = this;
+
+        if (nextState === 'Show') {
+            api.showPlugin(self.callsign);
+        } else {
+            api.hidePlugin(self.callsign);
+        }
+    }
+}
+
+window.pluginClasses = window.pluginClasses || {};
+window.pluginClasses.Spark = Spark;
 ;/** The switchboard plugin allows the device to switch between different processes from the Framework
  */
 
@@ -3022,7 +3304,7 @@ class WebKitBrowser extends Plugin {
             { Name:"EME 2018",          URL:"http://yt-dash-mse-test.commondatastorage.googleapis.com/unit-tests/2018.html?test_type=encryptedmedia-test" },
             { Name:"Progressive",       URL:"http://yt-dash-mse-test.commondatastorage.googleapis.com/unit-tests/2018.html?test_type=progressive-test" },
             { Name:"YouTube",           URL:"http://youtube.com/tv" },
-            { Name:"HelloRacer",        URL:"http://helloracer.com/webgl" },
+            { Name:"HelloRacer",        URL:"http://www.emerveille.fr/lab/helloracer/index.html" },
             { Name:"Leaves",            URL:"http://www.webkit.org/blog-files/leaves" },
             { Name:"Canvas Dots",       URL:"http://themaninblue.com/experiment/AnimationBenchmark/canvas/" },
             { Name:"Anisotropic",       URL:"http://whiteflashwhitehit.com/content/2011/02/anisotropic_webgl.html" },
@@ -3119,7 +3401,9 @@ class WebKitBrowser extends Plugin {
             return;
 
         var self = this;
-        api.getPluginData(this.callsign, (err, resp) => {
+
+
+        api.jsonRPCRequest('WebKitBrowser.1.status', {}, (err, resp) => {
             if (err) {
                 console.error(err);
                 return;
