@@ -178,7 +178,9 @@ class WebKitBrowser extends Plugin {
         var self = this;
 
 
-        api.jsonRPCRequest('WebKitBrowser.1.status', {}, (err, resp) => {
+        //use api.req to deal with restful to jsonrpc transition phase (compatbility)
+        api.req('GET', api.getURLStart('http') + this.callsign, null,
+            'WebKitBrowser.1.status', {}, (err, resp) => {
             if (err) {
                 console.error(err);
                 return;

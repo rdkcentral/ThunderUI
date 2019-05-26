@@ -79,7 +79,7 @@ class Monitor extends Plugin {
 
     getMonitorDataAndDiv(plugin, callback) {
         var self = this;
-        api.jsonRPCRequest('Monitor.1.status', {callsign: plugin}, function (error, data) {
+        api.getMemoryInfo(plugin, function (error, data) {
             if (error) {
                 console.error(error);
                 self.callback('');
@@ -90,7 +90,7 @@ class Monitor extends Plugin {
             for (var i=0; i<data.length; i++) {
                 var _p = data[i];
 
-                if (_p.observable === plugin) {
+                if (_p.observable === plugin || _p.name === plugin) {
                     self.createMonitorDiv(_p, callback);
                     break;
                 }
@@ -106,13 +106,15 @@ class Monitor extends Plugin {
         if (data === null || data === undefined)
             callback();
 
+        // compatibility with old API
+        if (data.measurment !== undefined)
+            data.measurements = data.measurment;
+
         // we only care about resident memory data
         if (data.measurements === undefined || data.measurements.resident === undefined)
             callback();
 
-        // embedded dev's cant spell measurement
         var measurementData = data.measurements;
-
         var div = document.createElement('div');
 
         var titleDiv = document.createElement('div');

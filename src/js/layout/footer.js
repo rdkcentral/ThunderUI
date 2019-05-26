@@ -63,8 +63,10 @@ class Footer {
         document.getElementById('pause-button').onclick = this.togglePause.bind(this);
         this.pauseButton      = document.getElementById('pause-button');
 
-        if (plugins.DeviceInfo === undefined)
+        if (plugins.DeviceInfo === undefined) {
+            this.togglePause();
             return;
+        }
 
         // start update loop
         this.interval = setInterval(this.update.bind(this), conf.refresh_interval);
@@ -95,10 +97,10 @@ class Footer {
     }
 
     update() {
-        if (this.paused === true || plugins.DeviceInfo.state === 'deactivated')
+        if (this.paused === true || plugins.DeviceInfo.state !== 'activated')
             return;
 
-        api.jsonRPCRequest('DeviceInfo.1.system', {}, this.render.bind(this));
+        api.getDeviceInfo(this.render.bind(this));
     }
 
     togglePause() {

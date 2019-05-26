@@ -104,7 +104,10 @@
                 };
             }
             if (body !== null)
-                xmlHttp.send(body);
+                if (typeof body === 'string' || body instanceof String)
+                    xmlHttp.send(body);
+                else
+                    xmlHttp.send(JSON.stringify(body))
             else
                 xmlHttp.send();
         }
@@ -128,8 +131,7 @@
 
             if (this.jsonRpcSocket) {
                 if (this.jsonRpcSocket.readyState === 0) {
-                    console.log('retry json rpc message')
-                    return setTimeout(this.jsonRPCRequest.bind(this,method,params,cb), 50);
+                    return callback('JSON RPC Socket is not connected', null)
                 }
                 this.jsonRpcCallbackQueue[this.jsonRpcId] = cb;
                 this.jsonRpcSocket.send(JSON.stringify(body));
@@ -137,16 +139,37 @@
             this.jsonRpcId++;
         }
 
+        // Compatibility method to deal with transitioning APIs and older version of WPEFramework
+        // note: This assumes the WebSocket to jsonrpc will fail.
+        req(restfullMethod, restfullPath, restfullBody, jsonMethod, jsonParams, cb) {
+            if (this.jsonRpcSocket.readyState === 1 && jsonMethod !== undefined)
+                this.jsonRPCRequest(jsonMethod, jsonParams, (err, resp) => {
+                    // if jsonrpc returns an error, lets try restfull
+                    // it might be the JSONRPC socket connected but this particular API hasnt transitioned yet
+                    if (err !== undefined)
+                        this.handleRequest(restfullMethod, restfullPath, restfullBody, cb)
+                    else
+                        cb(err, resp)
+                })
+            else if (this.jsonRpcSocket.readyState !== 1 && restfullPath !== undefined)
+                this.handleRequest(restfullMethod, restfullPath, restfullBody, cb)
+            else
+                cb('No path available to make request', null)
+        }
+
         activatePlugin(plugin, callback) {
-            this.jsonRPCRequest('Controller.1.activate', {callsign: plugin}, callback);
+            this.req('PUT', this.getURLStart('http') + 'Controller/Activate/' + plugin, null,
+                'Controller.1.activate', {callsign: plugin},
+                callback)
         };
 
         deactivatePlugin(plugin, callback) {
-            this.jsonRPCRequest('Controller.1.deactivate', {callsign: plugin}, callback);
+            this.req('PUT', this.getURLStart('http') + 'Controller/Deactivate/' + plugin, null,
+                'Controller.1.deactivate', {callsign: plugin},
+                callback);
         };
 
         suspendPlugin(plugin, callback) {
-
             this.handleRequest('POST', this.getURLStart('http') + plugin + '/Suspend', null, callback);
         };
 
@@ -171,30 +194,50 @@
         };
 
         getControllerPlugins(callback) {
-            this.jsonRPCRequest('Controller.1.status', {}, (err,res)=>{
-                //reformat the data to be aligned with depracated REST call
-                callback(err, {plugins: res});
+            this.req('GET', this.getURLStart('http') + 'Controller/Plugins', null,
+                'Controller.1.status', {}, (err ,res) => {
+                    if (!res.plugins)
+                        //reformat the data to be aligned with deprecated REST call
+                        callback(err, {plugins: res});
+                    else
+                        callback(err, res);
             });
         };
 
+        getDeviceInfo(callback) {
+            this.req('GET', this.getURLStart('http') + 'DeviceInfo/', null,
+                'DeviceInfo.1.system', {}, (err, res) => {
+                    // compatibility checkx
+                    if (res.deviceInfo !== undefined)
+                        callback(err, res.deviceInfo)
+                    else
+                        callback(err, res)
+                })
+        }
+
         getMemoryInfo(plugin, callback) {
-            this.jsonRPCRequest('Monitor.1.status', {callsign: plugin}, callback);
+            this.req('GET', this.getURLStart('http') + 'Monitor/' + plugin, null,
+                'Monitor.1.status', {callsign: plugin}, callback);
         };
 
         initiateDiscovery(callback) {
-            this.jsonRPCRequest('Controller.1.startdiscovery', {ttl: 1}, callback);
+            this.req('PUT', this.getURLStart('http') + 'Controller/Discovery', null,
+                'Controller.1.startdiscovery', {ttl: 1}, callback);
         };
 
         getDiscovery(callback) {
-            this.jsonRPCRequest('Controller.1.discover', {ttl: 1}, callback);
+            this.req('GET', this.getURLStart('http') + 'Controller/Discovery', null,
+                'Controller.1.discover', {ttl: 1}, callback);
         };
 
         persist(callback) {
-            this.jsonRPCRequest('Controller.1.storeconfig', {}, callback);
+            this.req('PUT', this.getURLStart('http') + "Controller/Persist", null,
+                'Controller.1.storeconfig', {}, callback);
         };
 
         reboot(callback) {
-            this.jsonRPCRequest('Controller.1.harakiri', {}, callback);
+            this.req('PUT', this.getURLStart('http') + "Controller/Harakiri", null,
+                'Controller.1.harakiri', {}, callback);
         };
 
         sendKey(key, callback) {
@@ -202,7 +245,8 @@
                 "device": "Web",
                 "code": key,
             };
-            this.jsonRPCRequest('RemoteControl.1.send', body, callback);
+            this.req('PUT', this.getURLStart('http') + 'RemoteControl/Web/Send', body,
+                'RemoteControl.1.send', body, callback);
         };
 
         sendKeyPress(key, callback) {
@@ -210,7 +254,8 @@
                 "device": "Web",
                 "code": key,
             };
-            this.jsonRPCRequest('RemoteControl.1.press', body, callback);
+            this.req('PUT', this.getURLStart('http') + 'RemoteControl/Web/Press', body,
+                'RemoteControl.1.press', body, callback);
         };
 
         sendKeyRelease(key, callback) {
@@ -218,7 +263,8 @@
                 "device": "Web",
                 "code": key,
             };
-            this.jsonRPCRequest('RemoteControl.1.release', body, callback);
+            this.req('PUT', this.getURLStart('http') + 'RemoteControl/Web/Release', body,
+                'RemoteControl.1.release', body, callback);
         };
 
         toggleTracing(module, id, state, callback) {
@@ -227,12 +273,14 @@
                 "category": id,
                 "state": state === 'on' ? 'enabled' : 'disabled'
             };
-            this.jsonRPCRequest('TraceControl.1.set', body, callback);
+            this.req('PUT', this.getURLStart('http') + 'TraceControl' +  '/' + module + '/' + id + '/' + state, null,
+                'TraceControl.1.set', body, callback);
         };
 
         setUrl(plugin, url, callback) {
             var body = {"url":  url };
-            this.jsonRPCRequest(plugin + '.1.seturl', body, callback);
+            this.req('POST', this.getURLStart('http') + plugin + '/URL', body,
+                plugin + '.1.seturl', body, callback);
         };
 
         startWebShell(callback) {
@@ -282,7 +330,7 @@
 
                     var id = data && data.id || null;
                     if (self.jsonRpcCallbackQueue[id]){
-                        self.jsonRpcCallbackQueue[data.id](null, data.result);
+                        self.jsonRpcCallbackQueue[data.id](data.error, data.result);
                         delete self.jsonRpcCallbackQueue[data.id];
                     }
 
@@ -291,7 +339,12 @@
                 }
             };
 
+            this.jsonRpcSocket.onconnect = function(e) {
+                this.jsonRpcConnected = true;
+            };
+
             this.jsonRpcSocket.onclose = function(e) {
+                this.jsonRpcConnected = false;
                 setTimeout(self.startJSONRPCSocket.bind(self), conf.refresh_interval);
             };
 
