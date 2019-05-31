@@ -749,6 +749,12 @@ button:focus {
     outline-style: none;
 }
 
+button:disabled{
+    border: 1px solid #999999;
+    background-color: #cccccc;
+    color: #666666;
+}
+
 .checkbox {
     position: relative;
     display: inline-block;
