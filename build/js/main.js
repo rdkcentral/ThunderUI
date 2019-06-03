@@ -1086,7 +1086,8 @@ class BluetoothControl extends Plugin {
     /* ----------------------------- DATA ------------------------------*/
 
     update() {
-        api.getPluginData(this.callsign, (err, resp) => {
+        api.req('GET', api.getURLStart('http') + this.callsign, null,
+                     'BluetoothControl.1.status', {}, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
@@ -1198,10 +1199,9 @@ class BluetoothControl extends Plugin {
         this.status(`Start scanning`);
         var f = document.getElementById("BT_DeviceType");
         var device = f.options[f.selectedIndex].value;
-        api.req('PUT', api.getURLStart('http') + this.callsign,'Scan/?LowEnergy='+device,
-                     null,{}, (err, resp) => {
 
-        //api.putPlugin(this.callsign, 'Scan/?LowEnergy='+device, null, (err, resp) => {
+        api.req('PUT', api.getURLStart('http') + this.callsign +'/Scan/?LowEnergy='+device,
+                     null,BluetoothControl.1.status,{}, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
@@ -1221,7 +1221,9 @@ class BluetoothControl extends Plugin {
         else
             this.status(`Pairing to ${this.discoveredDevices[idx].name}`);
 
-        api.putPlugin(this.callsign, 'Pair', '{"address" : "' + this.discoveredDevices[idx].address + '"}', (err,resp) =>{
+        var body = '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+        api.req('PUT',api.getURLStart('http') + this.callsign + '/Pair',null,
+                     BluetoothControl.1.status,body, (err,resp) =>{
 
         if (err !== null) {
                 console.error(err);
@@ -1240,8 +1242,9 @@ class BluetoothControl extends Plugin {
         else
             this.status(`Connecting to ${this.pairedDevices[idx].name}`);
 
-
-        api.putPlugin(this.callsign, 'Connect', '{"address" : "' + this.pairedDevices[idx].address + '"}', (err,resp) =>{
+        var body = '{"address" : "' + this.pairedDevices[idx].address + '"}'
+        api.req('PUT',api.getURLStart('http') + this.callsign + '/Connect', null,
+                     BluetoothControl.1.status,body,(err,resp) =>{
             if (err !== null) {
                 console.error(err);
                 return;
@@ -1259,7 +1262,8 @@ class BluetoothControl extends Plugin {
             this.status(`Disconnecting to ${this.connectedDevices[idx].name}`);
 
         var body = '{"address"  : "' + this.connectedDevices[idx].address + '"}';
-        api.deletePlugin(this.callsign, 'Connect', body, (err,resp) =>{
+        api.req('DELETE',api.getURLStart('http') + this.callsign + '/Connect', null,
+                        BluetoothControl.1.status,body, (err,resp) =>{
         if (err !== null) {
             console.error(err);
             return;
@@ -3472,6 +3476,7 @@ class WebKitBrowser extends Plugin {
 
         var self = this;
 
+        //api.getPluginData(this.callsign, (err, resp) => {
 
         //use api.req to deal with restful to jsonrpc transition phase (compatbility)
         api.req('GET', api.getURLStart('http') + this.callsign, null,
