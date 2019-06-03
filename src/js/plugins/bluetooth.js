@@ -80,10 +80,6 @@ class BluetoothControl extends Plugin {
         <div id="statusMessages" class="text grid__col grid__col--8-of-8"></div>
         `;
 
-        // Disable buttons
-        document.getElementById('BT_Pair').disabled = true;
-        document.getElementById('BT_Connect').disabled = true;
-        document.getElementById('BT_Disconnect').disabled = true;
 
         // bind elements
 
@@ -111,6 +107,11 @@ class BluetoothControl extends Plugin {
 
         // ---- Discovered Devices ----
         this.discoveredDeviceList       = document.getElementById('BT_DiscoveredDevices');
+
+        // Disable buttons
+        this.pairButton.value = true;
+        this.connectButton.value = true;
+        this.disconnectButton.value = true;
 
         setTimeout(this.update.bind(this), 1000);
     }
@@ -149,15 +150,15 @@ class BluetoothControl extends Plugin {
         if (this.devStatus !== undefined) {
             for (var i =0; i<this.devStatus.length;i++) {
                 if (this.devStatus[i].connected =="true") {
-                    document.getElementById('BT_Disconnect').disabled = false;
+                    this.disconnectButton.value = false;
                 }
             }
         }
         this.scanningStatus.innerHTML = this.scanning === true ? 'ON' : 'OFF';
         if(!this.scanning) {
-	    document.getElementById('BT_ScanForDevices').disabled = false;
+            this.scanButton.value = false;
             clearInterval(this.Timer);
-	}
+	    }
     }
 
     renderDiscoveredDevices () {
@@ -174,47 +175,44 @@ class BluetoothControl extends Plugin {
     renderPairedDevices () {
         this.pairedDeviceList.innerHTML = '';
         if(this.discoveredDevices.length !==0){
-            document.getElementById('BT_Pair').disabled = false;
+            this.pairButton.value = false;
         }
-        var j=0;
         for (var i=0; i<this.discoveredDevices.length; i++) {
-            if(this.discoveredDevices[i].paired)
+            if(this.discoveredDevices[i].paired) {
                 var newChild = this.pairedDeviceList.appendChild(document.createElement("option"));
-                this.pairedDevices[j] = this.discoveredDevices[i];
-                j = j+1;
+                this.pairedDevices.push( this.discoveredDevices[i]);
                 if (this.discoveredDevices[i].name === "")
                     newChild.innerHTML = `${this.discoveredDevices[i].address}`;
                 else
                     newChild.innerHTML = `${this.discoveredDevices[i].name}`;
-                document.getElementById('BT_Pair').disabled = false;
+                this.pairButton.value = false;
             }
         }
         if(this.pairedDevices.length !== 0)
-            document.getElementById('BT_Connect').disabled = false;
+            this.connectButton.value = false;
     }
 
     renderConnectedDevices () {
         this.connectedDeviceList.innerHTML = '';
         this.connectedDevices = [];
         if(this.pairedDevices.length !==0){
-            document.getElementById('BT_Connect').disabled = false;
+            this.connectButton.value = false;
         }
-        var j=0;
         for (var i=0; i<this.discoveredDevices.length; i++) {
             if(this.discoveredDevices[i].connected) {
                 var newChild = this.connectedDeviceList.appendChild(document.createElement("option"));
-                this.connectedDevices[j] = this.discoveredDevices[i];
-                j = j+1;
+                this.connectedDevices.push( this.discoveredDevices[i]);
                 if (this.discoveredDevices[i].name === "")
                     newChild.innerHTML = `${this.discoveredDevices[i].address}`;
                 else
                     newChild.innerHTML = `${this.discoveredDevices[i].name}`;
             }
         }
+
         if(this.connectedDevices.length ===0){
-            document.getElementById('BT_Disconnect').disabled = true;
+            this.disconnectButton.value = true;
         } else {
-            document.getElementById('BT_Disconnect').disabled = false;
+            this.disconnectButton.value = false;
         }
 
     }
@@ -233,13 +231,16 @@ class BluetoothControl extends Plugin {
         this.status(`Start scanning`);
         var f = document.getElementById("BT_DeviceType");
         var device = f.options[f.selectedIndex].value;
-        api.putPlugin(this.callsign, 'Scan/?LowEnergy='+device, null, (err, resp) => {
+        api.req('PUT', api.getURLStart('http') + this.callsign,'Scan/?LowEnergy='+device,
+                     null,{}, (err, resp) => {
+
+        //api.putPlugin(this.callsign, 'Scan/?LowEnergy='+device, null, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
             }
-	    document.getElementById('BT_ScanForDevices').disabled = true;
-            document.getElementById('BT_Pair').disabled = false;
+            this.scanButton.value = true;
+            this.pairButton.value = false;
             setTimeout(this.update.bind(this), 100);
             // update every 3s
             this.Timer = setInterval(this.update.bind(this), 3000);
@@ -259,9 +260,9 @@ class BluetoothControl extends Plugin {
                 console.error(err);
                 return;
             }
-            document.getElementById('BT_Pair').disabled = true;
+            this.pairButton.value = true;
             setTimeout(this.update.bind(this), 1000);
-            document.getElementById('BT_Connect').disabled = false;
+            this.connectButton.value = false;
             });
     }
 
@@ -279,7 +280,7 @@ class BluetoothControl extends Plugin {
                 return;
             }
             setTimeout(this.update.bind(this), 1000);
-            document.getElementById('BT_Disconnect').disabled = false;
+            this.disconnectButton.value = false;
         });
     }
 
@@ -296,8 +297,8 @@ class BluetoothControl extends Plugin {
             console.error(err);
             return;
         }
-        document.getElementById('BT_Disconnect').disabled = true;
-        document.getElementById('BT_Connect').disabled = false;
+        this.disconnectButton.value = true;
+        this.connectButton.value = false;
         setTimeout(this.update.bind(this), 1000);
         });
     }
