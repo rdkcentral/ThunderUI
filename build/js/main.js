@@ -1076,9 +1076,9 @@ class BluetoothControl extends Plugin {
         this.discoveredDeviceList       = document.getElementById('BT_DiscoveredDevices');
 
         // Disable buttons
-        this.pairButton.value = true;
-        this.connectButton.value = true;
-        this.disconnectButton.value = true;
+        this.pairButton.disabled = true;
+        this.connectButton.disabled = true;
+        this.disconnectButton.disabled = true;
 
         setTimeout(this.update.bind(this), 1000);
     }
@@ -1118,13 +1118,13 @@ class BluetoothControl extends Plugin {
         if (this.devStatus !== undefined) {
             for (var i =0; i<this.devStatus.length;i++) {
                 if (this.devStatus[i].connected =="true") {
-                    this.disconnectButton.value = false;
+                    this.disconnectButton.disabled = false;
                 }
             }
         }
         this.scanningStatus.innerHTML = this.scanning === true ? 'ON' : 'OFF';
         if(!this.scanning) {
-            this.scanButton.value = false;
+            this.scanButton.disabled = false;
             clearInterval(this.Timer);
 	    }
     }
@@ -1143,7 +1143,7 @@ class BluetoothControl extends Plugin {
     renderPairedDevices () {
         this.pairedDeviceList.innerHTML = '';
         if(this.discoveredDevices.length !==0){
-            this.pairButton.value = false;
+            this.pairButton.disabled = false;
         }
         for (var i=0; i<this.discoveredDevices.length; i++) {
             if(this.discoveredDevices[i].paired) {
@@ -1153,18 +1153,18 @@ class BluetoothControl extends Plugin {
                     newChild.innerHTML = `${this.discoveredDevices[i].address}`;
                 else
                     newChild.innerHTML = `${this.discoveredDevices[i].name}`;
-                this.pairButton.value = false;
+                this.pairButton.disabled = false;
             }
         }
         if(this.pairedDevices.length !== 0)
-            this.connectButton.value = false;
+            this.connectButton.disabled = false;
     }
 
     renderConnectedDevices () {
         this.connectedDeviceList.innerHTML = '';
         this.connectedDevices = [];
         if(this.pairedDevices.length !==0){
-            this.connectButton.value = false;
+            this.connectButton.disabled = false;
         }
         for (var i=0; i<this.discoveredDevices.length; i++) {
             if(this.discoveredDevices[i].connected) {
@@ -1178,9 +1178,9 @@ class BluetoothControl extends Plugin {
         }
 
         if(this.connectedDevices.length ===0){
-            this.disconnectButton.value = true;
+            this.disconnectButton.disabled = true;
         } else {
-            this.disconnectButton.value = false;
+            this.disconnectButton.disabled = false;
         }
 
     }
@@ -1201,13 +1201,12 @@ class BluetoothControl extends Plugin {
         var device = f.options[f.selectedIndex].value;
 
         api.req('PUT', api.getURLStart('http') + this.callsign +'/Scan/?LowEnergy='+device,
-                     null,BluetoothControl.1.status,{}, (err, resp) => {
+                     null,'BluetoothControl.1.status',{}, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
             }
-            this.scanButton.value = true;
-            this.pairButton.value = false;
+            this.scanButton.disabled = true;
             setTimeout(this.update.bind(this), 100);
             // update every 3s
             this.Timer = setInterval(this.update.bind(this), 3000);
@@ -1220,18 +1219,16 @@ class BluetoothControl extends Plugin {
             this.status(`Pairing to ${this.discoveredDevices[idx].address}`);
         else
             this.status(`Pairing to ${this.discoveredDevices[idx].name}`);
-
         var body = '{"address" : "' + this.discoveredDevices[idx].address + '"}'
-        api.req('PUT',api.getURLStart('http') + this.callsign + '/Pair',null,
-                     BluetoothControl.1.status,body, (err,resp) =>{
-
+	    api.req('PUT',api.getURLStart('http') + this.callsign + '/Pair',body,
+                     'BluetoothControl.1.status',{}, (err,resp) =>{
         if (err !== null) {
                 console.error(err);
                 return;
             }
-            this.pairButton.value = true;
+            this.pairButton.disabled = true;
             setTimeout(this.update.bind(this), 1000);
-            this.connectButton.value = false;
+            this.connectButton.disabled = false;
             });
     }
 
@@ -1243,14 +1240,14 @@ class BluetoothControl extends Plugin {
             this.status(`Connecting to ${this.pairedDevices[idx].name}`);
 
         var body = '{"address" : "' + this.pairedDevices[idx].address + '"}'
-        api.req('PUT',api.getURLStart('http') + this.callsign + '/Connect', null,
-                     BluetoothControl.1.status,body,(err,resp) =>{
+        api.req('PUT',api.getURLStart('http') + this.callsign + '/Connect', body,
+                     'BluetoothControl.1.status',{},(err,resp) =>{
             if (err !== null) {
                 console.error(err);
                 return;
             }
             setTimeout(this.update.bind(this), 1000);
-            this.disconnectButton.value = false;
+            this.disconnectButton.disabled = false;
         });
     }
 
@@ -1262,14 +1259,13 @@ class BluetoothControl extends Plugin {
             this.status(`Disconnecting to ${this.connectedDevices[idx].name}`);
 
         var body = '{"address"  : "' + this.connectedDevices[idx].address + '"}';
-        api.req('DELETE',api.getURLStart('http') + this.callsign + '/Connect', null,
-                        BluetoothControl.1.status,body, (err,resp) =>{
+        api.req('DELETE',api.getURLStart('http') + this.callsign + '/Connect', body,
+                        'BluetoothControl.1.status',{}, (err,resp) =>{
         if (err !== null) {
             console.error(err);
             return;
         }
-        this.disconnectButton.value = true;
-        this.connectButton.value = false;
+        this.disconnectButton.disabled = true;
         setTimeout(this.update.bind(this), 1000);
         });
     }
