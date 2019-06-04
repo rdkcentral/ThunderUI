@@ -302,6 +302,10 @@ class BluetoothControl extends Plugin {
         setTimeout(this.update.bind(this), 1000);
         });
     }
+    close() {
+        clearInterval(this.Timer);
+        clearInterval(this.statusMessageTimer);
+    }
 }
 
 window.pluginClasses = window.pluginClasses || {};
