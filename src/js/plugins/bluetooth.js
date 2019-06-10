@@ -1,28 +1,41 @@
 /** The bluetooth plugin provides details on the available bluetooth devices, scans for new devices and allows the user to connect the device through UI
- */
-class Bluetooth extends Plugin {
+*/
+class BluetoothControl extends Plugin {
 
     constructor(pluginData) {
         super(pluginData);
 
         this.discoveredDevices = [];
         this.pairedDevices = [];
+        this.connectedDevices = [];
+        this.devStatus = [];
         this.scanning = false;
-        this.connected = undefined;
-        this.displayName = 'Bluetooth';
+        this.displayName = 'BluetoothControl';
     }
 
     render()        {
         var mainDiv = document.getElementById('main');
 
-        mainDiv.innerHTML = `<div class="title grid__col grid__col--8-of-8">
+        mainDiv.innerHTML = `<div class="label grid__col grid__col--2-of-8">
+            Device Type
+        </div>
+        <div class="text grid__col grid__col--6-of-8">
+            <select id="BT_DeviceType">
+                <option value="1" selected="selected">LOW ENERGY</option>
+                <option value="0">REGULAR</option>
+            </select>
+        </div>
+
+        <div class="title grid__col grid__col--8-of-8">
             Status
         </div>
 
         <div class="label grid__col grid__col--2-of-8">
-            Connected to
+            Connected Devices
         </div>
-        <div id="BT_Connected" class="text grid__col grid__col--6-of-8"></div>
+        <div class="text grid__col grid__col--6-of-8">
+            <select id="BT_ConnectedDevices"></select>
+        </div>
 
         <div class="label grid__col grid__col--2-of-8">
             Scanning
@@ -32,10 +45,10 @@ class Bluetooth extends Plugin {
         </div>
 
         <div class="label grid__col grid__col--2-of-8">
-            Connected devices
+            Paired devices
         </div>
         <div class="text grid__col grid__col--6-of-8">
-            <select id="BT_Devices"></select>
+            <select id="BT_PairedDevices"></select>
         </div>
 
         <div class="label grid__col grid__col--2-of-8"></div>
@@ -67,6 +80,7 @@ class Bluetooth extends Plugin {
         <div id="statusMessages" class="text grid__col grid__col--8-of-8"></div>
         `;
 
+
         // bind elements
 
         // ---- button ----
@@ -75,32 +89,38 @@ class Bluetooth extends Plugin {
         this.connectButton              = document.getElementById('BT_Connect');
         this.disconnectButton           = document.getElementById('BT_Disconnect');
 
-        //bind buttons
+        // Bind buttons
         this.scanButton.onclick         = this.scanForDevices.bind(this);
         this.pairButton.onclick         = this.pairDevice.bind(this);
         this.disconnectButton.onclick   = this.disconnect.bind(this);
         this.connectButton.onclick      = this.connect.bind(this);
 
         // ---- Status -----
-        this.connectedStatus            = document.getElementById('BT_Connected');
         this.scanningStatus             = document.getElementById('BT_Scanning');
         this.statusMessages             = document.getElementById('statusMessages');
 
-        // ---- Devices -----
-        this.devicesListEl              = document.getElementById('BT_Devices');
+        // ---- Connected Devices -----
+        this.connectedDeviceList       = document.getElementById('BT_ConnectedDevices');
+
+        // ---- Paired Devices -----
+        this.pairedDeviceList           = document.getElementById('BT_PairedDevices');
 
         // ---- Discovered Devices ----
-        this.discoveredDevicesEl        = document.getElementById('BT_DiscoveredDevices');
+        this.discoveredDeviceList       = document.getElementById('BT_DiscoveredDevices');
 
-        this.checkDeviceScanning();
-        this.getPairedDevices();
-        setTimeout(this.update.bind(this), 2000);
+        // Disable buttons
+        this.pairButton.disabled = true;
+        this.connectButton.disabled = true;
+        this.disconnectButton.disabled = true;
+
+        setTimeout(this.update.bind(this), 1000);
     }
 
     /* ----------------------------- DATA ------------------------------*/
 
     update() {
-        api.getPluginData(this.callsign, (err, resp) => {
+        api.req('GET', api.getURLStart('http') + this.callsign, null,
+                     'BluetoothControl.1.status', {}, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
@@ -110,92 +130,92 @@ class Bluetooth extends Plugin {
             if (resp === undefined)
                 return;
 
-            this.connected = resp.connected;
+            if(resp.devices !== undefined) {
+                this.discoveredDevices = resp.devices;
+                this.renderDiscoveredDevices();
+                this.renderPairedDevices();
+                this.renderConnectedDevices();
+            }
 
             if (typeof resp.scanning === 'boolean')
                 this.scanning = resp.scanning;
-
-            this.renderStatus();
+                this.devStatus = resp.devices;
+                this.renderStatus();
         });
     }
 
-    getPairedDevices() {
-        api.getPluginData(this.callsign + '/PairedDevices', (err, resp) => {
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
-
-            // bail out if the plugin returns nothing
-            if (resp === undefined || resp.DeviceList.length < 0)
-                return;
-
-            this.pairedDevices = resp.DeviceList;
-
-            this.renderPairedDevices();
-        });
-    }
-
-    getDiscoveredDevices() {
-        if (this.scanning === true) {
-            api.getPluginData(this.callsign + '/DiscoveredDevices', (err, resp) => {
-                    if (err !== null) {
-                    console.error(err);
-                    return;
-                }
-
-                // bail out if the plugin returns nothing
-                if (resp === undefined || resp.DeviceList.length < 0)
-                    return;
-
-                this.discoveredDevices = resp.DeviceList;
-                this.renderDiscoveredDevices();
-            });
-        }
-    }
-
-    checkDeviceScanning() {
-        api.getPluginData(this.callsign, (err, resp) => {
-            if (resp.scanning) {
-                this.stopScan();
-            }
-        });
-    }
 
     /* ----------------------------- RENDERING ------------------------------*/
 
     renderStatus () {
-        if (this.connected !== '') {
-            var deviceInfo = this.pairedDevices.find(deviceInfo=>deviceInfo.Address==this.connected);
-            this.connectedStatus.innerHTML = deviceInfo.Name;
-        } else
-            this.connectedStatus.innerHTML = 'Not Connected';
-
-        this.scanningStatus.innerHTML = this.scanning === true ? 'ON' : 'OFF';
-    }
-
-    renderPairedDevices () {
-        this.devicesListEl.innerHTML = '';
-        for (var i=0; i<this.pairedDevices.length; i++) {
-            var newChild = this.devicesListEl.appendChild(document.createElement("option"));
-            if (this.pairedDevices[i].Name === '')
-                newChild.innerHTML = `${this.pairedDevices[i].Address}`;
-            else
-                newChild.innerHTML = `${this.pairedDevices[i].Name}`;
+        if (this.devStatus !== undefined) {
+            for (var i =0; i<this.devStatus.length;i++) {
+                if (this.devStatus[i].connected =="true") {
+                    this.disconnectButton.disabled = false;
+                }
+            }
         }
+        this.scanningStatus.innerHTML = this.scanning === true ? 'ON' : 'OFF';
+        if(!this.scanning) {
+            this.scanButton.disabled = false;
+            clearInterval(this.Timer);
+	    }
     }
 
     renderDiscoveredDevices () {
-        this.discoveredDevicesEl.innerHTML = '';
+        this.discoveredDeviceList.innerHTML = '';
         for (var i=0; i<this.discoveredDevices.length; i++) {
-            var newChild = this.discoveredDevicesEl.appendChild(document.createElement("option"));
-            if (this.discoveredDevices[i].Name === '')
-                newChild.innerHTML = `${this.discoveredDevices[i].Address}`;
+            var newChild = this.discoveredDeviceList.appendChild(document.createElement("option"));
+            if (this.discoveredDevices[i].name === "")
+                newChild.innerHTML = `${this.discoveredDevices[i].address}`;
             else
-                newChild.innerHTML = `${this.discoveredDevices[i].Name}`;
-
-            newChild.value = JSON.stringify(this.discoveredDevices[i]);
+                newChild.innerHTML = `${this.discoveredDevices[i].name}`;
         }
+    }
+
+    renderPairedDevices () {
+        this.pairedDeviceList.innerHTML = '';
+        if(this.discoveredDevices.length !==0){
+            this.pairButton.disabled = false;
+        }
+        for (var i=0; i<this.discoveredDevices.length; i++) {
+            if(this.discoveredDevices[i].paired) {
+                var newChild = this.pairedDeviceList.appendChild(document.createElement("option"));
+                this.pairedDevices.push( this.discoveredDevices[i]);
+                if (this.discoveredDevices[i].name === "")
+                    newChild.innerHTML = `${this.discoveredDevices[i].address}`;
+                else
+                    newChild.innerHTML = `${this.discoveredDevices[i].name}`;
+                this.pairButton.disabled = false;
+            }
+        }
+        if(this.pairedDevices.length !== 0)
+            this.connectButton.disabled = false;
+    }
+
+    renderConnectedDevices () {
+        this.connectedDeviceList.innerHTML = '';
+        this.connectedDevices = [];
+        if(this.pairedDevices.length !==0){
+            this.connectButton.disabled = false;
+        }
+        for (var i=0; i<this.discoveredDevices.length; i++) {
+            if(this.discoveredDevices[i].connected) {
+                var newChild = this.connectedDeviceList.appendChild(document.createElement("option"));
+                this.connectedDevices.push( this.discoveredDevices[i]);
+                if (this.discoveredDevices[i].name === "")
+                    newChild.innerHTML = `${this.discoveredDevices[i].address}`;
+                else
+                    newChild.innerHTML = `${this.discoveredDevices[i].name}`;
+            }
+        }
+
+        if(this.connectedDevices.length ===0){
+            this.disconnectButton.disabled = true;
+        } else {
+            this.disconnectButton.disabled = false;
+        }
+
     }
 
     status(message) {
@@ -210,86 +230,83 @@ class Bluetooth extends Plugin {
 
     scanForDevices() {
         this.status(`Start scanning`);
-        api.putPlugin(this.callsign, 'Scan', null, (err, resp) => {
+        var f = document.getElementById("BT_DeviceType");
+        var device = f.options[f.selectedIndex].value;
+
+        api.req('PUT', api.getURLStart('http') + this.callsign +'/Scan/?LowEnergy='+device,
+                     null,'BluetoothControl.1.status',{}, (err, resp) => {
             if (err !== null) {
                 console.error(err);
                 return;
             }
-
-            // update after 2s
-            setTimeout(this.update.bind(this), 2000);
-
-            // update discovered device list in every 4s
-            this.Timer = setInterval(this.getDiscoveredDevices.bind(this), 4000);
-
-            this.status(`Scanning...`);
-            // stop scan after 1 min
-            setTimeout(this.stopScan.bind(this), 60000);
-
-        });
-    }
-
-    stopScan() {
-        this.status(`Stopping Scan`);
-        clearInterval(this.Timer);
-        api.putPlugin(this.callsign, 'StopScan', null, (err, resp) => {
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
-
-            setTimeout(this.update.bind(this), 2000);
-            this.status(`Scan stopped`);
+            this.scanButton.disabled = true;
+            setTimeout(this.update.bind(this), 100);
+            // update every 3s
+            this.Timer = setInterval(this.update.bind(this), 3000);
         });
     }
 
     pairDevice() {
-        var val = JSON.parse(document.getElementById('BT_DiscoveredDevices').value);
-        if (val.Name === '')
-            this.status(`Pairing with ${val.Address}`);
+        var idx = this.discoveredDeviceList.selectedIndex;
+        if (this.discoveredDevices[idx].name === "")
+            this.status(`Pairing to ${this.discoveredDevices[idx].address}`);
         else
-            this.status(`Pairing with ${val.Name}`);
-
-        api.putPlugin(this.callsign, 'Pair', '{"Address" : "' + val.Address + '"}', (err, resp) => {
-            if (err !== null) {
+            this.status(`Pairing to ${this.discoveredDevices[idx].name}`);
+        var body = '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+	    api.req('PUT',api.getURLStart('http') + this.callsign + '/Pair',body,
+                     'BluetoothControl.1.status',{}, (err,resp) =>{
+        if (err !== null) {
                 console.error(err);
                 return;
             }
-
-            // update Paired device list after 2s
-            setTimeout(this.getPairedDevices.bind(this), 2000);
-        });
+            this.pairButton.disabled = true;
+            setTimeout(this.update.bind(this), 1000);
+            this.connectButton.disabled = false;
+            });
     }
 
     connect() {
-        var idx = this.devicesListEl.selectedIndex;
+        var idx = this.pairedDeviceList.selectedIndex;
+        if (this.pairedDevices[idx].name === "")
+            this.status(`Connecting to ${this.pairedDevices[idx].address}`);
+        else
+            this.status(`Connecting to ${this.pairedDevices[idx].name}`);
 
-        this.status(`Connecting to ${this.pairedDevices[idx].Name}`);
-        api.putPlugin(this.callsign, 'Connect', '{"Address" : "' + this.pairedDevices[idx].Address + '"}', (err,resp) =>{
+        var body = '{"address" : "' + this.pairedDevices[idx].address + '"}'
+        api.req('PUT',api.getURLStart('http') + this.callsign + '/Connect', body,
+                     'BluetoothControl.1.status',{},(err,resp) =>{
             if (err !== null) {
                 console.error(err);
                 return;
             }
-
-            // update after 2s
-            setTimeout(this.update.bind(this), 2000);
+            setTimeout(this.update.bind(this), 1000);
+            this.disconnectButton.disabled = false;
         });
     }
 
     disconnect() {
-        this.status(`Disconnecting to ${this.connected}`);
-        api.deletePlugin(this.callsign, 'Connect', null, (err,resp) =>{
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
+        var idx = this.connectedDeviceList.selectedIndex;
+        if (this.connectedDevices[idx].name === "")
+            this.status(`Disconnecting to ${this.connectedDevices[idx].address}`);
+        else
+            this.status(`Disconnecting to ${this.connectedDevices[idx].name}`);
 
-            // update after 2s
-            setTimeout(this.update.bind(this), 2000);
+        var body = '{"address"  : "' + this.connectedDevices[idx].address + '"}';
+        api.req('DELETE',api.getURLStart('http') + this.callsign + '/Connect', body,
+                        'BluetoothControl.1.status',{}, (err,resp) =>{
+        if (err !== null) {
+            console.error(err);
+            return;
+        }
+        this.disconnectButton.disabled = true;
+        setTimeout(this.update.bind(this), 1000);
         });
     }
-
+    close() {
+        clearInterval(this.Timer);
+        clearInterval(this.statusMessageTimer);
+    }
 }
 
 window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Bluetooth = Bluetooth;
+window.pluginClasses.BluetoothControl = BluetoothControl;
