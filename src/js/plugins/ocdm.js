@@ -1,6 +1,8 @@
 /** The ocdm plugin manages different OpenCDM DRM modules
  */
 
+import Plugin from '../core/Plugin.js'
+
 class OCDM extends Plugin {
 
     constructor(pluginData) {
@@ -48,5 +50,9 @@ class OCDM extends Plugin {
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.OCDM = OCDM;
+function name() {
+    return  'OCDM';
+}
+
+export { name }
+export default OCDM;

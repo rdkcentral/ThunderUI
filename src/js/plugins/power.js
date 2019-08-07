@@ -1,6 +1,8 @@
 /** The Power plugin provides control on Power modes
  */
 
+import Plugin from '../core/Plugin.js'
+
 class Power extends Plugin {
 
     constructor(pluginData) {
@@ -96,5 +98,9 @@ class Power extends Plugin {
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Power = Power;
+function name() {
+    return  'Power';
+}
+
+export { name }
+export default Power;

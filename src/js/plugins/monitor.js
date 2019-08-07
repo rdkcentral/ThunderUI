@@ -4,6 +4,8 @@
  * We'll only provide that information if the monitor plugin is loaded, hence this plugin provides that information to the other plugins.
  */
 
+import Plugin from '../core/Plugin.js'
+
 class Monitor extends Plugin {
 
     constructor(pluginData) {
@@ -11,6 +13,20 @@ class Monitor extends Plugin {
         this.observablesList = [];
         this.restartList = [];
     }
+
+    getMemoryInfo(plugin, callback) {
+       const _rest = {
+            method  : 'GET',
+            path    : 'Monitor'
+        };
+
+        const _rpc = {
+            plugin : 'Monitor',
+            method : 'status'
+        };
+
+        return api.req(_rest, _rpc);
+    };
 
     render() {
 
@@ -172,5 +188,9 @@ class Monitor extends Plugin {
 
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Monitor = Monitor;
+function name() {
+    return  'Monitor';
+}
+
+export { name }
+export default Monitor;

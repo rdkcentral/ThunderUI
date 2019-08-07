@@ -1,6 +1,8 @@
 /** The WebKitBrowser plugin renders webkit information and provides control to the WPE WebKit browser
  */
 
+import Plugin from '../core/Plugin.js'
+
 class WebKitBrowser extends Plugin {
 
     constructor(pluginData) {
@@ -308,5 +310,9 @@ class WebKitBrowser extends Plugin {
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.WebKitBrowser = WebKitBrowser;
+function name() {
+    return  'WebKitBrowser';
+}
+
+export { name }
+export default WebKitBrowser;

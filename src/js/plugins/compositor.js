@@ -1,6 +1,8 @@
 /** The compositor plugin manages the Westeros compositor and its cliens through the webui
  */
 
+import Plugin from '../core/Plugin.js'
+
 class Compositor extends Plugin {
 
     constructor(pluginData) {
@@ -216,5 +218,9 @@ class Compositor extends Plugin {
 
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Compositor = Compositor;
+function name() {
+    return  'Compositor';
+}
+
+export { name }
+export default Compositor;

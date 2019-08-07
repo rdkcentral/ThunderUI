@@ -1,5 +1,7 @@
 /** Device info plugin provides device specific information, such as cpu usage and serial numbers */
 
+import Plugin from '../core/Plugin.js'
+
 class DeviceInfo extends Plugin {
 
     constructor(pluginData) {
@@ -135,6 +137,21 @@ class DeviceInfo extends Plugin {
           </div>`;
     }
 
+
+    getDeviceInfo(callback) {
+        const _rest = {
+            method  : 'GET',
+            path    : 'DeviceInfo'
+        };
+
+        const _rpc = {
+            plugin : 'DeviceInfo',
+            method : 'system'
+        };
+
+        return api.req(_rest, _rpc);
+    }
+
     update() {
         var _updateCb = function(error, deviceInfo) {
             if (error !== null) {
@@ -209,5 +226,9 @@ class DeviceInfo extends Plugin {
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.DeviceInfo = DeviceInfo;
+function name() {
+    return  'DeviceInfo';
+}
+
+export { name }
+export default DeviceInfo;

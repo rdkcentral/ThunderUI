@@ -1,5 +1,8 @@
 /** The bluetooth plugin provides details on the available bluetooth devices, scans for new devices and allows the user to connect the device through UI
 */
+
+import Plugin from '../core/Plugin.js'
+
 class BluetoothControl extends Plugin {
 
     constructor(pluginData) {
@@ -119,8 +122,7 @@ class BluetoothControl extends Plugin {
     /* ----------------------------- DATA ------------------------------*/
 
     update() {
-        api.req('GET', api.getURLStart('http') + this.callsign, null,
-                     'BluetoothControl.1.status', {}, (err, resp) => {
+        this.status().then( status => {
             if (err !== null) {
                 console.error(err);
                 return;
@@ -189,26 +191,33 @@ class BluetoothControl extends Plugin {
         }
     }
 
-    status(message) {
+    updateStatus(message) {
         window.clearTimeout(this.statusMessageTimer);
         this.statusMessages.innerHTML = message;
 
         // clear after 5s
-        this.statusMessageTimer = setTimeout(this.status, 5000, '');
+        this.statusMessageTimer = setTimeout(this.updateStatus, 5000, '');
     }
 
     /* ----------------------------- BUTTONS ------------------------------*/
 
     scanForDevices() {
-        this.status(`Start scanning`);
+        this.renderStatus(`Start scanning`);
         var f = document.getElementById("BT_DeviceType");
         var device = f.options[f.selectedIndex].value;
 
-        api.req('PUT', api.getURLStart('http') + this.callsign +'/Scan/?LowEnergy='+device, null,'BluetoothControl.1.status',{}, (err, resp) => {
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
+        const _rest = {
+            method  : 'PUT',
+            path    : '/Scan/?LowEnergy='+device,
+            body    : null
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'status',
+        };
+
+        api.req(_rest, _rpc).then( resp => {
             this.scanButton.disabled = true;
             this.pairButton.disabled = true;
 	        this.connectButton.disabled = true;
@@ -223,16 +232,23 @@ class BluetoothControl extends Plugin {
         var idx = this.discoveredDeviceList.selectedIndex;
 
         if (this.discoveredDevices[idx].name === "")
-            this.status(`Pairing to ${this.discoveredDevices[idx].address}`);
+            this.renderStatus(`Pairing to ${this.discoveredDevices[idx].address}`);
         else
-            this.status(`Pairing to ${this.discoveredDevices[idx].name}`);
-        var body = '{"address" : "' + this.discoveredDevices[idx].address + '"}';
-	    api.req('PUT',api.getURLStart('http') + this.callsign + '/Pair',body, 'BluetoothControl.1.status',{}, (err,resp) =>{
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
+            this.renderStatus(`Pairing to ${this.discoveredDevices[idx].name}`);
 
+        const _rest = {
+            method  : 'PUT',
+            path    : '/Pair',
+            body    : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'pair',
+            body   : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+        };
+
+        api.req(_rest, _rpc).then( resp => {
             this.pairButton.disabled = true;
             setTimeout(this.update.bind(this), 1000);
         });
@@ -241,12 +257,23 @@ class BluetoothControl extends Plugin {
     connect() {
         var idx = this.pairedDeviceList.selectedIndex;
         if (this.pairedDevices[idx].name === "")
-            this.status(`Connecting to ${this.pairedDevices[idx].address}`);
+            this.renderStatus(`Connecting to ${this.pairedDevices[idx].address}`);
         else
-            this.status(`Connecting to ${this.pairedDevices[idx].name}`);
+            this.renderStatus(`Connecting to ${this.pairedDevices[idx].name}`);
 
-        var body = '{"address" : "' + this.pairedDevices[idx].address + '"}';
-        api.req('PUT',api.getURLStart('http') + this.callsign + '/Connect', body, 'BluetoothControl.1.status',{},(err,resp) =>{
+        const _rest = {
+            method  : 'PUT',
+            path    : '/Connect',
+            body    : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'connect',
+            body   : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+        };
+
+        api.req(_rest, _rpc).then( resp => {
             if (err !== null) {
                 console.error(err);
                 return;
@@ -259,12 +286,23 @@ class BluetoothControl extends Plugin {
     disconnect() {
         var idx = this.connectedDeviceList.selectedIndex;
         if (this.connectedDevices[idx].name === "")
-            this.status(`Disconnecting to ${this.connectedDevices[idx].address}`);
+            this.renderStatus(`Disconnecting to ${this.connectedDevices[idx].address}`);
         else
-            this.status(`Disconnecting to ${this.connectedDevices[idx].name}`);
+            this.renderStatus(`Disconnecting to ${this.connectedDevices[idx].name}`);
 
-        var body = '{"address"  : "' + this.connectedDevices[idx].address + '"}';
-        api.req('DELETE',api.getURLStart('http') + this.callsign + '/Connect', body, 'BluetoothControl.1.status',{}, (err,resp) =>{
+        const _rest = {
+            method  : 'DELETE',
+            path    : '/Connect',
+            body    : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'pair',
+            body   : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+        };
+
+        api.req(_rest, _rpc).then( resp => {
             if (err !== null) {
                 console.error(err);
                 return;
@@ -279,5 +317,9 @@ class BluetoothControl extends Plugin {
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.BluetoothControl = BluetoothControl;
+function name() {
+    return  'BluetoothControl';
+}
+
+export default BluetoothControl;
+export { name }

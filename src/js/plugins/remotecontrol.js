@@ -2,6 +2,8 @@
  * This file is instantiated by menu.js
  */
 
+import Plugin from '../core/Plugin.js'
+
 class RemoteControl extends Plugin {
 
     constructor(pluginData) {
@@ -152,6 +154,67 @@ class RemoteControl extends Plugin {
         window.addEventListener('keydown', this.handleKeyFromJs.bind(this, true));
     }
 
+    sendKey(key) {
+        var body = {
+            'device': 'Web',
+            'code'  : key,
+        };
+
+        const _rest = {
+            method  : 'PUT',
+            path    : 'RemoteControl/Web/Send'
+        };
+
+        const _rpc = {
+            plugin : 'RemoteControl',
+            method : 'send',
+            params : body
+        };
+
+        return api.req(_rest, _rpc);
+    };
+
+    sendKeyPress(key) {
+        var body = {
+            'device': 'Web',
+            'code'  : key,
+        };
+
+        const _rest = {
+            method  : 'PUT',
+            path    : 'RemoteControl/Web/Press'
+        };
+
+        const _rpc = {
+            plugin : 'RemoteControl',
+            method : 'press',
+            params : body
+        };
+
+        return api.req(_rest, _rpc);
+    };
+
+    sendKeyRelease(key) {
+        var body = {
+            'device': 'Web',
+            'code'  : key,
+        };
+
+        const _rest = {
+            method  : 'PUT',
+            path    : 'RemoteControl/Web/Release'
+        };
+
+        const _rpc = {
+            plugin : 'RemoteControl',
+            method : 'release',
+            params : body
+        };
+
+        return api.req(_rest, _rpc);
+    };
+
+
     renderKey(keyString) {
         var statusBarEl = document.getElementById('keyPressed');
         if (statusBarEl !== null)
@@ -172,7 +235,7 @@ class RemoteControl extends Plugin {
 
 
         this.renderKey(mappedKey.string);
-        var apiCall = keyDown ? api.sendKeyPress.bind(api, mappedKey.code) : api.sendKeyRelease.bind(api, mappedKey.code);
+        var apiCall = keyDown ? this.sendKeyPress.bind(mappedKey.code) : this.sendKeyRelease.bind(mappedKey.code);
         apiCall.call();
     }
 
@@ -182,7 +245,7 @@ class RemoteControl extends Plugin {
             return;
 
         this.renderKey(mappedKey.string);
-        api.sendKey(mappedKey.code);
+        this.sendKey(mappedKey.code);
     }
 
     addKeyboardButton() {
@@ -226,12 +289,19 @@ class RemoteControl extends Plugin {
     }
 
     activatePairing(deviceName) {
-        api.putPlugin(this.callsign + '/' + deviceName, 'Pair', null, (err, resp) => {
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
-        });
+
+        const _rest = {
+            method  : 'PUT',
+            path    : `RemoteControl/${deviceName}/Pair`
+        };
+
+        const _rpc = {
+            plugin : 'RemoteControl',
+            method : 'pair',
+            params : { 'device': deviceName }
+        };
+
+        return api.req(_rest, _rpc);
     }
 
     render() {
@@ -257,7 +327,7 @@ class RemoteControl extends Plugin {
           `;
 
         var self = this;
-        api.getPluginData('RemoteControl', function (error, remotes) {
+        this.status().then( remotes => {
             if (remotes === undefined || remotes.devices === undefined)
                 return;
 
@@ -296,5 +366,9 @@ class RemoteControl extends Plugin {
 
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.RemoteControl = RemoteControl;
+function name() {
+    return  'RemoteControl';
+}
+
+export { name }
+export default RemoteControl;

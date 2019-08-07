@@ -111,60 +111,6 @@ class WpeApi {
         return this.req(_rest, _rpc);
     }
 
-    getDeviceInfo(callback) {
-        this.req('GET', this.getURLStart('http') + 'DeviceInfo/', null,
-            'DeviceInfo.1.system', {}, (err, res) => {
-                // compatibility checkx
-                if (res.deviceInfo !== undefined)
-                    callback(err, res.deviceInfo)
-                else
-                    callback(err, res)
-            })
-    }
-
-    getMemoryInfo(plugin, callback) {
-        this.req('GET', this.getURLStart('http') + 'Monitor/' + plugin, null,
-            'Monitor.1.status', {callsign: plugin}, callback);
-    };
-
-
-    sendKey(key, callback) {
-        var body = {
-            "device": "Web",
-            "code": key,
-        };
-        this.req('PUT', this.getURLStart('http') + 'RemoteControl/Web/Send', body,
-            'RemoteControl.1.send', body, callback);
-    };
-
-    sendKeyPress(key, callback) {
-        var body = {
-            "device": "Web",
-            "code": key,
-        };
-        this.req('PUT', this.getURLStart('http') + 'RemoteControl/Web/Press', body,
-            'RemoteControl.1.press', body, callback);
-    };
-
-    sendKeyRelease(key, callback) {
-        var body = {
-            "device": "Web",
-            "code": key,
-        };
-        this.req('PUT', this.getURLStart('http') + 'RemoteControl/Web/Release', body,
-            'RemoteControl.1.release', body, callback);
-    };
-
-    toggleTracing(module, id, state, callback) {
-        var body = {
-            "module": module,
-            "category": id,
-            "state": state === 'on' ? 'enabled' : 'disabled'
-        };
-        this.req('PUT', this.getURLStart('http') + 'TraceControl' +  '/' + module + '/' + id + '/' + state, null,
-            'TraceControl.1.set', body, callback);
-    };
-
     setUrl(plugin, url, callback) {
         var body = {"url":  url };
         this.req('POST', this.getURLStart('http') + plugin + '/URL', body,
@@ -279,4 +225,4 @@ class WpeApi {
 
 }
 
-window.WpeApi = WpeApi;
+export { WpeApi };

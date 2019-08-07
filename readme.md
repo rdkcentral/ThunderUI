@@ -13,7 +13,7 @@ npm install
 
 # Compile
 
-To compile a release version of WPE Framework UI please run
+To compile a release version of Thunder UI please run
 ```
 grunt release
 ```

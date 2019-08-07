@@ -1,6 +1,8 @@
 /** The WebKitBrowser plugin renders webkit information and provides control to the WPE WebKit browser
  */
 
+import Plugin from '../core/Plugin.js'
+
 class Spark extends Plugin {
 
     constructor(pluginData) {
@@ -202,5 +204,9 @@ class Spark extends Plugin {
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Spark = Spark;
+function name() {
+    return  'Spark';
+}
+
+export { name }
+export default Spark;

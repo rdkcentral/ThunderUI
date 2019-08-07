@@ -1,6 +1,8 @@
 /** The snapshot plugin captures snapshots from the device
  */
 
+import Plugin from '../core/Plugin.js'
+
 class Snapshot extends Plugin {
 
     constructor(pluginData) {
@@ -36,5 +38,9 @@ class Snapshot extends Plugin {
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Snapshot = Snapshot;
+function name() {
+    return  'Snapshot';
+}
+
+export { name }
+export default Snapshot;

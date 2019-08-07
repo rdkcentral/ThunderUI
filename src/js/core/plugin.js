@@ -3,7 +3,6 @@
  */
 
 class Plugin {
-
     /** Constructor
      * @{param} Name of the plugin for display on the UI
      * @{param} Support object to indicate plugin capabilities for the UI. Such as suspend/resume, toggle visibility and whether or not the plugin renders
@@ -113,31 +112,19 @@ class Plugin {
         return api.req(_rest, _rpc)
     };
 
-
-    // legacy GET request on the restfull interface
-    // superceded by status
-    get(plugin) {
+    status(plugin) {
         const _rest = {
             method  : 'GET',
-            path    : `${this.callsign}`,
-            body    : null
+            path    : this.callsign
         };
 
-        return api.req(_rest, undefined);
-    }
-
-    status(plugin) {
         const _rpc = {
-            plugin : 'Controller'
+            plugin : this.callsign,
+            method : 'status'
         };
 
-        if (plugin)
-            _rpc.method = `status@${plugin}`;
-        else
-            _rpc.method = 'status';
-
-        return api.req(undefined, _rpc);
-    };
+        return api.req(_rest, _rpc);
+    }
 
 
     /** The render function is called when the plugin needs to render on screen */
@@ -151,3 +138,5 @@ class Plugin {
         this.rendered = false;
     }
 }
+
+export default Plugin;

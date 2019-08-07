@@ -1,164 +1,115 @@
 /**
- * WPE Framework application.js
+ * Thunder application.js
  *
- * Main WPE Framework UI application - initializes and starts the UI (short: WFUI?)
- * The landing page can be configured in conf.js (exposed through wfui.conf)
+ * Main Thunder UI application - initializes and starts the UI
+ * The landing page can be configured in conf.js (exposed through conf.js)
  */
+'use strict';
+var API = import('../core/wpe.js');
+var conf = import('../conf.js');
+var Menu = import('../layout/menu.js');
+var Footer = import('../layout/footer.js');
+var Notifications = import('../layout/notifications.js');
 
-(function () {
-    /**
-    * Create the initial structure & globals
-    */
+/**
+* Create the initial structure & globals
+*/
 
-    // public
-    plugins             = {};       // wfui plugins
-    api                 = undefined; // WPE API
+// public
+var plugins             = {};        // wfui plugins
+var api                 = undefined; // WPE API
+var plugin              = undefined;
 
-    // private
-    var bootStep        = 1;
-    var fetchedPlugins  = [];
-    var mainDiv         = document.getElementById('main');
-    var activePlugin    = window.localStorage.getItem(this.lastActivePlugin) || undefined;
+// private
+var fetchedPlugins  = [];
+var mainDiv         = document.getElementById('main');
+var activePlugin    = window.localStorage.getItem('lastActivePlugin') || undefined;
 
-    /**
-    * Main initialization function
-    *
-    * Goes through a series of bootSteps to initialize the application, each step calls init again
-    * Within the init a loadingPage is rendered to show progress of the boot
-    * @memberof application
-    */
-    function init(){
-        if (bootStep === 1){
-            /*
-             * BOOT Step 1 - Init the WPE API
-             */
-            console.debug('Initializing WPE API');
-            var hostname = document.getElementById("hostname") && document.getElementById("hostname").value;
-            if ((hostname === null) || (hostname === ""))
-                hostname = window.location.hostname;
-
-            port = document.getElementById("port") && document.getElementById("port").value;
-            if ((port === null) || (port === "")) {
-                if (window.location.host === window.location.hostname)
-                    port = 80;
-                else
-                    port = window.location.host.substring(window.location.hostname.length + 1);
-            }
-
-            if ((port !== "") && (port !== 80))
-                hostname += ":" + port;
-
-            // check if wpe.js is already loaded, if not wait
-            if (window.WpeApi === undefined) {
-                console.debug('WPE API is not ready yet, retrying...');
-                setTimeout(init, 50);
-                return;
-            }
-
-            // initialize the WPE Framework API
-            api = new window.WpeApi(hostname);
-            initNext();
-        /*
-         * BOOT Step 2 - Get the list of plugins and init each plugin
-         */
-        } else if (bootStep === 2){
-            console.debug('Getting list of plugins from Framework');
-            api.getControllerPlugins().then( data => {
-                fetchedPlugins = data.plugins;
-                initNext();
-            }).catch( e => {
-                console.error(e);
-                setTimeout(init, conf.refresh_interval); // device is probably offline, retrying
-            })
-        /*
-         * Boot step 3 - register each plugin
-         */
-        } else if (bootStep === 3){
+/**
+* Main initialization function
+*
+* Goes through a series of bootSteps to initialize the application, each step calls init again
+* Within the init a loadingPage is rendered to show progress of the boot
+* @memberof application
+*/
+function init(host, pluginClasses){
+    API.then( (module) => {
+        // initialize the WPE Framework API
+        api = window.api = new module.WpeApi(host);
+        //api.startWebSocket();
+        return api
+    }).then( api => {
+        console.debug('Getting list of plugins from Framework');
+        api.getControllerPlugins().then( data => {
+            fetchedPlugins = data;
+            return fetchedPlugins
+        }).then( fetchedPlugins => {
             console.debug('Loading plugins');
+
+            let loadedPluginClassNames = pluginClasses.filter( pluginClass => {
+                if (pluginClass.name !== undefined)
+                    return true
+                else
+                    return false
+            }).map( pluginClass => {
+                return pluginClass.name();
+            })
+
             // check which plugins are present on the device
             for (var i=0; i<fetchedPlugins.length; i++) {
                 var pluginName = fetchedPlugins[i].callsign;
                 var pluginClass = fetchedPlugins[i].classname;
 
                 // try to init the plugin
-                if (pluginClasses[ pluginClass ] !== undefined) {
+                if (loadedPluginClassNames.indexOf(pluginClass) != -1) {
                     console.debug('Initializing plugin ' + pluginName);
-                    plugins[ pluginName ] = new pluginClasses[ pluginClass ](fetchedPlugins[i]);
+                    plugins[ pluginName ] = new pluginClasses[ loadedPluginClassNames.indexOf(pluginClass) ].class(fetchedPlugins[i]);
                 } else {
                     console.debug('Unsupported plugin: ' + pluginName);
                 }
-
-                if (i===fetchedPlugins.length-1)
-                    initNext();
             }
+        })
+    }).then( () => {
         /*
-         * Boot step 4 - initialize the menu
-         */
-        } else if (bootStep === 4){
-            console.debug('Rendering menu');
-            plugins.menu = new Menu();
+        Menu.then( module => {
+            plugins.menu = new module.default();
             plugins.menu.render(activePlugin !== undefined ? activePlugin : conf.startPlugin);
-            initNext();
-        /*
-         * Boot step 5 - render the default plugin from conf.startPlugin or the last visited from local
-         */
-        } else if (bootStep === 5){
+        }).then( () => {
             showPlugin(activePlugin !== undefined ? activePlugin : conf.startPlugin);
-            initNext();
-        /*
-         * Boot step 6 - start the footer status bar
-         */
-        } else if (bootStep === 6){
-            plugins.footer = new Footer();
+        })
 
-            initNext();
-        /*
-         * Boot step 7 - start the notification socket
-         */
-        } else if (bootStep === 7){
+        Footer.then( module => {
+            plugins.footer = new module.default();
+        })
 
-            api.startWebSocket();
+        Notifications.then( module => {
+            plugins.notifications = new module.default();
+        })
+        */
+    })
+}
 
-            initNext();
-        /*
-         * Boot step 8 - start the socket notification console
-         */
-        } else if (bootStep === 8){
-            plugins.notifications = new Notifications();
-        }
-    }
+/** (global) renders a plugin in the main div */
+function showPlugin(callsign) {
+    if (plugins[ callsign ] === undefined)
+        return;
 
-    /** Find the next bootstep and go run that */
-    function initNext() {
-        console.debug('Bootstep ' + bootStep + ' completed');
+    if (activePlugin !== undefined && plugins[ activePlugin ] !== undefined)
+        plugins[ activePlugin ].close();
 
-        bootStep++;
-        init();
-    }
+    document.getElementById('main').innerHTML = '';
+    plugins[ callsign ].render();
+    activePlugin = callsign;
+    window.localStorage.setItem('lastActivePlugin', callsign);
+};
 
-    /** (global) renders a plugin in the main div */
-    showPlugin = function(callsign) {
-        if (plugins[ callsign ] === undefined)
-            return;
+/** (global) refresh current active plugin */
+function renderCurrentPlugin() {
+    // lets re-render menu too, just to be sure
+    plugins.menu.render(activePlugin);
 
-        if (activePlugin !== undefined && plugins[ activePlugin ] !== undefined)
-            plugins[ activePlugin ].close();
+    document.getElementById('main').innerHTML = '';
+    plugins[ activePlugin ].render();
+};
 
-        document.getElementById('main').innerHTML = '';
-        plugins[ callsign ].render();
-        activePlugin = callsign;
-        window.localStorage.setItem(this.lastActivePlugin, callsign);
-    };
-
-    /** (global) refresh current active plugin */
-    renderCurrentPlugin = function() {
-        // lets re-render menu too, just to be sure
-        plugins.menu.render(activePlugin);
-
-        document.getElementById('main').innerHTML = '';
-        plugins[ activePlugin ].render();
-    };
-
-    init();
-
-})();
+export { init, showPlugin, renderCurrentPlugin };

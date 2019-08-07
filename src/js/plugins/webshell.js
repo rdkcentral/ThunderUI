@@ -1,6 +1,8 @@
 /** The webshell plugin provides a shell that can be managed through the webui
  */
 
+import Plugin from '../core/Plugin.js'
+
 class WebShell extends Plugin {
 
     constructor(pluginData) {
@@ -67,10 +69,14 @@ class WebShell extends Plugin {
             var webShellData = document.getElementById("webShellData");
 
             shell.scrollTop = webShellData.scrollHeight;
-        }, 50);        
+        }, 50);
     }
 
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.WebShell = WebShell;
+function name() {
+    return  'WebShell';
+}
+
+export { name }
+export default WebShell;

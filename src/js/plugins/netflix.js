@@ -1,6 +1,8 @@
 /** The Netflix plugin provides details on the netflix instance
  */
 
+import Plugin from '../core/Plugin.js'
+
 class Netflix extends Plugin {
 
     constructor(pluginData) {
@@ -94,5 +96,9 @@ class Netflix extends Plugin {
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Netflix = Netflix;
+function name() {
+    return  'Netflix';
+}
+
+export { name }
+export default Netflix;

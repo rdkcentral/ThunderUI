@@ -1,6 +1,8 @@
 /** The provision plugin checks the device identifier and is able to initiate a provisioning request if not provisioned
  */
 
+import Plugin from '../core/Plugin.js'
+
 class Provisioning extends Plugin {
 
     constructor(pluginData) {
@@ -82,5 +84,9 @@ class Provisioning extends Plugin {
     }
  }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Provisioning = Provisioning;
+function name() {
+    return  'Provisioning';
+}
+
+export { name }
+export default Provisioning;

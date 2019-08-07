@@ -15,6 +15,7 @@
     "grunt-contrib-concat": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
+    "grunt-rollup": "*",
     "shelljs": "~0.7.x"
   },
   "repository": {

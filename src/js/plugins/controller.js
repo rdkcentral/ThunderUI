@@ -2,6 +2,8 @@
  * Main controller plugin, renders a list of active plugins and the ability to interact with the plugins (deactivate/active/suspend/resume)
  */
 
+import Plugin from '../core/Plugin.js'
+
 class Controller extends Plugin {
 
     constructor(pluginData) {
@@ -27,6 +29,19 @@ class Controller extends Plugin {
     /**
      * API
      */
+    controllerStatus(plugin) {
+        const _rpc = {
+            plugin : 'Controller'
+        };
+
+        if (plugin)
+            _rpc.method = `status@${plugin}`;
+        else
+            _rpc.method = 'status';
+
+        return api.req(undefined, _rpc);
+    }
+
     harakiri() {
         const _rest = {
             method  : 'PUT',
@@ -57,7 +72,7 @@ class Controller extends Plugin {
         };
 
         return api.req(_rest, _rpc);
-    };
+    }
 
     getDiscovery(callback) {
         const _rest = {
@@ -73,7 +88,7 @@ class Controller extends Plugin {
         };
 
         return api.req(_rest, _rpc);
-    };
+    }
 
     persist(callback) {
         const _rest = {
@@ -88,7 +103,7 @@ class Controller extends Plugin {
         };
 
         return api.req(_rest, _rpc);
-    };
+    }
 
     /**
      * UI
@@ -113,7 +128,7 @@ class Controller extends Plugin {
                 plugin.state = 'activated';
             }).catch( e => {
                 this.render();
-            })
+            });
         } else {
             console.debug('Deactivating ' + callsign);
             this.deactivate(callsign).then( (resp) => {
@@ -123,7 +138,7 @@ class Controller extends Plugin {
                 plugin.state = 'deactivated';
             }).catch(e => {
                 this.render();
-            })
+            });
         }
     }
 
@@ -317,6 +332,9 @@ class Controller extends Plugin {
 
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Controller = Controller;
+function name() {
+    return  'Controller';
+}
 
+export { name }
+export default Controller;

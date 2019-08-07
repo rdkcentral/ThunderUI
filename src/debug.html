@@ -25,7 +25,83 @@
 			<div id="notifications"></div>
 		</div>
 
-		<script src="lib/thunderJS.js"></script>
-		<script src="js/debug.js"></script>
+		<script src="./lib/thunderJS.js"></script>
+		<script>
+	        var hostname = document.getElementById("hostname") && document.getElementById("hostname").value;
+	        if ((hostname === null) || (hostname === ""))
+	            hostname = window.location.hostname;
+
+	        port = document.getElementById("port") && document.getElementById("port").value;
+	        if ((port === null) || (port === "")) {
+	            if (window.location.host === window.location.hostname)
+	                port = 80;
+	            else
+	                port = window.location.host.substring(window.location.hostname.length + 1);
+	        }
+
+	        if ((port !== "") && (port !== 80))
+	            hostname += ":" + port;
+
+
+	        var plugins = []
+			function loadJS(file) {
+				import(file).then( module => {
+					plugins.push({ name: module.name, class: module.default })
+				});
+			}
+
+			function fetch(url, cb) {
+				var transport = new XMLHttpRequest();
+
+				transport.onload = function () {
+					var response;
+
+					if (this.status === 200) {
+						try {
+							response = JSON.parse(this.responseText);
+						} catch (error) {
+							return cb(new Error('Invalid JSON received'));
+						}
+						cb(null, response);
+					} else {
+						cb(this.status);
+					}
+				};
+
+				transport.ontimeout = function() {
+					cb(new Error('Timeout'));
+				};
+
+				transport.onerror = function () {
+					cb(new Error('Network error'));
+				};
+
+				transport.open('GET', url);
+				transport.timeout = 10000;
+				transport.send(null);
+
+			}
+
+			function startApp() {
+				import('./js/core/application.js').then( (app) => {
+					app.init('192.168.2.201', plugins)
+				});
+			}
+
+			fetch('js/scripts.json', function(err, scripts) {
+				if (err) {
+					console.error('Error fetching scripts.json, did you run grunt already?');
+					return;
+				}
+
+				for (var i=0; i<scripts.length; i++) {
+					console.log('DEBUG.js - Loading: ' + scripts[i]);
+					loadJS(scripts[i]);
+
+					if (i == scripts.length-1)
+						startApp()
+				}
+			});
+		</script>
 	</body>
 </html>

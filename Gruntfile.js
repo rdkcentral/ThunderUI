@@ -90,21 +90,22 @@ module.exports = function(grunt) {
         var scripts = [];
 
         // add conf
-        scripts.push('js/conf.js');
+        /*
+        scripts.push('./js/conf.js');
 
         shell.cd(coreDir);
         shell.ls('*.js').forEach( function(p) {
-            scripts.push('js/core/' + p);
+            scripts.push('./js/core/' + p);
         });
 
         shell.cd(layoutDir);
         shell.ls('*.js').forEach( function(p) {
-            scripts.push('js/layout/' + p);
+            scripts.push('./js/layout/' + p);
         });
-
+        */
         shell.cd(pluginDir);
         shell.ls('*.js').forEach( function(js) {
-            scripts.push(path.join('js/plugins/', js));
+            scripts.push('./js/plugins/' + js);
         });
 
         shell.cd(cwd);
