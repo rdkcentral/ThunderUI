@@ -25,6 +25,16 @@ module.exports = function(grunt) {
             }
         },
         copy: {
+            thunderjs : {
+                src: 'ThunderJS/dist/thunderJS.js',
+                dest: 'src/lib/thunderJS.js'
+            },
+            lib: {
+                expand: true,
+                cwd: 'src/lib/',
+                src: '**',
+                dest: 'build/lib/'
+            },
             images: {
                 expand: true,
                 cwd: 'src/img/',
@@ -132,7 +142,7 @@ module.exports = function(grunt) {
 
     //add the tasks
     grunt.registerTask('test', ['jshint']); //just runs jshint to validate all the javascript
-    grunt.registerTask('compile', ['loadScripts', 'test']);
+    grunt.registerTask('compile', ['loadScripts', 'copy:thunderjs', 'test']);
     // FIXME: uglify has been turned off because it doesnt support ES6
     grunt.registerTask('release', ['loadScripts', 'test', 'compile', 'clean', 'copy', 'concat']); //generates the build
 

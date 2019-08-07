@@ -20,6 +20,126 @@ class Plugin {
         this.rendered = false;
     }
 
+    activate(plugin) {
+        const _rest = {
+            method  : 'PUT',
+            path    : `Controller/Activate/${this.callsign}`
+        };
+
+        const _rpc = {
+            plugin : 'Controller',
+            method : 'activate',
+            params : {'callsign': this.callsign}
+        };
+
+        return api.req(_rest, _rpc)
+    };
+
+    deactivate(plugin) {
+        const _rest = {
+            method  : 'PUT',
+            path    : `Controller/Deactivate/${this.callsign}`,
+            body    : null
+        };
+
+        const _rpc = {
+            plugin : 'Controller',
+            method : 'deactivate',
+            params : {'callsign': this.callsign}
+        };
+
+        return api.req(_rest, _rpc)
+    };
+
+    suspend(plugin) {
+        const _rest = {
+            method  : 'PUT',
+            path    : `${this.callsign}/Suspend`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'state',
+            params : 'suspend'
+        };
+
+        return api.req(_rest, _rpc)
+    };
+
+    resume(plugin) {
+        const _rest = {
+            method  : 'PUT',
+            path    : `${this.callsign}/Resume`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'state',
+            params : 'resume'
+        };
+
+        return api.req(_rest, _rpc)
+    };
+
+    show(plugin) {
+        const _rest = {
+            method  : 'PUT',
+            path    : `${this.callsign}/Show`,
+            body    : null
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'visibility',
+            params : 'visible'
+        };
+
+        return api.req(_rest, _rpc)
+    };
+
+    hide(plugin) {
+        const _rest = {
+            method  : 'PUT',
+            path    : `${this.callsign}/Hide`,
+            body    : null
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'visibility',
+            params : 'hidden'
+        };
+
+        return api.req(_rest, _rpc)
+    };
+
+
+    // legacy GET request on the restfull interface
+    // superceded by status
+    get(plugin) {
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}`,
+            body    : null
+        };
+
+        return api.req(_rest, undefined);
+    }
+
+    status(plugin) {
+        const _rpc = {
+            plugin : 'Controller'
+        };
+
+        if (plugin)
+            _rpc.method = `status@${plugin}`;
+        else
+            _rpc.method = 'status';
+
+        return api.req(undefined, _rpc);
+    };
+
+
     /** The render function is called when the plugin needs to render on screen */
     render()        {
         this.rendered = true;

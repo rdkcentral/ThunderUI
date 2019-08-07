@@ -1,4 +1,4 @@
-WPEFrameworkUI is the development and test UI that runs on top of the WPE Framework. The WPE Framework UI provides remote control over a WPE Framework enabled device for testing and debugging purposes. 
+ThunderUI is the development and test UI that runs on top of the Thunder. Thunder UI provides remote control over a Thunder enabled device for testing and debugging purposes.
 
 # Prerequisites
 

@@ -57,23 +57,19 @@
 
             // initialize the WPE Framework API
             api = new window.WpeApi(hostname);
-            api.startJSONRPCSocket();
             initNext();
         /*
          * BOOT Step 2 - Get the list of plugins and init each plugin
          */
         } else if (bootStep === 2){
             console.debug('Getting list of plugins from Framework');
-            api.getControllerPlugins( (err, data) => {
-                if (err) {
-                    console.error(err);
-                    setTimeout(init, conf.refresh_interval); // device is probably offline, retrying
-                    return;
-                }
-
+            api.getControllerPlugins().then( data => {
                 fetchedPlugins = data.plugins;
                 initNext();
-            });
+            }).catch( e => {
+                console.error(e);
+                setTimeout(init, conf.refresh_interval); // device is probably offline, retrying
+            })
         /*
          * Boot step 3 - register each plugin
          */
