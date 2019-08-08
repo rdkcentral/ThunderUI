@@ -1,12 +1,12 @@
 /** The bluetooth plugin provides details on the available bluetooth devices, scans for new devices and allows the user to connect the device through UI
 */
 
-import Plugin from '../core/Plugin.js'
+import Plugin from '../core/Plugin.js';
 
 class BluetoothControl extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
 
         this.discoveredDevices = [];
         this.pairedDevices = [];
@@ -217,7 +217,7 @@ class BluetoothControl extends Plugin {
             method : 'status',
         };
 
-        api.req(_rest, _rpc).then( resp => {
+        this.api.req(_rest, _rpc).then( resp => {
             this.scanButton.disabled = true;
             this.pairButton.disabled = true;
 	        this.connectButton.disabled = true;
@@ -248,7 +248,7 @@ class BluetoothControl extends Plugin {
             body   : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
         };
 
-        api.req(_rest, _rpc).then( resp => {
+        this.api.req(_rest, _rpc).then( resp => {
             this.pairButton.disabled = true;
             setTimeout(this.update.bind(this), 1000);
         });
@@ -273,7 +273,7 @@ class BluetoothControl extends Plugin {
             body   : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
         };
 
-        api.req(_rest, _rpc).then( resp => {
+        this.api.req(_rest, _rpc).then( resp => {
             if (err !== null) {
                 console.error(err);
                 return;
@@ -322,4 +322,4 @@ function name() {
 }
 
 export default BluetoothControl;
-export { name }
+export { name };

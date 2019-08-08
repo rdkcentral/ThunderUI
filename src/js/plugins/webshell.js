@@ -1,12 +1,12 @@
 /** The webshell plugin provides a shell that can be managed through the webui
  */
 
-import Plugin from '../core/Plugin.js'
+import Plugin from '../core/Plugin.js';
 
 class WebShell extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
 
         this.webShellSocket = undefined;
     }
@@ -22,7 +22,7 @@ class WebShell extends Plugin {
         <div id="hashtag">#</div><input type="text" id="webShellInput" autofocus />`;
 
         // start the webshell
-        api.startWebShell(function (error, ws) {
+        this.api.startWebShell(function (error, ws) {
             self.webShellSocket = ws;
             self.webShellSocket.onmessage = function(e){
                 var fileReader = new FileReader();
@@ -45,9 +45,9 @@ class WebShell extends Plugin {
         window.addEventListener('keydown', this.handleKey.bind(this));
     }
 
-    close() { 
+    close() {
         if (plugins.RemoteControl !== undefined)
-                plugins.RemoteControl.doNotHandleKeys = false;        
+                plugins.RemoteControl.doNotHandleKeys = false;
         window.removeEventListener('keydown', this.handleKey.bind(this), false);
     }
 
@@ -78,5 +78,5 @@ function name() {
     return  'WebShell';
 }
 
-export { name }
+export { name };
 export default WebShell;

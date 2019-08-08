@@ -2,12 +2,12 @@
  * This file is instantiated by menu.js
  */
 
-import Plugin from '../core/Plugin.js'
+import Plugin from '../core/Plugin.js';
 
 class RemoteControl extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
         this.displayName = 'Remote Control';
         this.onScreenKeyBoardIsRendered     = false;
         this.doNotHandleKeys                = false;
@@ -171,8 +171,8 @@ class RemoteControl extends Plugin {
             params : body
         };
 
-        return api.req(_rest, _rpc);
-    };
+        return this.api.req(_rest, _rpc);
+    }
 
     sendKeyPress(key) {
         var body = {
@@ -191,8 +191,8 @@ class RemoteControl extends Plugin {
             params : body
         };
 
-        return api.req(_rest, _rpc);
-    };
+        return this.api.req(_rest, _rpc);
+    }
 
     sendKeyRelease(key) {
         var body = {
@@ -211,8 +211,8 @@ class RemoteControl extends Plugin {
             params : body
         };
 
-        return api.req(_rest, _rpc);
-    };
+        return this.api.req(_rest, _rpc);
+    }
 
 
     renderKey(keyString) {
@@ -289,7 +289,6 @@ class RemoteControl extends Plugin {
     }
 
     activatePairing(deviceName) {
-
         const _rest = {
             method  : 'PUT',
             path    : `RemoteControl/${deviceName}/Pair`
@@ -301,7 +300,7 @@ class RemoteControl extends Plugin {
             params : { 'device': deviceName }
         };
 
-        return api.req(_rest, _rpc);
+        return this.api.req(_rest, _rpc);
     }
 
     render() {
@@ -370,5 +369,5 @@ function name() {
     return  'RemoteControl';
 }
 
-export { name }
+export { name };
 export default RemoteControl;

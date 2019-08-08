@@ -35,7 +35,7 @@ var activePlugin    = window.localStorage.getItem('lastActivePlugin') || undefin
 function init(host, pluginClasses){
     API.then( (module) => {
         // initialize the WPE Framework API
-        api = window.api = new module.WpeApi(host);
+        api = new module.WpeApi(host);
         //api.startWebSocket();
         return api
     }).then( api => {
@@ -63,7 +63,7 @@ function init(host, pluginClasses){
                 // try to init the plugin
                 if (loadedPluginClassNames.indexOf(pluginClass) != -1) {
                     console.debug('Initializing plugin ' + pluginName);
-                    plugins[ pluginName ] = new pluginClasses[ loadedPluginClassNames.indexOf(pluginClass) ].class(fetchedPlugins[i]);
+                    plugins[ pluginName ] = new pluginClasses[ loadedPluginClassNames.indexOf(pluginClass) ].class(fetchedPlugins[i], api);
                 } else {
                     console.debug('Unsupported plugin: ' + pluginName);
                 }

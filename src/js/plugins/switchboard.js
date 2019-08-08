@@ -1,25 +1,32 @@
 /** The switchboard plugin allows the device to switch between different processes from the Framework
  */
 
-import Plugin from '../core/Plugin.js'
+import Plugin from '../core/Plugin.js';
 
 class SwitchBoard extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
 
         //this.renderInMenu = false;
         this.defaultPlugin = undefined;
         this.switchablePlugins = [];
 
         // get switchboard configuration
-        api.getPluginData(this.callsign + '/Switch', (error, resp) => {
-            if (error !== null)
-                return;
-
+        this.state().then( resp => {
             this.defaultPlugin = resp.default;
             this.switchablePlugins = resp.callsigns;
         });
+    }
+
+    state() {
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/Switch`
+        };
+
+        //FIXME does not have a jsonrpc interface
+        return this.api.req(_rest);
     }
 
     getDefaultSwitchBoardPlugin () {
@@ -40,12 +47,7 @@ class SwitchBoard extends Plugin {
 
         var switchBoardPluginDiv = document.getElementById('switchBoardPlugins');
 
-       api.getControllerPlugins( (err, data) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
-
+       this.api.getControllerPlugins().then( data => {
             var plugins = data.plugins;
             var switchIdx = 0;
 
@@ -122,7 +124,12 @@ class SwitchBoard extends Plugin {
     }
 
     switchPlugin(plugin) {
-        api.putPlugin(this.callsign + '/Switch', plugin, null, (error, response) => {
+        const _rest = {
+            method  : 'PUT',
+            path    : `${this.callsign}/Switch/${plugin}`
+        };
+
+        this.api.req(_rest).then( () => {
             this.render();
         });
     }
@@ -132,5 +139,5 @@ function name() {
     return  'SwitchBoard';
 }
 
-export { name }
+export { name };
 export default SwitchBoard;

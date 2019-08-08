@@ -11,7 +11,29 @@ class WpeApi {
         this.socket = null;
         this.t = ThunderJS({ 'host' : host });
 
-        this.requestBlacklist = [];
+        this.socketListeners = {};
+
+        // might use this later if the requests are getting to slow with the jsonrpc -> rest fallback.
+        this.servicesAvailableInJsonRPC = [
+            'DeviceInfo',
+            'DHCPServer',
+            'DIALServer',
+            'LocationSync',
+            'Messenger',
+            'Monitor',
+            'NetworkControl',
+            'OCDM',
+            'RemoteControl',
+            'Spark',
+            'Streamer',
+            'SystemCommands',
+            'TestController',
+            'TestUtility',
+            'TimeSync',
+            'TraceControl',
+            'WebKitBrowser',
+            'WifiControl'
+        ];
     };
 
     handleRequest(method, URL, body, callback) {
@@ -111,12 +133,6 @@ class WpeApi {
         return this.req(_rest, _rpc);
     }
 
-    setUrl(plugin, url, callback) {
-        var body = {"url":  url };
-        this.req('POST', this.getURLStart('http') + plugin + '/URL', body,
-            plugin + '.1.seturl', body, callback);
-    };
-
     startWebShell(callback) {
         var webShellSocket = new WebSocket(this.getURLStart('ws') + 'WebShell', 'raw');
         callback(null, webShellSocket);
@@ -153,40 +169,6 @@ class WpeApi {
         };
     };
 
-    startJSONRPCSocket() {
-        if (this.jsonRpcSocket) this.jsonRpcSocket.close();
-        this.jsonRpcSocket = new WebSocket( `ws://${this.host}/jsonrpc`, 'notification');
-        var self = this;
-        this.jsonRpcSocket.onmessage = function(e){
-            var data = {};
-            try {
-                data = JSON.parse(e.data);
-
-                var id = data && data.id || null;
-                if (self.jsonRpcCallbackQueue[id]){
-                    self.jsonRpcCallbackQueue[data.id](data.error, data.result);
-                    delete self.jsonRpcCallbackQueue[data.id];
-                }
-
-            } catch (e) {
-                return console.error('jsonRpcSocket socket error', e);
-            }
-        };
-
-        this.jsonRpcSocket.onconnect = function(e) {
-            this.jsonRpcConnected = true;
-        };
-
-        this.jsonRpcSocket.onclose = function(e) {
-            this.jsonRpcConnected = false;
-            setTimeout(self.startJSONRPCSocket.bind(self), conf.refresh_interval);
-        };
-
-        this.jsonRpcSocket.onerror = function(err) {
-            this.socket.close();
-        };
-    }
-
     addWebSocketListener(callsign, callback) {
         var obj = {
             fn: callback,
@@ -202,27 +184,6 @@ class WpeApi {
         if (this.socketListeners[index])
             this.socketListeners.splice(index, 1);
     };
-
-    getSnapshotLocator(callback) {
-        return this.getURLStart('http') + 'Snapshot/Capture?' + new Date().getTime();
-    };
-
-    triggerProvisioning(callback) {
-        this.handleRequest('PUT', this.getURLStart('http') + 'Provisioning', null, callback);
-    };
-
-    putPlugin(plugin, action, body, callback) {
-        this.handleRequest('PUT', this.getURLStart('http') + plugin + '/' + action, body, callback);
-    };
-
-    postPlugin(plugin, action, body, callback) {
-        this.handleRequest('POST', this.getURLStart('http') + plugin + '/' + action, body, callback);
-    };
-
-    deletePlugin(plugin, action, body, callback) {
-        this.handleRequest('DELETE', this.getURLStart('http') + plugin + '/' + action, body, callback);
-    };
-
 }
 
 export { WpeApi };

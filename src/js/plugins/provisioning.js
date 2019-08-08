@@ -1,12 +1,12 @@
 /** The provision plugin checks the device identifier and is able to initiate a provisioning request if not provisioned
  */
 
-import Plugin from '../core/Plugin.js'
+import Plugin from '../core/Plugin.js';
 
 class Provisioning extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
     }
 
     render()        {
@@ -48,6 +48,20 @@ class Provisioning extends Plugin {
       this.update();
     }
 
+    triggerProvisioning() {
+        const _rest = {
+            method  : 'PUT',
+            path    : `${this.callsign}`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'request'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
     update() {
         api.getPluginData('Provisioning', function(error, response, status) {
             if (error !== null) {
@@ -75,7 +89,7 @@ class Provisioning extends Plugin {
     tiggerProvisioningRequest() {
         var self = this;
 
-        api.triggerProvisioning( (error, response) => {
+        this.triggerProvisioning().then( response => {
             document.getElementById('provisionButton').style.display = 'none';
             document.getElementById('provisionLabel').style.display = 'none';
 
@@ -88,5 +102,5 @@ function name() {
     return  'Provisioning';
 }
 
-export { name }
+export { name };
 export default Provisioning;

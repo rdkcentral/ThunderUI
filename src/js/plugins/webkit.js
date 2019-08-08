@@ -1,7 +1,7 @@
 /** The WebKitBrowser plugin renders webkit information and provides control to the WPE WebKit browser
  */
 
-import Plugin from '../core/Plugin.js'
+import Plugin from '../core/Plugin.js';
 
 class WebKitBrowser extends Plugin {
 
@@ -179,14 +179,8 @@ class WebKitBrowser extends Plugin {
 
         var self = this;
 
-
         //use api.req to deal with restful to jsonrpc transition phase (compatbility)
-        api.req('GET', api.getURLStart('http') + this.callsign, null,
-            'WebKitBrowser.1.status', {}, (err, resp) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
+        this.status().then( resp => {
             self.url = resp.url;
             self.fps = resp.fps;
             self.isHidden = resp.hidden;
@@ -248,11 +242,25 @@ class WebKitBrowser extends Plugin {
     }
 
     setUrl(url) {
-        if (url !== '') {
-            console.log('Setting url ' + url + ' for ' + this.callsign);
-            api.setUrl(this.callsign, url);
-        }
+        if (url === '')
+            return;
 
+        console.log('Setting url ' + url + ' for ' + this.callsign);
+        var body = {'url':  url };
+
+        const _rest = {
+            method  : 'POST',
+            path    : this.callsign + '/URL',
+            body    : body
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'seturl',
+            params : body
+        };
+
+        this.api.req(_rest, _rpc);
 
         document.getElementById(this.callsign + '_linkPresets').selectedIndex = 0;
     }
@@ -284,23 +292,17 @@ class WebKitBrowser extends Plugin {
     }
 
     toggleSuspend(nextState) {
-        var self = this;
-
-        if (nextState === 'Resume') {
-            api.resumePlugin(self.callsign);
-        } else {
-            api.suspendPlugin(self.callsign);
-        }
+        if (nextState === 'Resume')
+            this.resume();
+        else
+            this.suspend();
     }
 
     toggleVisibility(nextState) {
-        var self = this;
-
-        if (nextState === 'Show') {
-            api.showPlugin(self.callsign);
-        } else {
-            api.hidePlugin(self.callsign);
-        }
+        if (nextState === 'Show')
+            this.show();
+        else
+            this.hide();
     }
 
     launchWebinspector() {
@@ -314,5 +316,5 @@ function name() {
     return  'WebKitBrowser';
 }
 
-export { name }
+export { name };
 export default WebKitBrowser;

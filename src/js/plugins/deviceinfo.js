@@ -1,11 +1,11 @@
 /** Device info plugin provides device specific information, such as cpu usage and serial numbers */
 
-import Plugin from '../core/Plugin.js'
+import Plugin from '../core/Plugin.js';
 
 class DeviceInfo extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
 
         this.renderInMenu = true;
         this.displayName = 'Device Info';
@@ -138,7 +138,7 @@ class DeviceInfo extends Plugin {
     }
 
 
-    getDeviceInfo(callback) {
+    getDeviceInfo() {
         const _rest = {
             method  : 'GET',
             path    : 'DeviceInfo'
@@ -153,12 +153,7 @@ class DeviceInfo extends Plugin {
     }
 
     update() {
-        var _updateCb = function(error, deviceInfo) {
-            if (error !== null) {
-                console.error(error);
-                return;
-            }
-
+        this.status().then( deviceInfo => {
             this.deviceNameEl.innerHTML         = deviceInfo.systeminfo.devicename;
             this.deviceIdEl.innerHTML           = deviceInfo.systeminfo.deviceid;
             this.serialNumberEl.innerHTML       = deviceInfo.systeminfo.serialnumber;
@@ -187,9 +182,7 @@ class DeviceInfo extends Plugin {
             else
                 this.ipAddressEl.innerHTML = '-';
 
-        };
-
-        api.getPluginData('DeviceInfo', _updateCb.bind(this));
+        });
     }
 
     render() {
@@ -230,5 +223,5 @@ function name() {
     return  'DeviceInfo';
 }
 
-export { name }
+export { name };
 export default DeviceInfo;

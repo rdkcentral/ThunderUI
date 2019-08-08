@@ -1,12 +1,12 @@
 /** The tracing plugin controls the trace values for debugging output on the stdout
  */
 
-import Plugin from '../core/Plugin.js'
+import Plugin from '../core/Plugin.js';
 
 class TraceControl extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
 
         this.selectedTraceModule    = undefined;
         this.traceModules           = undefined;
@@ -27,12 +27,12 @@ class TraceControl extends Plugin {
 
         const _rpc = {
             plugin : 'TraceControl',
-            method : 'set'
+            method : 'set',
             body   : body
         };
 
-        return api.req(_rest, _rpc);
-    };
+        return this.api.req(_rest, _rpc);
+    }
 
     render()        {
         var self = this;
@@ -147,5 +147,5 @@ function name() {
     return  'TraceControl';
 }
 
-export { name }
+export { name };
 export default TraceControl;

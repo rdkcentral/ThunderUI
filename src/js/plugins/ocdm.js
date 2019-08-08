@@ -1,12 +1,12 @@
 /** The ocdm plugin manages different OpenCDM DRM modules
  */
 
-import Plugin from '../core/Plugin.js'
+import Plugin from '../core/Plugin.js';
 
 class OCDM extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
 
         this.ocdmTemplate = `<div class="label grid__col grid__col--2-of-8">
             {{Name}}
@@ -29,12 +29,7 @@ class OCDM extends Plugin {
     }
 
     update() {
-        api.getPluginData(this.callsign, (err, resp) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
-
+        this.status().then( resp => {
             if (resp === undefined || resp === null || resp.systems === undefined)
                 return;
 
@@ -54,5 +49,5 @@ function name() {
     return  'OCDM';
 }
 
-export { name }
+export { name };
 export default OCDM;

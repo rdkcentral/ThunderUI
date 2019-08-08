@@ -1,12 +1,12 @@
 /** The Netflix plugin provides details on the netflix instance
  */
 
-import Plugin from '../core/Plugin.js'
+import Plugin from '../core/Plugin.js';
 
 class Netflix extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
     }
 
     render()        {
@@ -42,7 +42,7 @@ class Netflix extends Plugin {
 
     update(data) {
         var self = this;
-        api.getPluginData('Netflix', (error, data) => {
+        this.status().then( data => {
             if (data.esn)
                 document.getElementById('netflix-esn').innerHTML = data.esn;
 
@@ -79,18 +79,16 @@ class Netflix extends Plugin {
         var self = this;
 
         if (nextState === 'Resume') {
-            api.resumePlugin('Netflix', function (err, resp) {
-                if (err)
-                    self.render();
-
+            this.resume().then( () => {
                 self.update({ suspended : false });
+            }).catch(e => {
+                self.render();
             });
         } else {
-            api.suspendPlugin('Netflix', function (err, resp) {
-                if (err)
-                    self.render();
-
+            this.suspend().then( () => {
                 self.update({ suspended : true });
+            }).catch(e => {
+                self.render();
             });
         }
     }
@@ -100,5 +98,5 @@ function name() {
     return  'Netflix';
 }
 
-export { name }
+export { name };
 export default Netflix;

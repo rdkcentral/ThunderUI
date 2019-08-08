@@ -2,16 +2,16 @@
  * Main controller plugin, renders a list of active plugins and the ability to interact with the plugins (deactivate/active/suspend/resume)
  */
 
-import Plugin from '../core/Plugin.js'
+import Plugin from '../core/Plugin.js';
 
 class Controller extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
         this.plugins = undefined;
         this.mainDiv = undefined;
 
-        api.addWebSocketListener('all', (data) => {
+        this.api.addWebSocketListener('all', (data) => {
             if (this.rendered === false)
                 return;
 
@@ -336,5 +336,5 @@ function name() {
     return  'Controller';
 }
 
-export { name }
+export { name };
 export default Controller;

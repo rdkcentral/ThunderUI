@@ -7,7 +7,8 @@ class Plugin {
      * @{param} Name of the plugin for display on the UI
      * @{param} Support object to indicate plugin capabilities for the UI. Such as suspend/resume, toggle visibility and whether or not the plugin renders
      */
-    constructor(pluginData) {
+    constructor(pluginData, api) {
+        this.api = api;
         this.callsign = pluginData.callsign;
         this.configuration = pluginData.configuration;
         this.classname = pluginData.classname;
@@ -31,7 +32,7 @@ class Plugin {
             params : {'callsign': this.callsign}
         };
 
-        return api.req(_rest, _rpc)
+        return this.api.req(_rest, _rpc)
     };
 
     deactivate(plugin) {
@@ -47,7 +48,7 @@ class Plugin {
             params : {'callsign': this.callsign}
         };
 
-        return api.req(_rest, _rpc)
+        return this.api.req(_rest, _rpc)
     };
 
     suspend(plugin) {
@@ -62,7 +63,7 @@ class Plugin {
             params : 'suspend'
         };
 
-        return api.req(_rest, _rpc)
+        return this.api.req(_rest, _rpc)
     };
 
     resume(plugin) {
@@ -77,7 +78,7 @@ class Plugin {
             params : 'resume'
         };
 
-        return api.req(_rest, _rpc)
+        return this.api.req(_rest, _rpc)
     };
 
     show(plugin) {
@@ -93,7 +94,7 @@ class Plugin {
             params : 'visible'
         };
 
-        return api.req(_rest, _rpc)
+        return this.api.req(_rest, _rpc)
     };
 
     hide(plugin) {
@@ -109,7 +110,7 @@ class Plugin {
             params : 'hidden'
         };
 
-        return api.req(_rest, _rpc)
+        return this.api.req(_rest, _rpc)
     };
 
     status(plugin) {
@@ -123,7 +124,7 @@ class Plugin {
             method : 'status'
         };
 
-        return api.req(_rest, _rpc);
+        return this.api.req(_rest, _rpc);
     }
 
 
