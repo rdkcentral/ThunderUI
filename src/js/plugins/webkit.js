@@ -5,9 +5,8 @@ import Plugin from '../core/Plugin.js';
 
 class WebKitBrowser extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
-        this.socketListenerId = api.addWebSocketListener(this.callsign, this.handleNotification.bind(this));
+    constructor(pluginData, api) {
+        super(pluginData, api);
         this.url = '';
         this.fps = 0;
         this.isHidden = false;
@@ -95,26 +94,33 @@ class WebKitBrowser extends Plugin {
         if (this.configuration !== undefined && this.configuration.inspector !== undefined) {
             this.inspectorPort = this.configuration.inspector.split(':')[1];
         }
+
+        //setup notifications
+        this.api.t.on('WebKitBrowser', 'urlchange', data => {
+            if (data.url && data.loaded) {
+                this.url = data.url;
+                this.handleNotification();
+            }
+        });
+
+        this.api.t.on('WebKitBrowser', 'visibilitychange', data => {
+            if (typeof data.hidden === 'boolean') {
+                this.isHidden = data.hidden;
+                this.handleNotification();
+            }
+        });
+
+        this.api.t.on('WebKitBrowser', 'statechange', data => {
+            if (typeof data.suspended === 'boolean') {
+                this.isSuspended = data.suspended;
+                this.handleNotification();
+            }
+        });
     }
 
-    handleNotification(json) {
+    handleNotification() {
         if (this.rendered === false)
             return;
-
-        //this only receives webkit events;
-        var data = json.data || {};
-        if (typeof data.suspended === 'boolean')
-            this.isSuspended = data.suspended;
-
-        if (typeof data.hidden === 'boolean')
-            this.isHidden = data.hidden;
-
-        if (data.url && data.loaded)
-            this.url = data.url;
-
-        //@TODO, this does not exists? Maybe exporse over socket?
-        if (data.fps)
-            this.fps = data.fps;
 
         this.update();
     }
@@ -195,11 +201,6 @@ class WebKitBrowser extends Plugin {
         clearInterval(this.updateLoopInterval);
 
         delete this.updateLoopInterval;
-        delete this.socketListenerId;
-        delete this.url;
-        delete this.fps;
-        delete this.isHidden;
-        delete this.isSuspended;
 
         this.rendered = false;
     }

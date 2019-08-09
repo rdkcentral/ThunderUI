@@ -11,7 +11,7 @@ class Controller extends Plugin {
         this.plugins = undefined;
         this.mainDiv = undefined;
 
-        this.api.addWebSocketListener('all', (data) => {
+        this.api.t.on('Controller', 'statechange', data => {
             if (this.rendered === false)
                 return;
 
@@ -20,7 +20,7 @@ class Controller extends Plugin {
                 this.render();
 
             // data.data? ¯\_( ͡° ͜ʖ ͡°)_/¯
-            if (data.data !== undefined && data.data.suspended !== undefined)
+            if (data.suspended !== undefined)
                 this.render();
 
         });
