@@ -138,7 +138,7 @@ class DeviceInfo extends Plugin {
     }
 
 
-    getDeviceInfo() {
+    status() {
         const _rest = {
             method  : 'GET',
             path    : 'DeviceInfo'
@@ -146,10 +146,52 @@ class DeviceInfo extends Plugin {
 
         const _rpc = {
             plugin : 'DeviceInfo',
-            method : 'system'
+            method : 'systeminfo'
         };
 
-        return api.req(_rest, _rpc);
+        return this.api.req(_rest, _rpc);
+    }
+
+    systeminfo() {
+        const _rest = {
+            method  : 'GET',
+            path    : 'DeviceInfo'
+        };
+
+        const _rpc = {
+            plugin : 'DeviceInfo',
+            method : 'systeminfo'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    addresses() {
+        const _rest = {
+            method  : 'GET',
+            path    : 'DeviceInfo'
+        };
+
+        const _rpc = {
+            plugin : 'DeviceInfo',
+            method : 'addresses'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    socketinfo() {
+        const _rest = {
+            method  : 'GET',
+            path    : 'DeviceInfo'
+        };
+
+        const _rpc = {
+            plugin : 'DeviceInfo',
+            method : 'socketinfo'
+        };
+
+        return this.api.req(_rest, _rpc);
     }
 
     update() {

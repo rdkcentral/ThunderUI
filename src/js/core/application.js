@@ -6,7 +6,7 @@
  */
 'use strict';
 var API = import('../core/wpe.js');
-var conf = import('../conf.js');
+var Conf = import('../conf.js');
 var Menu = import('../layout/menu.js');
 var Footer = import('../layout/footer.js');
 var Notifications = import('../layout/notifications.js');
@@ -19,6 +19,7 @@ var Notifications = import('../layout/notifications.js');
 var plugins             = {};        // wfui plugins
 var api                 = undefined; // WPE API
 var plugin              = undefined;
+var conf                = undefined;
 
 // private
 var fetchedPlugins  = [];
@@ -33,6 +34,10 @@ var activePlugin    = window.localStorage.getItem('lastActivePlugin') || undefin
 * @memberof application
 */
 function init(host, pluginClasses){
+    Conf.then( (module) => {
+        conf = module.default;
+    })
+
     API.then( (module) => {
         // initialize the WPE Framework API
         api = new module.WpeApi(host);
@@ -72,17 +77,18 @@ function init(host, pluginClasses){
             Footer.then( module => {
                 plugins.footer = new module.default(plugins.DeviceInfo);
             })
-        })
-    }).then( () => {
-        Menu.then( module => {
-            plugins.menu = new module.default(api);
-            plugins.menu.render(activePlugin !== undefined ? activePlugin : conf.startPlugin);
-        }).then( () => {
-            showPlugin(activePlugin !== undefined ? activePlugin : conf.startPlugin);
-        })
 
-        Notifications.then( module => {
-            plugins.notifications = new module.default(api);
+            Menu.then( module => {
+                plugins.menu = new module.default(plugins, api);
+                plugins.menu.render(activePlugin !== undefined ? activePlugin : conf.startPlugin);
+            }).then( () => {
+                showPlugin(activePlugin !== undefined ? activePlugin : conf.startPlugin);
+            })
+
+            Notifications.then( module => {
+                plugins.notifications = new module.default(api);
+            })
+
         })
     }).then( () => {
         //showPlugin(activePlugin !== undefined ? activePlugin : conf.startPlugin);
@@ -112,4 +118,4 @@ function renderCurrentPlugin() {
     plugins[ activePlugin ].render();
 };
 
-export { init, showPlugin, renderCurrentPlugin };
+export { init, showPlugin, conf, renderCurrentPlugin };

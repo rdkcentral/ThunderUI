@@ -23,13 +23,13 @@ class Plugin {
     activate(plugin) {
         const _rest = {
             method  : 'PUT',
-            path    : `Controller/Activate/${this.callsign}`
+            path    : `Controller/Activate/${plugin ? plugin : this.callsign}`
         };
 
         const _rpc = {
             plugin : 'Controller',
             method : 'activate',
-            params : {'callsign': this.callsign}
+            params : {'callsign': plugin ? plugin : this.callsign}
         };
 
         return this.api.req(_rest, _rpc)
@@ -38,14 +38,14 @@ class Plugin {
     deactivate(plugin) {
         const _rest = {
             method  : 'PUT',
-            path    : `Controller/Deactivate/${this.callsign}`,
+            path    : `Controller/Deactivate/${plugin ? plugin : this.callsign}`,
             body    : null
         };
 
         const _rpc = {
             plugin : 'Controller',
             method : 'deactivate',
-            params : {'callsign': this.callsign}
+            params : {'callsign': plugin ? plugin : this.callsign}
         };
 
         return this.api.req(_rest, _rpc)
@@ -53,12 +53,12 @@ class Plugin {
 
     suspend(plugin) {
         const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/Suspend`
+            method  : 'POST',
+            path    : `${plugin ? plugin : this.callsign}/Suspend`
         };
 
         const _rpc = {
-            plugin : this.callsign,
+            plugin : plugin ? plugin : this.callsign,
             method : 'state',
             params : 'suspend'
         };
@@ -68,12 +68,12 @@ class Plugin {
 
     resume(plugin) {
         const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/Resume`
+            method  : 'POST',
+            path    : `${plugin ? plugin : this.callsign}/Resume`
         };
 
         const _rpc = {
-            plugin : this.callsign,
+            plugin : plugin ? plugin : this.callsign,
             method : 'state',
             params : 'resume'
         };
@@ -84,12 +84,12 @@ class Plugin {
     show(plugin) {
         const _rest = {
             method  : 'PUT',
-            path    : `${this.callsign}/Show`,
+            path    : `${plugin ? plugin : this.callsign}/Show`,
             body    : null
         };
 
         const _rpc = {
-            plugin : this.callsign,
+            plugin : plugin ? plugin : this.callsign,
             method : 'visibility',
             params : 'visible'
         };
@@ -100,7 +100,7 @@ class Plugin {
     hide(plugin) {
         const _rest = {
             method  : 'PUT',
-            path    : `${this.callsign}/Hide`,
+            path    : `${plugin ? plugin : this.callsign}/Hide`,
             body    : null
         };
 
@@ -116,11 +116,11 @@ class Plugin {
     status(plugin) {
         const _rest = {
             method  : 'GET',
-            path    : this.callsign
+            path    : plugin ? plugin : this.callsign
         };
 
         const _rpc = {
-            plugin : this.callsign,
+            plugin : plugin ? plugin : this.callsign,
             method : 'status'
         };
 

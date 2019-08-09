@@ -1,11 +1,13 @@
 /** The footer bar provides stats on the current device */
 
+import { conf } from '../core/application.js';
+
 class Footer {
     constructor(deviceInfoPlugin) {
         this.deviceInfo     = deviceInfoPlugin;
         this.renderInMenu   = false;
         this.connected      = true;
-        this.footer         = document.getElementById('statusBar');
+        this.footer         = document.getElementById('statusBar')
 
         this.footer.innerHTML = `
             <div class="status">
@@ -64,7 +66,7 @@ class Footer {
         document.getElementById('pause-button').onclick = this.togglePause.bind(this);
         this.pauseButton      = document.getElementById('pause-button');
 
-        if (plugins.DeviceInfo === undefined) {
+        if (this.deviceInfo === undefined) {
             this.togglePause();
             return;
         }
@@ -75,13 +77,7 @@ class Footer {
 
     }
 
-    render(error, deviceInfo) {
-        if (error !== null) {
-            console.error(error);
-            this.deviceIsConnected(false);
-            return;
-        }
-
+    render(deviceInfo) {
         if (deviceInfo === undefined)
             return;
 
@@ -98,12 +94,12 @@ class Footer {
     }
 
     update() {
-        if (this.paused === true || plugins.DeviceInfo.state !== 'activated')
+        if (this.paused === true || (this.deviceInfo && this.deviceInfo.state !== 'activated'))
             return;
 
         // deviceinfo can be optional, dont try to get the status if its not available
         if (this.deviceInfo)
-            this.deviceInfo.status().then(this.render);
+            this.deviceInfo.status().then(this.render.bind(this));
     }
 
     togglePause() {

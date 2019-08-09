@@ -87,21 +87,22 @@ class WpeApi {
     req(rest, jsonrpc) {
         return new Promise( (resolve, reject) => {
             if (jsonrpc) {
+                console.debug(`<JSON> ${jsonrpc.plugin }.1.${jsonrpc.method}`, jsonrpc.params ? jsonrpc.params : '');
                 this.t.call(jsonrpc.plugin, jsonrpc.method, jsonrpc.params)
                 .then( result => {
                     resolve(result);
                 }).catch( error => {
-                    console.error('JSONRPC Error: ', error)
-
                     if (rest) {
-                        console.log('Trying RESTfull path')
-                        this.handleRequest(this.getURLStart('http') + rest.method, rest.path, rest.body, (err, resp) => {
+                        console.debug(`<JSON> ${jsonrpc.plugin }.1.${jsonrpc.method} failed, trying <REST> ${rest.method} ${rest.path}`);
+                        console.debug('<JSON> Error: ', error);
+                        this.handleRequest(rest.method, this.getURLStart('http') + rest.path, rest.body, (err, resp) => {
                             if (err)
                                 reject(err);
                             else
                                 resolve(resp);
                         });
                     } else {
+                        console.error('JSONRPC Error, with no fallback: ', error);
                         reject(error)
                     }
                 })

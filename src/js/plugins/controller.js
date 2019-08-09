@@ -241,12 +241,12 @@ class Controller extends Plugin {
         `;
 
         document.getElementById('persistButton').onclick = this.persist.bind(this);
-        document.getElementById('harakiriButton').onclick = this.reboot.bind(this);
+        document.getElementById('harakiriButton').onclick = this.harakiri.bind(this);
         document.getElementById('discoverButton').onclick = this.discover.bind(this);
         var controllerPluginsDiv = document.getElementById('controllerPlugins');
 
-        this.status.then(  data => {
-            var plugins = data.plugins;
+        this.status().then(  data => {
+            var plugins = data.plugins ? data.plugins : data;
             this.plugins = plugins; // store it
 
             for (var i=0; i < plugins.length; i++) {
