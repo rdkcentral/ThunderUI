@@ -12,17 +12,12 @@ class Controller extends Plugin {
         this.mainDiv = undefined;
 
         this.api.t.on('Controller', 'statechange', data => {
-            if (this.rendered === false)
-                return;
-
             // check if we have a state change
-            if (data.state !== undefined)
+            if (data.state !== undefined && this.rendered === true)
                 this.render();
 
-            // data.data? ¯\_( ͡° ͜ʖ ͡°)_/¯
-            if (data.suspended !== undefined)
+            if (data.suspended !== undefined && this.rendered === true)
                 this.render();
-
         });
     }
 

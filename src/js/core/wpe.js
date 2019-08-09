@@ -119,6 +119,7 @@ class WpeApi {
         })
     }
 
+    // The only call we do directly, others are through the individual plugins
     getControllerPlugins() {
         const _rest = {
             method  : 'GET',

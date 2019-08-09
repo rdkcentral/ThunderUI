@@ -1,7 +1,8 @@
 /** The side navigation menu provides navigation across the different plugins */
 
 class Menu {
-    constructor() {
+    constructor(api) {
+        this.api            = api;
         this.top            = document.getElementById('top');
         this.renderInMenu   = false;
 
@@ -60,10 +61,8 @@ class Menu {
             }
         };
 
-        api.addWebSocketListener('all', (data) => {
-            // check if we have a state change
-            if (data.state !== undefined)
-                this.render();
+        this.api.t.on('Controller', 'all', data => {
+            this.render();
         });
     }
 
@@ -74,12 +73,7 @@ class Menu {
     render(activePlugin) {
         this.clear();
 
-        api.getControllerPlugins( (err, data) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
-
+        this.api.getControllerPlugins().then( data => {
             var _plugins = data.plugins;
             var enabledPlugins = Object.keys(plugins);
             var ul = document.createElement('ul');

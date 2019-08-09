@@ -6,7 +6,7 @@ import Plugin from '../core/Plugin.js';
 class Power extends Plugin {
 
     constructor(pluginData, api) {
-        super(pluginData);
+        super(pluginData, api);
 
         this.mainDiv = document.getElementById('main');
         this.state = 1;

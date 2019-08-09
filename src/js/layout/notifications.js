@@ -1,9 +1,10 @@
 /** The footer bar provides stats on the current device */
 
 class Notifications {
-    constructor() {
+    constructor(api) {
         this.renderInMenu = false;
-        api.addWebSocketListener('all',this.handleNotification.bind());
+        this.api = api;
+        this.api.t.on('Controller', 'all', this.handleNotification);
 
         document.getElementById('hide-notifications').onclick = this.toggleVisibility.bind(this);
     }

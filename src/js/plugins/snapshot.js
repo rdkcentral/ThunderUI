@@ -5,8 +5,8 @@ import Plugin from '../core/Plugin.js';
 
 class Snapshot extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
     }
 
     render()        {

@@ -38,6 +38,24 @@ class Netflix extends Plugin {
 
         this.interval = setInterval(this.update.bind(this), conf.refresh_interval);
         this.update();
+
+        this.api.t.on('Netflix', 'visibilitychange', data => {
+            if (typeof data.hidden === 'boolean') {
+                this.isHidden = data.hidden;
+
+                if (this.rendered === true)
+                    this.update();
+            }
+        });
+
+        this.api.t.on('Netflix', 'statechange', data => {
+            if (typeof data.suspended === 'boolean') {
+                this.isSuspended = data.suspended;
+
+                if (this.rendered === true)
+                    this.update();
+            }
+        });
     }
 
     update(data) {

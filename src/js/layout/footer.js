@@ -1,7 +1,8 @@
 /** The footer bar provides stats on the current device */
 
 class Footer {
-    constructor() {
+    constructor(deviceInfoPlugin) {
+        this.deviceInfo     = deviceInfoPlugin;
         this.renderInMenu   = false;
         this.connected      = true;
         this.footer         = document.getElementById('statusBar');
@@ -100,7 +101,9 @@ class Footer {
         if (this.paused === true || plugins.DeviceInfo.state !== 'activated')
             return;
 
-        api.getDeviceInfo(this.render.bind(this));
+        // deviceinfo can be optional, dont try to get the status if its not available
+        if (this.deviceInfo)
+            this.deviceInfo.status().then(this.render);
     }
 
     togglePause() {

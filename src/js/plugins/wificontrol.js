@@ -17,7 +17,18 @@ class WifiControl extends Plugin {
         this.statusMessageTimer = null;
         this.rendered = false;
         this.wlanInterface = 'wlan0'; //FIXME, this can be anything really...
-        this.socketListenerId = api.addWebSocketListener(this.callsign, this.handleNotification.bind(this));
+
+        this.api.t.on('WifiControl', 'scanresults', (data) => {
+            if (this.rendered === true)
+                this.getNetworks();
+        });
+
+        this.api.t.on('WifiControl', 'connectionchange', (data) => {
+            this.connected = data.connected;
+
+            if (this.rendered === true)
+                this.update();
+        });
     }
 
     render()        {

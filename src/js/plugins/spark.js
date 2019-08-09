@@ -53,22 +53,33 @@ class Spark extends Plugin {
             { Name:"http://www.sparkui.org/examples/gallery/picturepile.js",        URL:"http://www.sparkui.org/examples/gallery/picturepile.js"},
             { Name:"http://www.sparkui.org/examples/gallery/gallery.js",            URL:"http://www.sparkui.org/examples/gallery/gallery.js"},
         ];
+
+        //setup notifications
+        this.api.t.on('Spark', 'urlchange', data => {
+            if (data.url && data.loaded) {
+                this.url = data.url;
+                this.handleNotification();
+            }
+        });
+
+        this.api.t.on('Spark', 'visibilitychange', data => {
+            if (typeof data.hidden === 'boolean') {
+                this.isHidden = data.hidden;
+                this.handleNotification();
+            }
+        });
+
+        this.api.t.on('Spark', 'statechange', data => {
+            if (typeof data.suspended === 'boolean') {
+                this.isSuspended = data.suspended;
+                this.handleNotification();
+            }
+        });
     }
 
     handleNotification(json) {
         if (this.rendered === false)
             return;
-
-        //this only receives webkit events;
-        var data = json.data || {};
-        if (typeof data.suspended === 'boolean')
-            this.isSuspended = data.suspended;
-
-        if (typeof data.hidden === 'boolean')
-            this.isHidden = data.hidden;
-
-        if (data.url && data.loaded)
-            this.url = data.url;
 
         this.update();
     }

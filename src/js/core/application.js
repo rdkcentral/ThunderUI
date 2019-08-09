@@ -68,24 +68,24 @@ function init(host, pluginClasses){
                     console.debug('Unsupported plugin: ' + pluginName);
                 }
             }
+
+            Footer.then( module => {
+                plugins.footer = new module.default(plugins.DeviceInfo);
+            })
         })
     }).then( () => {
-        /*
         Menu.then( module => {
-            plugins.menu = new module.default();
+            plugins.menu = new module.default(api);
             plugins.menu.render(activePlugin !== undefined ? activePlugin : conf.startPlugin);
         }).then( () => {
             showPlugin(activePlugin !== undefined ? activePlugin : conf.startPlugin);
         })
 
-        Footer.then( module => {
-            plugins.footer = new module.default();
-        })
-
         Notifications.then( module => {
-            plugins.notifications = new module.default();
+            plugins.notifications = new module.default(api);
         })
-        */
+    }).then( () => {
+        //showPlugin(activePlugin !== undefined ? activePlugin : conf.startPlugin);
     })
 }
 

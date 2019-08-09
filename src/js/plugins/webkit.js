@@ -99,30 +99,29 @@ class WebKitBrowser extends Plugin {
         this.api.t.on('WebKitBrowser', 'urlchange', data => {
             if (data.url && data.loaded) {
                 this.url = data.url;
-                this.handleNotification();
+
+                if (this.rendered === true)
+                    this.update();
             }
         });
 
         this.api.t.on('WebKitBrowser', 'visibilitychange', data => {
             if (typeof data.hidden === 'boolean') {
                 this.isHidden = data.hidden;
-                this.handleNotification();
+
+                if (this.rendered === true)
+                    this.update();
             }
         });
 
         this.api.t.on('WebKitBrowser', 'statechange', data => {
             if (typeof data.suspended === 'boolean') {
                 this.isSuspended = data.suspended;
-                this.handleNotification();
+
+                if (this.rendered === true)
+                    this.update();
             }
         });
-    }
-
-    handleNotification() {
-        if (this.rendered === false)
-            return;
-
-        this.update();
     }
 
     render()        {

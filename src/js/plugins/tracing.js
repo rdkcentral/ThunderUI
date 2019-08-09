@@ -7,6 +7,7 @@ class TraceControl extends Plugin {
 
     constructor(pluginData, api) {
         super(pluginData, api);
+        this.displayName = 'Tracing';
 
         this.selectedTraceModule    = undefined;
         this.traceModules           = undefined;
