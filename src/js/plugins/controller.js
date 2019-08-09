@@ -50,10 +50,10 @@ class Controller extends Plugin {
             params : {'callsign': this.callsign}
         };
 
-        return api.req(_rest, _rpc);
+        return this.api.req(_rest, _rpc);
     }
 
-    initiateDiscovery(callback) {
+    initiateDiscovery() {
         const _rest = {
             method  : 'PUT',
             path    : 'Controller/Discovery',
@@ -66,10 +66,10 @@ class Controller extends Plugin {
             params : {'ttl': 1}
         };
 
-        return api.req(_rest, _rpc);
+        return this.api.req(_rest, _rpc);
     }
 
-    getDiscovery(callback) {
+    getDiscovery() {
         const _rest = {
             method  : 'GET',
             path    : 'Controller/Discovery',
@@ -78,11 +78,10 @@ class Controller extends Plugin {
 
         const _rpc = {
             plugin : 'Controller',
-            method : 'discover',
-            params : {'ttl': 1}
+            method : 'discoveryresults'
         };
 
-        return api.req(_rest, _rpc);
+        return this.api.req(_rest, _rpc);
     }
 
     persist(callback) {
@@ -97,7 +96,7 @@ class Controller extends Plugin {
             method : 'storeconfig'
         };
 
-        return api.req(_rest, _rpc);
+        return this.api.req(_rest, _rpc);
     }
 
     /**
@@ -197,9 +196,11 @@ class Controller extends Plugin {
         console.log('Initiating discovery');
         this.initiateDiscovery();
 
+        let self = this;
+
         setTimeout(function() {
-            this.getDiscovery.then( data => {
-                var discoveryList = data.bridges;
+            self.getDiscovery().then( data => {
+                var discoveryList = data.bridges ? data.bridges : data;
                 var container = document.getElementById('discoveryList');
                 container.innerHTML = '';
 

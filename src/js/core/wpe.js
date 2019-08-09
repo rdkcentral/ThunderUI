@@ -110,7 +110,7 @@ class WpeApi {
                 if (rest === undefined)
                    return reject('No rest or jsonrpc options provided, bailing out');
 
-                this.handleRequest(this.getURLStart('http') + rest.method, rest.path, rest.body, (err, resp) => {
+                this.handleRequest(rest.method, this.getURLStart('http') + rest.path, rest.body, (err, resp) => {
                     if (err)
                         reject(err);
                     else

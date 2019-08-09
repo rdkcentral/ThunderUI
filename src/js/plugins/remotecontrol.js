@@ -235,8 +235,11 @@ class RemoteControl extends Plugin {
 
 
         this.renderKey(mappedKey.string);
-        var apiCall = keyDown ? this.sendKeyPress.bind(mappedKey.code) : this.sendKeyRelease.bind(mappedKey.code);
-        apiCall.call();
+
+        if (keyDown)
+            this.sendKeyPress(mappedKey.code);
+        else
+            this.sendKeyRelease(mappedKey.code);
     }
 
     handleKey(key) {

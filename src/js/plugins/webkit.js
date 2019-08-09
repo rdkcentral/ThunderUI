@@ -1,16 +1,17 @@
 /** The WebKitBrowser plugin renders webkit information and provides control to the WPE WebKit browser
  */
 
+import { conf } from '../core/application.js';
 import Plugin from '../core/Plugin.js';
 
 class WebKitBrowser extends Plugin {
 
     constructor(pluginData, api) {
         super(pluginData, api);
-        this.url = '';
-        this.fps = 0;
-        this.isHidden = false;
-        this.isSuspended = false;
+        this._url = '';
+        this._fps = 0;
+        this._isHidden = false;
+        this._isSuspended = false;
         this.lastSetUrlKey = 'lastSetUrl';
         this.lastSetUrl = window.localStorage.getItem(this.lastSetUrlKey) || '';
         this.inspectorPort = '9998';
@@ -98,7 +99,7 @@ class WebKitBrowser extends Plugin {
         //setup notifications
         this.api.t.on('WebKitBrowser', 'urlchange', data => {
             if (data.url && data.loaded) {
-                this.url = data.url;
+                this._url = data.url;
 
                 if (this.rendered === true)
                     this.update();
@@ -107,7 +108,7 @@ class WebKitBrowser extends Plugin {
 
         this.api.t.on('WebKitBrowser', 'visibilitychange', data => {
             if (typeof data.hidden === 'boolean') {
-                this.isHidden = data.hidden;
+                this._isHidden = data.hidden;
 
                 if (this.rendered === true)
                     this.update();
@@ -116,13 +117,70 @@ class WebKitBrowser extends Plugin {
 
         this.api.t.on('WebKitBrowser', 'statechange', data => {
             if (typeof data.suspended === 'boolean') {
-                this.isSuspended = data.suspended;
+                this._isSuspended = data.suspended;
 
                 if (this.rendered === true)
                     this.update();
             }
         });
     }
+
+    status() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'state'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    fps() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'fps'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    url() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'url'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    visibility() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'visibility'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
 
     render()        {
         var mainDiv = document.getElementById('main');
@@ -185,13 +243,25 @@ class WebKitBrowser extends Plugin {
         var self = this;
 
         //use api.req to deal with restful to jsonrpc transition phase (compatbility)
-        this.status().then( resp => {
-            self.url = resp.url;
-            self.fps = resp.fps;
-            self.isHidden = resp.hidden;
-            self.isSuspended = resp.suspended;
+        this.fps().then( resp => {
+            self._fps = resp.fps ? resp.fps : resp;
             self.update();
         });
+
+        this.url().then( resp => {
+            self._url = resp.url ? resp.url : resp;
+            self.update();
+        });
+
+        this.visibility().then( resp => {
+            self._isHidden = resp.hidden ? resp.hidden : resp === "hidden";
+            self.update();
+        });
+
+        this.status().then( resp => {
+            self._isSuspended = resp.suspended ? resp.suspended : resp === 'suspended';
+            self.update();
+        })
     }
 
 
@@ -205,11 +275,11 @@ class WebKitBrowser extends Plugin {
     }
 
     update() {
-        document.getElementById(this.callsign + '_current_url').innerHTML = this.url;
-        document.getElementById(this.callsign + '_fps').innerHTML = this.fps;
+        document.getElementById(this.callsign + '_current_url').innerHTML = this._url;
+        document.getElementById(this.callsign + '_fps').innerHTML = this._fps;
 
-        var state = this.isSuspended ? 'Suspended' : 'Resumed';
-        var nextState = this.isSuspended ? 'Resume' : 'Suspend';
+        var state = this._isSuspended ? 'Suspended' : 'Resumed';
+        var nextState = this._isSuspended ? 'Resume' : 'Suspend';
 
         var stateEl = document.getElementById(this.callsign + 'StateInfo');
         stateEl.innerHTML = state;
@@ -218,8 +288,8 @@ class WebKitBrowser extends Plugin {
         suspendButton.innerHTML = nextState.toUpperCase();
         suspendButton.onclick = this.toggleSuspend.bind(this, nextState);
 
-        var visibilityState = this.isHidden ? 'Hidden' : 'Visible';
-        var nextVisibilityState = this.isHidden ? 'Show' : 'Hide';
+        var visibilityState = this._isHidden ? 'Hidden' : 'Visible';
+        var nextVisibilityState = this._isHidden ? 'Show' : 'Hide';
 
         var visbilityStateEl = document.getElementById(this.callsign + 'VisibilityStateInfo');
         visbilityStateEl.innerHTML = visibilityState.toUpperCase();
@@ -256,8 +326,8 @@ class WebKitBrowser extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'seturl',
-            params : body
+            method : 'url',
+            params : url
         };
 
         this.api.req(_rest, _rpc);
@@ -273,7 +343,7 @@ class WebKitBrowser extends Plugin {
     }
 
     reloadUrl() {
-        api.setUrl(this.callsign, document.getElementById(this.callsign + '_current_url').innerHTML);
+        this.api.setUrl(this.callsign, document.getElementById(this.callsign + '_current_url').innerHTML);
     }
 
     getAndSetUrlFromPresets() {
@@ -306,7 +376,7 @@ class WebKitBrowser extends Plugin {
     }
 
     launchWebinspector() {
-        var url = "http://" + api.host + ':' + this.inspectorPort;
+        var url = "http://" + this.api.host + ':' + this.inspectorPort;
         var win = window.open(url, '_blank');
         win.focus();
     }

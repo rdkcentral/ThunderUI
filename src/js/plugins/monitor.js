@@ -54,7 +54,7 @@ class Monitor extends Plugin {
         this.status().then(data => {
             var plugins = [];
             for (var i=0; i<data.length; i++) {
-                plugins[i] = data[i].name;
+                plugins[i] = data[i].name ? data[i].name : data[i].observable;
             }
             this.observablesList = plugins;
             this.renderObservables();

@@ -29,7 +29,7 @@ class TraceControl extends Plugin {
         const _rpc = {
             plugin : 'TraceControl',
             method : 'set',
-            body   : body
+            params : body
         };
 
         return this.api.req(_rest, _rpc);

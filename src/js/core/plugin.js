@@ -60,7 +60,7 @@ class Plugin {
         const _rpc = {
             plugin : plugin ? plugin : this.callsign,
             method : 'state',
-            params : 'suspend'
+            params : 'suspended'
         };
 
         return this.api.req(_rest, _rpc)
@@ -75,7 +75,7 @@ class Plugin {
         const _rpc = {
             plugin : plugin ? plugin : this.callsign,
             method : 'state',
-            params : 'resume'
+            params : 'resumed'
         };
 
         return this.api.req(_rest, _rpc)
@@ -83,7 +83,7 @@ class Plugin {
 
     show(plugin) {
         const _rest = {
-            method  : 'PUT',
+            method  : 'POST',
             path    : `${plugin ? plugin : this.callsign}/Show`,
             body    : null
         };
@@ -94,12 +94,13 @@ class Plugin {
             params : 'visible'
         };
 
-        return this.api.req(_rest, _rpc)
+        //FIXME JSONRPC show command doesnt work
+        return this.api.req(_rest)
     };
 
     hide(plugin) {
         const _rest = {
-            method  : 'PUT',
+            method  : 'POST',
             path    : `${plugin ? plugin : this.callsign}/Hide`,
             body    : null
         };
@@ -110,7 +111,8 @@ class Plugin {
             params : 'hidden'
         };
 
-        return this.api.req(_rest, _rpc)
+        //FIXME JSONRPC hide command doesnt work
+        return this.api.req(_rest)
     };
 
     status(plugin) {

@@ -195,34 +195,44 @@ class DeviceInfo extends Plugin {
     }
 
     update() {
-        this.status().then( deviceInfo => {
-            this.deviceNameEl.innerHTML         = deviceInfo.systeminfo.devicename;
-            this.deviceIdEl.innerHTML           = deviceInfo.systeminfo.deviceid;
-            this.serialNumberEl.innerHTML       = deviceInfo.systeminfo.serialnumber;
-            this.versionEl.innerHTML            = deviceInfo.systeminfo.version;
-            this.uptimeEl.innerHTML             = deviceInfo.systeminfo.uptime;
-            this.totalRamEl.innerHTML           = this.bytesToMbString(deviceInfo.systeminfo.totalram);
-            this.usedRamEl.innerHTML            = this.bytesToMbString(deviceInfo.systeminfo.totalram - deviceInfo.systeminfo.freeram);
-            this.freeRamEl.innerHTML            = this.bytesToMbString(deviceInfo.systeminfo.freeram);
-            this.totalGpuRamEl.innerHTML        = this.bytesToMbString(deviceInfo.systeminfo.totalgpuram);
-            this.freeGpuRamEl.innerHTML         = this.bytesToMbString(deviceInfo.systeminfo.freegpuram);
-            this.usedGpuRamEl.innerHTML         = this.bytesToMbString(deviceInfo.systeminfo.totalgpuram - deviceInfo.systeminfo.freegpuram);
-            this.cpuLoadEl.innerHTML            = parseFloat(deviceInfo.systeminfo.cpuload).toFixed(1) + " %";
+        this.systeminfo().then( deviceInfo => {
 
-            this.interfacesOptsEl.innerHTML = '';
-            for (var i=0; i<deviceInfo.addresses.length; i++) {
-                var newChild = this.interfacesOptsEl.appendChild(document.createElement("option"));
-                newChild.innerHTML = deviceInfo.addresses[i].name;
-            }
+            // backwards compatibility
+            let systeminfo = deviceInfo.systeminfo ? deviceInfo.systeminfo : deviceInfo;
 
-            this.interfacesOptsEl.selectedIndex = this.selectedNetworkInterface;
+            this.deviceNameEl.innerHTML         = systeminfo.devicename;
+            this.deviceIdEl.innerHTML           = systeminfo.deviceid;
+            this.serialNumberEl.innerHTML       = systeminfo.serialnumber;
+            this.versionEl.innerHTML            = systeminfo.version;
+            this.uptimeEl.innerHTML             = systeminfo.uptime;
+            this.totalRamEl.innerHTML           = this.bytesToMbString(systeminfo.totalram);
+            this.usedRamEl.innerHTML            = this.bytesToMbString(systeminfo.totalram - systeminfo.freeram);
+            this.freeRamEl.innerHTML            = this.bytesToMbString(systeminfo.freeram);
+            this.totalGpuRamEl.innerHTML        = this.bytesToMbString(systeminfo.totalgpuram);
+            this.freeGpuRamEl.innerHTML         = this.bytesToMbString(systeminfo.freegpuram);
+            this.usedGpuRamEl.innerHTML         = this.bytesToMbString(systeminfo.totalgpuram - systeminfo.freegpuram);
+            this.cpuLoadEl.innerHTML            = parseFloat(systeminfo.cpuload).toFixed(1) + " %";
 
-            this.macIdEl.innerHTML = deviceInfo.addresses[this.selectedNetworkInterface].mac;
 
-            if (deviceInfo.addresses[this.selectedNetworkInterface].ip !== undefined)
-                this.ipAddressEl.innerHTML = deviceInfo.addresses[this.selectedNetworkInterface].ip;
-            else
-                this.ipAddressEl.innerHTML = '-';
+            this.addresses().then( data => {
+                let addresses = data.addresses ? data.addresses : data;
+
+                this.interfacesOptsEl.innerHTML = '';
+                for (var i=0; i<addresses.length; i++) {
+                    var newChild = this.interfacesOptsEl.appendChild(document.createElement("option"));
+                    newChild.innerHTML = addresses[i].name;
+                }
+
+                this.interfacesOptsEl.selectedIndex = this.selectedNetworkInterface;
+
+                this.macIdEl.innerHTML = addresses[this.selectedNetworkInterface].mac;
+
+                if (addresses[this.selectedNetworkInterface].ip !== undefined)
+                    this.ipAddressEl.innerHTML = addresses[this.selectedNetworkInterface].ip;
+                else
+                    this.ipAddressEl.innerHTML = '-';
+            })
+
 
         });
     }
