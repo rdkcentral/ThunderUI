@@ -231,7 +231,7 @@ class DeviceInfo extends Plugin {
                     this.ipAddressEl.innerHTML = addresses[this.selectedNetworkInterface].ip;
                 else
                     this.ipAddressEl.innerHTML = '-';
-            })
+            });
 
 
         });

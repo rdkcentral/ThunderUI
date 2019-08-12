@@ -445,7 +445,7 @@ class WifiControl extends Plugin {
     }
 
     disconnect() {
-        if (this.connected === undefined || this.connected = '')
+        if (this.connected === undefined || this.connected === '')
             return;
 
         const _rest = {

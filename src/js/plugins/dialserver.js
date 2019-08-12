@@ -31,15 +31,15 @@ class DIALServer extends Plugin {
     }
 
     dialMessage(action, m) {
-        let div = document.createElement('div')
+        let div = document.createElement('div');
         if (action === 'stop')
-            div.className = 'red'
+            div.className = 'red';
 
-        let span = document.createElement('span')
+        let span = document.createElement('span');
         span.innerHTML = `${action} :: ${m.application} - ${m.parameters}`;
-        div.appendChild(span)
+        div.appendChild(span);
 
-        this.statusMessagesEl.appendChild(div)
+        this.statusMessagesEl.appendChild(div);
     }
 }
 

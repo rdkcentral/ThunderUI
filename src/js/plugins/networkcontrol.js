@@ -11,7 +11,7 @@ class NetworkControl extends Plugin {
         this.renderInMenu = true;
         this.displayName = 'Network';
         this.selectedNetworkInterface = 0;
-        this.networks = []
+        this.networks = [];
     }
 
     render()        {
@@ -202,14 +202,14 @@ class NetworkControl extends Plugin {
             }
 
             this.interfacesOptsEl.selectedIndex = this.selectedNetworkInterface;
-            let _selected = this._addresses[this.selectedNetworkInterface]
+            let _selected = this._addresses[this.selectedNetworkInterface];
 
             this.ipEl.innerHTML         = _selected.address;
             this.broadcastEl.innerHTML  = _selected.broadcast;
             this.gatewayEl.innerHTML    = _selected.gateway;
             this.maskEl.innerHTML       = _selected.mask;
             this.modeEl.innerHTML       = _selected.mode;
-        })
+        });
     }
 
     updateNetworkInterface(deviceInfo) {

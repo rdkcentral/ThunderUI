@@ -97,7 +97,7 @@ class Provisioning extends Plugin {
         }).catch(err => {
             console.error(err);
             this.status(err);
-        })
+        });
     }
 
     tiggerProvisioningRequest() {

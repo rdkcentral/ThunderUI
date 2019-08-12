@@ -261,7 +261,7 @@ class WebKitBrowser extends Plugin {
         this.status().then( resp => {
             self._isSuspended = resp.suspended ? resp.suspended : resp === 'suspended';
             self.update();
-        })
+        });
     }
 
 
