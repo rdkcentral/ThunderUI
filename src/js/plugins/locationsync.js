@@ -7,6 +7,9 @@ class LocationSync extends Plugin {
 
     constructor(pluginData, api) {
         super(pluginData, api);
+
+        this.renderInMenu = true;
+        this.displayName = 'Location';
     }
 
     render()        {

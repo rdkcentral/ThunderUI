@@ -64,7 +64,7 @@ class Menu {
         };
 
         this.api.t.on('Controller', 'all', _notification => {
-            if (_notification.data && _notification.data.state )
+            if (_notification.data && _notification.data.state)
                 this.render();
         });
     }
