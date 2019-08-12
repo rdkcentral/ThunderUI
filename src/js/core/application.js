@@ -91,7 +91,7 @@ function init(host, pluginClasses){
 
         })
     }).then( () => {
-        //showPlugin(activePlugin !== undefined ? activePlugin : conf.startPlugin);
+        showPlugin(activePlugin !== undefined ? activePlugin : conf.startPlugin);
     })
 }
 
