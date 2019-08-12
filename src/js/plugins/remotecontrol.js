@@ -13,6 +13,9 @@ class RemoteControl extends Plugin {
         this.doNotHandleKeys                = false;
         this.devicesThatSupportPairing      = ['GreenPeakRF4CE', 'GreenPeak', 'RF4CE'];
 
+        this.autoFwdKeys                    = window.localStorage.getItem('autoFwdKeys');
+        this.automaticallyForwardKeys       = (this.autoFwdKeys !== 'false');
+
         /**
          * Human to WPE key codes.
          * Note! This Array is drawn as the on screen keyboard in ASC order.
@@ -162,7 +165,8 @@ class RemoteControl extends Plugin {
 
         const _rest = {
             method  : 'PUT',
-            path    : 'RemoteControl/Web/Send'
+            path    : 'RemoteControl/Web/Send',
+            body    : body
         };
 
         const _rpc = {
@@ -182,7 +186,8 @@ class RemoteControl extends Plugin {
 
         const _rest = {
             method  : 'PUT',
-            path    : 'RemoteControl/Web/Press'
+            path    : 'RemoteControl/Web/Press',
+            body    : body
         };
 
         const _rpc = {
@@ -202,7 +207,8 @@ class RemoteControl extends Plugin {
 
         const _rest = {
             method  : 'PUT',
-            path    : 'RemoteControl/Web/Release'
+            path    : 'RemoteControl/Web/Release',
+            body    : body
         };
 
         const _rpc = {
@@ -227,7 +233,7 @@ class RemoteControl extends Plugin {
     }
 
     handleKeyFromJs(keyDown, e) {
-        if (this.doNotHandleKeys === true || e.repeat) return;
+        if (this.doNotHandleKeys === true || e.repeat || this.automaticallyForwardKeys === false) return;
 
         var mappedKey = this.jsToWpeKeyMap[ e.which ];
         if (mappedKey === undefined)
@@ -326,9 +332,23 @@ class RemoteControl extends Plugin {
           <div id="remotesList" class="text grid__col grid__col--6-of-8"></div>
 
           <div id="pairingDiv"></div>
-          `;
+
+          <div class="label grid__col grid__col--2-of-8">
+            <label for="autofwd">Auto forward keys</label>
+          </div>
+          <div class="grid__col grid__col--6-of-8 " id="autofwdDiv">
+            <div class="checkbox">
+                <input type="checkbox" id="autoFwdCheckbox"></input>
+                <label for="autoFwdCheckbox"></label>
+            </div>
+           </div>`;
 
         var self = this;
+
+        this.autoFwdCheckboxEl = document.getElementById('autoFwdCheckbox');
+        this.autoFwdCheckboxEl.checked = this.automaticallyForwardKeys;
+        this.autoFwdCheckboxEl.onclick = this.toggleAutoforwardOfKeys.bind(this);
+
         this.status().then( remotes => {
             if (remotes === undefined || remotes.devices === undefined)
                 return;
@@ -366,6 +386,11 @@ class RemoteControl extends Plugin {
         });
     }
 
+
+    toggleAutoforwardOfKeys() {
+        this.automaticallyForwardKeys = this.automaticallyForwardKeys === true ? false : true;
+        window.localStorage.setItem('autoFwdKeys', this.automaticallyForwardKeys);
+    }
 }
 
 function name() {
