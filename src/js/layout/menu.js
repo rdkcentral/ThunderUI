@@ -63,8 +63,9 @@ class Menu {
             }
         };
 
-        this.api.t.on('Controller', 'all', data => {
-            this.render();
+        this.api.t.on('Controller', 'all', _notification => {
+            if (_notification.data && _notification.data.state )
+                this.render();
         });
     }
 
@@ -73,9 +74,8 @@ class Menu {
     }
 
     render(activePlugin) {
-        this.clear();
-
         this.api.getControllerPlugins().then( _plugins => {
+            this.clear();
             const enabledPlugins = Object.keys(this.plugins);
             let ul = document.createElement('ul');
 

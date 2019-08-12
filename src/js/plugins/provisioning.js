@@ -59,17 +59,28 @@ class Provisioning extends Plugin {
             method : 'request'
         };
 
-        return this.api.req(_rest, _rpc);
+        // FIXME, no JSONRPC yet
+        return this.api.req(_rest);
+    }
+
+    // FIXME, status override because there is no jsonrpc yet
+    status() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'status'
+        };
+
+        // FIXME, no JSONRPC yet
+        return this.api.req(_rest);
     }
 
     update() {
-        api.getPluginData('Provisioning', function(error, response, status) {
-            if (error !== null) {
-                console.error(err);
-                this.status(err);
-                return;
-            }
-
+        this.status().then( response => {
             if (response === null || response === undefined || response === '')
               return;
 
@@ -83,7 +94,10 @@ class Provisioning extends Plugin {
             }
             //document.getElementById('provisionButton').style.display = (status == 200) ? 'none' : null;
             document.getElementById('provisionLabel').style.display = (status == 200) ? 'none' : null;
-        });
+        }).catch(err => {
+            console.error(err);
+            this.status(err);
+        })
     }
 
     tiggerProvisioningRequest() {

@@ -219,6 +219,8 @@ class WifiControl extends Plugin {
         };
 
         this.api.req(_rest, _rpc).then( resp => {
+            if (resp === undefined)
+                return;
 
             // backwards compatibility with REST
             let _configs = resp.configs ? resp.configs : resp;
@@ -226,7 +228,7 @@ class WifiControl extends Plugin {
             if (_configs === undefined || _configs.length === 0)
                 return;
 
-            this.configs = resp.configs;
+            this.configs = _configs;
             this.configListEl.innerHTML = '';
             for (var i=0; i<_configs.length; i++) {
                 var newChild = this.configListEl.appendChild(document.createElement("option"));
@@ -348,7 +350,7 @@ class WifiControl extends Plugin {
     renderConfigDetails() {
         var idx = this.configListEl.selectedIndex;
 
-        if (idx < 0 || this.configs <= 0)
+        if (idx < 0 || this.configs.length === 0)
             return;
 
         this.ssidEl.value = this.configs[idx].ssid;
@@ -443,6 +445,9 @@ class WifiControl extends Plugin {
     }
 
     disconnect() {
+        if (this.connected === undefined || this.connected = '')
+            return;
+
         const _rest = {
             method  : 'DELETE',
             path    : `${this.callsign}/Connect/${this.connected}`
@@ -452,7 +457,7 @@ class WifiControl extends Plugin {
             plugin : this.callsign,
             method : 'disconnect',
             params : {
-                ssid: this.configs[idx].ssid
+                ssid: this.connected
             }
         };
 

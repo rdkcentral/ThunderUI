@@ -211,7 +211,7 @@ class Compositor extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : visibility,
+            method : 'visibility',
             params : { visible: state }
         };
 
@@ -234,7 +234,7 @@ class Compositor extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : action,
+            method : 'action',
             params : { client: client }
         };
 
@@ -252,7 +252,7 @@ class Compositor extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : action,
+            method : 'action',
             params : { client: client }
         };
 

@@ -16,6 +16,34 @@ class OCDM extends Plugin {
         </div>`;
     }
 
+    drms() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'drms'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    keysystems(drm) {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : `keysystems@${drm}`
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
     render()        {
         var mainDiv = document.getElementById('main');
 
@@ -29,16 +57,20 @@ class OCDM extends Plugin {
     }
 
     update() {
-        this.status().then( resp => {
-            if (resp === undefined || resp === null || resp.systems === undefined)
+        this.drms().then( resp => {
+            if (resp === undefined || resp === null)
                 return;
 
+            // backwards compatibility change with REST
+            let _systems = resp.systems ? resp.systems : resp;
 
-            for (var i=0; i<resp.systems.length; i++) {
-                var system = resp.systems[i];
+            for (let i=0; i<_systems.length; i++) {
+                let system = _systems[i];
+                // backwards compatilbility with rest
+                let keysystems = system.designators ? system.designators : system.keysystems;
 
-                var systemElement = this.ocdmTemplate.replace('{{Name}}', system.name);
-                systemElement = systemElement.replace('{{Designators}}', system.designators.toString());
+                let systemElement = this.ocdmTemplate.replace('{{Name}}', system.name);
+                systemElement = systemElement.replace('{{Designators}}', keysystems.toString());
                 this.systemDiv.innerHTML += systemElement;
             }
         });
