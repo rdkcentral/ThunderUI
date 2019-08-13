@@ -1,7 +1,7 @@
 /** The DIAL Server receives dial requests from the Thunder DIAL Server
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class DIALServer extends Plugin {
 

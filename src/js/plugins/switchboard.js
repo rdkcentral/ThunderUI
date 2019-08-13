@@ -1,7 +1,7 @@
 /** The switchboard plugin allows the device to switch between different processes from the Framework
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class SwitchBoard extends Plugin {
 

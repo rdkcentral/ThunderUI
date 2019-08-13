@@ -1,6 +1,6 @@
 /** Device info plugin provides device specific information, such as cpu usage and serial numbers */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class DeviceInfo extends Plugin {
 

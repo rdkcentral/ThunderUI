@@ -1,7 +1,7 @@
 /** The provision plugin checks the device identifier and is able to initiate a provisioning request if not provisioned
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class Provisioning extends Plugin {
 

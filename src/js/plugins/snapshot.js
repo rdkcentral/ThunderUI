@@ -1,7 +1,7 @@
 /** The snapshot plugin captures snapshots from the device
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class Snapshot extends Plugin {
 

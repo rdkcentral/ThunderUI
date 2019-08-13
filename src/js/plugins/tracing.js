@@ -1,7 +1,7 @@
 /** The tracing plugin controls the trace values for debugging output on the stdout
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class TraceControl extends Plugin {
 

@@ -1,7 +1,7 @@
 /** The webshell plugin provides a shell that can be managed through the webui
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class WebShell extends Plugin {
 

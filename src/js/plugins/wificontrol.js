@@ -1,7 +1,7 @@
 /** The wifi plugin provides details on the available Wifi Adapters, scans for networks and allows the user to join networks through the UI
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class WifiControl extends Plugin {
 

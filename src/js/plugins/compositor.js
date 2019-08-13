@@ -1,7 +1,7 @@
 /** The compositor plugin manages the Westeros compositor and its cliens through the webui
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class Compositor extends Plugin {
 

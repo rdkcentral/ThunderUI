@@ -4,7 +4,7 @@
  * We'll only provide that information if the monitor plugin is loaded, hence this plugin provides that information to the other plugins.
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class Monitor extends Plugin {
 

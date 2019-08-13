@@ -1,7 +1,7 @@
 /** The ocdm plugin manages different OpenCDM DRM modules
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class OCDM extends Plugin {
 

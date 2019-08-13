@@ -1,7 +1,7 @@
 /** The time plugin manages the time set on the device
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class TimeSync extends Plugin {
 

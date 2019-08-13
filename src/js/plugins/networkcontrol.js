@@ -1,7 +1,7 @@
 /** The network plugin manages the network configuration of the device
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class NetworkControl extends Plugin {
 

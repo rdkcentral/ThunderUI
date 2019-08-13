@@ -4,20 +4,12 @@
   "description": "Web Platform for Embedded Framework User Interface",
   "main": "debug-server.js",
   "scripts": {
-    "start": "node debug-server.js"
+    "postinstall": "test -e .env.local || cp .env.production .env.local",
+    "build": "NODE_ENV=production webpack",
+    "watch": "webpack --watch",
+    "start": "concurrently 'npm run watch' 'http-server ./dist -o'"
   },
-  "dependencies": {
-    "node-static": "~0.6.7",
-    "grunt": "*",
-    "grunt-contrib-jshint": "*",
-    "grunt-contrib-uglify": "*",
-    "grunt-contrib-watch": "*",
-    "grunt-contrib-concat": "*",
-    "grunt-contrib-clean": "*",
-    "grunt-contrib-copy": "*",
-    "grunt-rollup": "*",
-    "shelljs": "~0.7.x"
-  },
+  "dependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/WebPlatformForEmbedded/WPEFrameworkUI.git"
@@ -27,5 +19,16 @@
   },
   "homepage": "https://github.com/WebPlatformForEmbedded/WPEFrameworkUI#readme",
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "ThunderJS": "github:WebPlatformForEmbedded/ThunderJS",
+    "concurrently": "^4.1.1",
+    "copy-webpack-plugin": "^5.0.4",
+    "css-loader": "^3.2.0",
+    "dotenv-webpack": "^1.7.0",
+    "http-server": "^0.11.1",
+    "style-loader": "^1.0.0",
+    "webpack": "^4.39.2",
+    "webpack-cli": "^3.3.6"
+  }
 }

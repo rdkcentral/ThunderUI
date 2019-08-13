@@ -1,7 +1,7 @@
 /** The location sync plugin retrieves the location of the device from the geoip servers
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class LocationSync extends Plugin {
     constructor(pluginData, api) {

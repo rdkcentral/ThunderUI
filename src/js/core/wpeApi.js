@@ -2,7 +2,9 @@
  * Thunder UI API layer
  */
 
-class WpeApi {
+import ThunderJS from '../../../node_modules/ThunderJS/module/thunderJS.js'
+
+export default class WpeApi {
     constructor(host) {
         this.host = host;
         this.prefixForService = 'Service';
@@ -187,5 +189,3 @@ class WpeApi {
             this.socketListeners.splice(index, 1);
     };
 }
-
-export { WpeApi };

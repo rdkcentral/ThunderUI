@@ -6,8 +6,8 @@
  */
 'use strict';
 
-import { WpeApi } from '../core/wpe.js';
-import { conf } from '../conf.js';
+import WpeApi from './wpeApi.js';
+import conf from '../conf.js';
 import Menu from '../layout/menu.js';
 import Footer from '../layout/footer.js';
 import Notifications from '../layout/notifications.js';
@@ -62,6 +62,7 @@ function init(host){
     api = new WpeApi(host);
     console.debug('Getting list of plugins from Framework');
     api.getControllerPlugins().then( data => {
+        console.log(data)
         fetchedPlugins = data;
         return fetchedPlugins
     }).then( fetchedPlugins => {

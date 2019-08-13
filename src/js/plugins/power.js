@@ -1,7 +1,7 @@
 /** The Power plugin provides control on Power modes
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class Power extends Plugin {
 

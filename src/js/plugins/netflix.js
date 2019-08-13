@@ -1,7 +1,7 @@
 /** The Netflix plugin provides details on the netflix instance
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class Netflix extends Plugin {
 

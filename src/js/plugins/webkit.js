@@ -2,7 +2,7 @@
  */
 
 import { conf } from '../core/application.js';
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class WebKitBrowser extends Plugin {
 

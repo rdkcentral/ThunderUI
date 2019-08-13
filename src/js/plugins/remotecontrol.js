@@ -2,7 +2,7 @@
  * This file is instantiated by menu.js
  */
 
-import Plugin from '../core/Plugin.js';
+import Plugin from '../core/plugin.js';
 
 class RemoteControl extends Plugin {
 
