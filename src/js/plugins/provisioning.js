@@ -112,9 +112,4 @@ class Provisioning extends Plugin {
     }
  }
 
-function name() {
-    return  'Provisioning';
-}
-
-export { name };
 export default Provisioning;

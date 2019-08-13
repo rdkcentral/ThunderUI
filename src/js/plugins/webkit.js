@@ -382,9 +382,4 @@ class WebKitBrowser extends Plugin {
     }
 }
 
-function name() {
-    return  'WebKitBrowser';
-}
-
-export { name };
 export default WebKitBrowser;

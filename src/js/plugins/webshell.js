@@ -74,9 +74,4 @@ class WebShell extends Plugin {
 
 }
 
-function name() {
-    return  'WebShell';
-}
-
-export { name };
 export default WebShell;

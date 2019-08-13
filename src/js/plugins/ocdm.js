@@ -77,9 +77,4 @@ class OCDM extends Plugin {
     }
 }
 
-function name() {
-    return  'OCDM';
-}
-
-export { name };
 export default OCDM;

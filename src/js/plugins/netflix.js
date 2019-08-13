@@ -112,9 +112,4 @@ class Netflix extends Plugin {
     }
 }
 
-function name() {
-    return  'Netflix';
-}
-
-export { name };
 export default Netflix;

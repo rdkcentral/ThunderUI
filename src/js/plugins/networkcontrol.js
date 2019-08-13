@@ -216,11 +216,6 @@ class NetworkControl extends Plugin {
         this.selectedNetworkInterface = this.interfacesOptsEl.selectedIndex;
         this.update();
     }
- }
-
-function name() {
-    return  'NetworkControl';
 }
 
-export { name };
 export default NetworkControl;

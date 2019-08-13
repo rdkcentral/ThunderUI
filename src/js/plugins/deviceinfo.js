@@ -271,9 +271,4 @@ class DeviceInfo extends Plugin {
     }
 }
 
-function name() {
-    return  'DeviceInfo';
-}
-
-export { name };
 export default DeviceInfo;

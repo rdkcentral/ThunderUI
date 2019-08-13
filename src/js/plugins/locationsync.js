@@ -4,7 +4,6 @@
 import Plugin from '../core/Plugin.js';
 
 class LocationSync extends Plugin {
-
     constructor(pluginData, api) {
         super(pluginData, api);
 
@@ -110,11 +109,6 @@ class LocationSync extends Plugin {
             this.publicIpEl.innerHTML = response.publicip;
         });
     }
- }
-
-function name() {
-    return  'LocationSync';
 }
 
-export { name };
 export default LocationSync;

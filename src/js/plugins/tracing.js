@@ -144,9 +144,4 @@ class TraceControl extends Plugin {
 
 }
 
-function name() {
-    return  'TraceControl';
-}
-
-export { name };
 export default TraceControl;

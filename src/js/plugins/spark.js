@@ -223,9 +223,4 @@ class Spark extends Plugin {
     }
 }
 
-function name() {
-    return  'Spark';
-}
-
-export { name };
 export default Spark;

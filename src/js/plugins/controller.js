@@ -328,9 +328,4 @@ class Controller extends Plugin {
 
 }
 
-function name() {
-    return  'Controller';
-}
-
-export { name };
 export default Controller;

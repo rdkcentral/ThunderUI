@@ -42,66 +42,10 @@
 	        if ((port !== "") && (port !== 80))
 	            hostname += ":" + port;
 
-
-	        var plugins = []
-			function loadJS(file) {
-				import(file).then( module => {
-					plugins.push({ name: module.name, class: module.default })
-				});
-			}
-
-			function fetch(url, cb) {
-				var transport = new XMLHttpRequest();
-
-				transport.onload = function () {
-					var response;
-
-					if (this.status === 200) {
-						try {
-							response = JSON.parse(this.responseText);
-						} catch (error) {
-							return cb(new Error('Invalid JSON received'));
-						}
-						cb(null, response);
-					} else {
-						cb(this.status);
-					}
-				};
-
-				transport.ontimeout = function() {
-					cb(new Error('Timeout'));
-				};
-
-				transport.onerror = function () {
-					cb(new Error('Network error'));
-				};
-
-				transport.open('GET', url);
-				transport.timeout = 10000;
-				transport.send(null);
-
-			}
-
-			function startApp() {
-				import('./js/core/application.js').then( (app) => {
-					app.init('192.168.11.101', plugins)
-				});
-			}
-
-			fetch('js/scripts.json', function(err, scripts) {
-				if (err) {
-					console.error('Error fetching scripts.json, did you run grunt already?');
-					return;
-				}
-
-				for (var i=0; i<scripts.length; i++) {
-					console.log('DEBUG.js - Loading: ' + scripts[i]);
-					loadJS(scripts[i]);
-
-					if (i == scripts.length-1)
-						startApp()
-				}
+			import('./js/core/application.js').then( (app) => {
+				app.init('192.168.11.101')
 			});
+
 		</script>
 	</body>
 </html>

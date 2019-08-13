@@ -78,54 +78,6 @@ module.exports = function(grunt) {
         }
     });
 
-    //custom task to load the NUKE files from config_NUKE.js
-    grunt.task.registerTask('loadScripts', 'Loads the required files for all plugins', function() {
-
-        //reset our globals
-        var cwd = process.cwd();
-        var jsDir = path.join( cwd, 'src', 'js');
-        var coreDir = path.join(jsDir, 'core');
-        var pluginDir = path.join(jsDir, 'plugins');
-        var layoutDir = path.join(jsDir, 'layout');
-        var scripts = [];
-
-        // add conf
-        /*
-        scripts.push('./js/conf.js');
-
-        shell.cd(coreDir);
-        shell.ls('*.js').forEach( function(p) {
-            scripts.push('./js/core/' + p);
-        });
-
-        shell.cd(layoutDir);
-        shell.ls('*.js').forEach( function(p) {
-            scripts.push('./js/layout/' + p);
-        });
-        */
-        shell.cd(pluginDir);
-        shell.ls('*.js').forEach( function(js) {
-            scripts.push('./js/plugins/' + js);
-        });
-
-        shell.cd(cwd);
-
-        console.log('Found scripts: \n ', JSON.stringify(scripts, null, 4));
-
-        // write debug scripts.json
-        var scriptsJson = path.join(jsDir, 'scripts.json');
-        console.log('Writing to debug json: ', scriptsJson);
-        grunt.file.write( scriptsJson, JSON.stringify(scripts, null, 4) );
-
-        //set the files we just read
-        var gruntScripts = [];
-        for (var i=0; i<scripts.length; i++) {
-            gruntScripts.push('src/' + scripts[i]);
-        }
-
-        grunt.config.set('wfuiscripts', gruntScripts);
-    });
-
     //grunt contrib packages
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
@@ -143,9 +95,9 @@ module.exports = function(grunt) {
 
     //add the tasks
     grunt.registerTask('test', ['jshint']); //just runs jshint to validate all the javascript
-    grunt.registerTask('compile', ['loadScripts', 'copy:thunderjs', 'test']);
+    grunt.registerTask('compile', ['copy:thunderjs', 'test']);
     // FIXME: uglify has been turned off because it doesnt support ES6
-    grunt.registerTask('release', ['loadScripts', 'test', 'compile', 'clean', 'copy', 'concat']); //generates the build
+    grunt.registerTask('release', ['test', 'compile', 'clean', 'copy', 'concat']); //generates the build
 
     grunt.registerTask('default', ['compile']);
 };

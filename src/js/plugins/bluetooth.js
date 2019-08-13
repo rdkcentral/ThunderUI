@@ -317,9 +317,4 @@ class BluetoothControl extends Plugin {
     }
 }
 
-function name() {
-    return  'BluetoothControl';
-}
-
 export default BluetoothControl;
-export { name };

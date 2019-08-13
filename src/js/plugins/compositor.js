@@ -262,9 +262,4 @@ class Compositor extends Plugin {
 
 }
 
-function name() {
-    return  'Compositor';
-}
-
-export { name };
 export default Compositor;

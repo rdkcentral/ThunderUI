@@ -193,9 +193,4 @@ class Monitor extends Plugin {
 
 }
 
-function name() {
-    return  'Monitor';
-}
-
-export { name };
 export default Monitor;

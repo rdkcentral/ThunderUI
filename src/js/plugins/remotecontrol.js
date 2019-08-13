@@ -393,9 +393,4 @@ class RemoteControl extends Plugin {
     }
 }
 
-function name() {
-    return  'RemoteControl';
-}
-
-export { name };
 export default RemoteControl;

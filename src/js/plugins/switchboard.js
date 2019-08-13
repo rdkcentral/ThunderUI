@@ -135,9 +135,4 @@ class SwitchBoard extends Plugin {
     }
 }
 
-function name() {
-    return  'SwitchBoard';
-}
-
-export { name };
 export default SwitchBoard;

@@ -115,9 +115,4 @@ class Power extends Plugin {
     }
 }
 
-function name() {
-    return  'Power';
-}
-
-export { name };
 export default Power;

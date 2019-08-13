@@ -43,9 +43,4 @@ class DIALServer extends Plugin {
     }
 }
 
-function name() {
-    return  'DIALServer';
-}
-
-export { name };
 export default DIALServer;

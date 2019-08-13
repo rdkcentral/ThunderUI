@@ -470,9 +470,4 @@ class WifiControl extends Plugin {
     }
 }
 
-function name() {
-    return  'WifiControl';
-}
-
-export { name };
 export default WifiControl;

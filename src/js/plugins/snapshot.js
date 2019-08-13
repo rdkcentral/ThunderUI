@@ -42,9 +42,4 @@ class Snapshot extends Plugin {
     }
 }
 
-function name() {
-    return  'Snapshot';
-}
-
-export { name };
 export default Snapshot;
