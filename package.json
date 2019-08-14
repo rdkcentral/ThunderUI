@@ -21,7 +21,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "ThunderJS": "github:WebPlatformForEmbedded/ThunderJS",
+    "ThunderJS": "github:WebPlatformForEmbedded/ThunderJS#v1.1.2",
     "concurrently": "^4.1.1",
     "copy-webpack-plugin": "^5.0.4",
     "css-loader": "^3.2.0",
