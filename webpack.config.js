@@ -7,7 +7,7 @@ module.exports = {
         filename: 'bundle.js',
     },
     mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
-    devtool: process.env.NODE_ENV === 'production' ? 'hidden-sourcemap' : 'source-map',
+    devtool: process.env.NODE_ENV === 'production' ? '' : 'source-map',
     plugins: [
         new CopyPlugin([
           { from: './src/index.html', to: './index.html' },
