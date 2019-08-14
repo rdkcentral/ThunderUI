@@ -7,7 +7,7 @@
     "postinstall": "test -e .env.local || cp .env.production .env.local",
     "build": "NODE_ENV=production webpack",
     "watch": "webpack --watch",
-    "serve": "http-server ./dist -o",
+    "serve": "http-server ./local -o",
     "start": "concurrently 'npm run watch' 'npm run serve'"
   },
   "husky": {
