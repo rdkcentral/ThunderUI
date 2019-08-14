@@ -4,7 +4,7 @@
   "description": "Web Platform for Embedded Framework User Interface",
   "main": "debug-server.js",
   "scripts": {
-    "postinstall": "test -e .env.local || cp .env.production .env.local",
+    "postinstall": "test -e .env.local || cp .env.example .env.local && test -e .env.production || cp .env.example .env.production",
     "build": "NODE_ENV=production webpack",
     "watch": "webpack --watch",
     "serve": "http-server ./local -o",
