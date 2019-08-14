@@ -39,47 +39,21 @@ var activePlugin    = window.localStorage.getItem('lastActivePlugin') || undefin
 function init(host){
     // initialize the WPE Framework API
     api = new WpeApi(host);
-    console.debug('Getting list of plugins from Framework');
     api.getControllerPlugins().then( data => {
         fetchedPlugins = data;
         return fetchedPlugins
     }).then( fetchedPlugins => {
-        console.debug('Loading plugins');
-
-        /*
-        let loadedPluginClassNames = pluginClasses.filter( pluginClass => {
-            if (pluginClass.name !== undefined)
-                return true
-            else
-                return false
-        }).map( pluginClass => {
-            return pluginClass.name();
-        })*/
-
         // check which plugins are present on the device
         for (var i=0; i<fetchedPlugins.length; i++) {
             var pluginName = fetchedPlugins[i].callsign;
             var pluginClass = fetchedPlugins[i].classname;
 
-            if(Plugins[pluginClass]) {
+            if (Plugins[pluginClass]) {
                 plugins[ pluginName ] = new Plugins[pluginClass](fetchedPlugins[i], api);
-            }
-            else {
+            } else {
                 console.log(pluginName + '( ' + pluginClass + ') not found')
             }
 
-
-            // try to init the plugin
-            /*
-            if (loadedPluginClassNames.indexOf(pluginClass) != -1) {
-                console.debug('Initializing plugin ' + pluginName);
-                plugins[ pluginName ] = new pluginClasses[ loadedPluginClassNames.indexOf(pluginClass) ].class(fetchedPlugins[i], api);
-            
-
-            } else {
-                console.debug('Unsupported plugin: ' + pluginName);
-            }
-            */
         }
 
         plugins.footer = new Footer(plugins.DeviceInfo);
@@ -87,10 +61,8 @@ function init(host){
         plugins.menu.render(activePlugin !== undefined ? activePlugin : conf.startPlugin);
         plugins.notifications = new Notifications(api);
 
+        showPlugin(activePlugin !== undefined ? activePlugin : conf.startPlugin);
     })
-
-    showPlugin(activePlugin !== undefined ? activePlugin : conf.startPlugin);
-
 }
 
 /** (global) renders a plugin in the main div */
