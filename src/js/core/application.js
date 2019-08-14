@@ -12,28 +12,7 @@ import Menu from '../layout/menu.js';
 import Footer from '../layout/footer.js';
 import Notifications from '../layout/notifications.js';
 
-// Plugins
-import BluetoothControl from '../plugins/bluetooth.js';
-import Compositor from '../plugins/compositor.js';
-import Controller from '../plugins/controller.js';
-import DeviceInfo from '../plugins/deviceinfo.js';
-import DialServer from '../plugins/dialserver.js';
-import LocationSync from '../plugins/locationsync.js';
-import Monitor from '../plugins/monitor.js';
-import Netflix from '../plugins/netflix.js';
-import NetworkControl from '../plugins/networkcontrol.js';
-import OCDM from '../plugins/ocdm.js';
-import Power from '../plugins/power.js';
-import Provisioning from '../plugins/provisioning.js';
-import RemoteControl from '../plugins/remotecontrol.js';
-import Snapshot from '../plugins/snapshot.js';
-import Spark from '../plugins/spark.js';
-import Switchboard from '../plugins/switchboard.js';
-import TimeSync from '../plugins/timesync.js';
-import TraceControl from '../plugins/tracing.js';
-import WebKitBrowser from '../plugins/webkit.js';
-import WebShell from '../plugins/webshell.js';
-import WifiControl from '../plugins/wificontrol.js';
+import Plugins from '../plugins/index.js'
 
 /**
 * Create the initial structure & globals
@@ -62,7 +41,6 @@ function init(host){
     api = new WpeApi(host);
     console.debug('Getting list of plugins from Framework');
     api.getControllerPlugins().then( data => {
-        console.log(data)
         fetchedPlugins = data;
         return fetchedPlugins
     }).then( fetchedPlugins => {
@@ -83,7 +61,12 @@ function init(host){
             var pluginName = fetchedPlugins[i].callsign;
             var pluginClass = fetchedPlugins[i].classname;
 
-            plugins[ pluginName ] = new window[pluginClass](fetchedPlugins[i], api);
+            if(Plugins[pluginClass]) {
+                plugins[ pluginName ] = new Plugins[pluginClass](fetchedPlugins[i], api);
+            }
+            else {
+                console.log(pluginName + '( ' + pluginClass + ') not found')
+            }
 
 
             // try to init the plugin
