@@ -1,28 +1,29 @@
-ThunderUI is the development and test UI that runs on top of the Thunder. Thunder UI provides remote control over a Thunder enabled device for testing and debugging purposes.
+# Thunder UI
 
-# Prerequisites
+ThunderUI is the development and test UI that runs on top of Thunder. Thunder UI provides remote control over a Thunder enabled device for testing and debugging purposes.
 
-You need NodeJS + NPM (https://nodejs.org/en/) and Grunt installed (https://gruntjs.com/getting-started) in order to run the grunt task. If you do not know how to install nodejs and grunt, you probably shouldn't be making changes here.
+## Prerequisites
 
-# Setup
+You need NodeJS + NPM [https://nodejs.org](https://nodejs.org) installed. If you do not know how to install NodeJS, you probably shouldn't be making changes here.
+
+## Setup
 
 To get started run:
+
 ```
 npm install
 ```
 
-# Compile
+## Build
 
-To compile a release version of Thunder UI please run
-```
-grunt release
-```
+To build a release version of Thunder UI please run `npm run build`
 
-# Local
+If you want to create a release version pointing to a different host than the default `127.0.0.1`, you can adjust this in `.env.production`.
 
-To run a local copy of WPEFrameworkUI (for dev purposes) please run, please build the debug by running
-```
-grunt
-```
+## Local
 
-Or run `grunt watch` and on any change in JS the grunt compile task to generate the debug.html will be run automatically.
+To run a local copy of Thunder UI (for dev purposes), first update the host in `.env.local` to point to the IP address of your local device.
+
+Next run `npm start`. This will build a local version of Thunder UI (with sourcemaps) and open up a browser window pointing to this local version.
+
+On top of that a watcher is initiated that will _rebuild_ Thunder UI every time a change is made in the `src` folder (note: manual browser refresh still required).
