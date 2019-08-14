@@ -7,7 +7,8 @@
     "postinstall": "test -e .env.local || cp .env.production .env.local",
     "build": "NODE_ENV=production webpack",
     "watch": "webpack --watch",
-    "start": "concurrently 'npm run watch' 'http-server ./dist -o'"
+    "serve": "http-server ./dist -o",
+    "start": "concurrently 'npm run watch' 'npm run serve'"
   },
   "dependencies": {},
   "repository": {

@@ -6,7 +6,8 @@ module.exports = {
     output: {
         filename: 'bundle.js',
     },
-    mode: 'production',
+    mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+    devtool: process.env.NODE_ENV === 'production' ? 'hidden-sourcemap' : 'source-map',
     plugins: [
         new CopyPlugin([
           { from: './src/index.html', to: './index.html' },
