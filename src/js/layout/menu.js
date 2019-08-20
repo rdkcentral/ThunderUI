@@ -1,7 +1,10 @@
 /** The side navigation menu provides navigation across the different plugins */
+import { showPlugin } from '../core/application.js';
 
 class Menu {
-    constructor() {
+    constructor(plugins, api) {
+        this.api            = api;
+        this.plugins        = plugins;
         this.top            = document.getElementById('top');
         this.renderInMenu   = false;
 
@@ -60,9 +63,8 @@ class Menu {
             }
         };
 
-        api.addWebSocketListener('all', (data) => {
-            // check if we have a state change
-            if (data.state !== undefined)
+        this.api.t.on('Controller', 'all', _notification => {
+            if (_notification.data && _notification.data.state)
                 this.render();
         });
     }
@@ -72,22 +74,20 @@ class Menu {
     }
 
     render(activePlugin) {
-        this.clear();
+        this.api.getControllerPlugins().then( _plugins => {
+            this.clear();
+            const enabledPlugins = Object.keys(this.plugins);
+            let ul = document.createElement('ul');
 
-        api.getControllerPlugins( (err, data) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
+            for (let i = 0; i<_plugins.length; i++) {
+                const plugin = _plugins[i];
 
-            var _plugins = data.plugins;
-            var enabledPlugins = Object.keys(plugins);
-            var ul = document.createElement('ul');
+                // check if plugin is available in our loaded plugins
+                if (enabledPlugins.indexOf(plugin.callsign) === -1)
+                    continue;
 
-            for (var i = 0; i<_plugins.length; i++) {
-                var plugin = _plugins[i];
-
-                if (plugin.state !== 'deactivated' && enabledPlugins.indexOf(plugin.callsign) != -1 && plugins[ plugin.callsign ].renderInMenu === true) {
+                const loadedPlugin = this.plugins[ plugin.callsign ];
+                if (plugin.state !== 'deactivated' && loadedPlugin.renderInMenu === true) {
                     console.debug('Menu :: rendering ' + plugin.callsign);
                     var li = document.createElement('li');
                     li.id = "item_" + plugin.callsign;
@@ -100,7 +100,7 @@ class Menu {
                         li.className = 'menu-item';
                     }
 
-                    li.appendChild(document.createTextNode(plugins[ plugin.callsign ].displayName !== undefined ? plugins[ plugin.callsign ].displayName : plugin.callsign));
+                    li.appendChild(document.createTextNode(loadedPlugin.displayName !== undefined ? loadedPlugin.displayName : plugin.callsign));
                     li.onclick = this.toggleMenuItem.bind(null, plugin.callsign);
                     ul.appendChild(li);
                     this.nav.appendChild(ul);
@@ -138,3 +138,5 @@ class Menu {
         }
     }
 }
+
+export default Menu;

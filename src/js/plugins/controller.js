@@ -2,28 +2,106 @@
  * Main controller plugin, renders a list of active plugins and the ability to interact with the plugins (deactivate/active/suspend/resume)
  */
 
+import Plugin from '../core/plugin.js';
+
 class Controller extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
         this.plugins = undefined;
         this.mainDiv = undefined;
 
-        api.addWebSocketListener('all', (data) => {
-            if (this.rendered === false)
-                return;
-
+        this.api.t.on('Controller', 'statechange', data => {
             // check if we have a state change
-            if (data.state !== undefined)
+            if (data.state !== undefined && this.rendered === true)
                 this.render();
 
-            // data.data? ¯\_( ͡° ͜ʖ ͡°)_/¯
-            if (data.data !== undefined && data.data.suspended !== undefined)
+            if (data.suspended !== undefined && this.rendered === true)
                 this.render();
-
         });
     }
 
+    /**
+     * API
+     */
+    controllerStatus(plugin) {
+        const _rpc = {
+            plugin : 'Controller'
+        };
+
+        if (plugin)
+            _rpc.method = `status@${plugin}`;
+        else
+            _rpc.method = 'status';
+
+        return api.req(undefined, _rpc);
+    }
+
+    harakiri() {
+        const _rest = {
+            method  : 'PUT',
+            path    : 'Controller/Harakiri',
+            body    : null
+        };
+
+        const _rpc = {
+            plugin : 'Controller',
+            method : 'harakiri',
+            params : {'callsign': this.callsign}
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    initiateDiscovery() {
+        const _rest = {
+            method  : 'PUT',
+            path    : 'Controller/Discovery',
+            body    : null
+        };
+
+        const _rpc = {
+            plugin : 'Controller',
+            method : 'startdiscovery',
+            params : {'ttl': 1}
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    getDiscovery() {
+        const _rest = {
+            method  : 'GET',
+            path    : 'Controller/Discovery',
+            body    : null
+        };
+
+        const _rpc = {
+            plugin : 'Controller',
+            method : 'discoveryresults'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    persist(callback) {
+        const _rest = {
+            method  : 'PUT',
+            path    : 'Controller/Persist',
+            body    : null
+        };
+
+        const _rpc = {
+            plugin : 'Controller',
+            method : 'storeconfig'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    /**
+     * UI
+     */
     toggleActivity(callsign) {
         var plugin;
 
@@ -37,29 +115,23 @@ class Controller extends Plugin {
 
         if (plugin.state === 'deactivated') {
             console.debug('Activating ' + callsign);
-            api.activatePlugin(callsign, (err, resp) => {
-                if (err) {
-                    this.render();
-                    return;
-                }
-
+            this.activate(callsign).then( (resp) => {
                 if (plugins[ callsign ] !== undefined)
                     plugins[ callsign ].state = 'activated';
 
                 plugin.state = 'activated';
+            }).catch( e => {
+                this.render();
             });
         } else {
             console.debug('Deactivating ' + callsign);
-            api.deactivatePlugin(callsign, (err, resp) => {
-                if (err) {
-                    this.render();
-                    return;
-                }
-
+            this.deactivate(callsign).then( (resp) => {
                 if (plugins[ callsign ] !== undefined)
                     plugins[ callsign ].state = 'deactivated';
 
                 plugin.state = 'deactivated';
+            }).catch(e => {
+                this.render();
             });
         }
     }
@@ -77,47 +149,41 @@ class Controller extends Plugin {
 
         if (plugin.state === 'deactivated') {
             console.debug('Activating ' + callsign);
-            api.activatePlugin(callsign, (err, resp) => {
+            this.activate(callsign).then( resp => {
                 if (plugins[ callsign ] !== undefined)
                     plugins[ callsign ].state = 'activated';
 
                 // we have to rerender at this stage, we're going to be out of sync
                 if (document.getElementById(callsign + 'suspend').checked === false)
-                    api.resumePlugin(callsign, this.render.bind(this));
+                    this.resume(callsign).then( this.render.bind(this) );
                 else
-                    api.suspendPlugin(callsign, this.render.bind(this));
+                    api.suspendPlugin(callsign).then( this.render.bind(this));
             });
-
 
             return;
         }
 
         if (plugin.state === 'resumed') {
             console.debug('Suspending ' + callsign);
-            api.suspendPlugin(callsign, (err, resp) => {
-                if (err === null) {
-                    this.updateSuspendLabel(callsign, 'resume');
+            this.suspend(callsign).then( resp => {
+                this.updateSuspendLabel(callsign, 'resume');
 
-                    if (plugins[ callsign ] !== undefined)
-                        plugins[ callsign ].state = 'resumed';
+                if (plugins[ callsign ] !== undefined)
+                    plugins[ callsign ].state = 'resumed';
 
-                    document.getElementById(callsign + 'suspend').checked = true;
-                    plugin.state = 'suspended';
-                }
+                document.getElementById(callsign + 'suspend').checked = true;
+                plugin.state = 'suspended';
             });
         } else {
             console.debug('Resuming ' + callsign);
-            api.resumePlugin(callsign, (err, resp) => {
-                if (err === null) {
-                    this.updateSuspendLabel(callsign, 'suspend');
+            this.resume(callsign).then( resp => {
+                this.updateSuspendLabel(callsign, 'suspend');
 
-                    if (plugins[ callsign ] !== undefined)
-                        plugins[ callsign ].state = 'suspended';
+                if (plugins[ callsign ] !== undefined)
+                    plugins[ callsign ].state = 'suspended';
 
-                    document.getElementById(callsign + 'suspend').checked = false;
-                    plugin.state = 'resumed';
-                }
-
+                document.getElementById(callsign + 'suspend').checked = false;
+                plugin.state = 'resumed';
             });
         }
     }
@@ -128,16 +194,13 @@ class Controller extends Plugin {
 
     discover() {
         console.log('Initiating discovery');
-        api.initiateDiscovery();
+        this.initiateDiscovery();
+
+        let self = this;
 
         setTimeout(function() {
-            api.getDiscovery( function(error, data) {
-                if (error) {
-                    console.error(error);
-                    return;
-                }
-
-                var discoveryList = data.bridges;
+            self.getDiscovery().then( data => {
+                var discoveryList = data.bridges ? data.bridges : data;
                 var container = document.getElementById('discoveryList');
                 container.innerHTML = '';
 
@@ -147,7 +210,7 @@ class Controller extends Plugin {
                     container.appendChild(li);
                 }
             });
-        }, 1000);
+        }, 3000);
     }
 
     render() {
@@ -178,18 +241,13 @@ class Controller extends Plugin {
         </div>
         `;
 
-        document.getElementById('persistButton').onclick = api.persist.bind(api, () => {});
-        document.getElementById('harakiriButton').onclick = api.reboot.bind(api, () => {});
+        document.getElementById('persistButton').onclick = this.persist.bind(this);
+        document.getElementById('harakiriButton').onclick = this.harakiri.bind(this);
         document.getElementById('discoverButton').onclick = this.discover.bind(this);
         var controllerPluginsDiv = document.getElementById('controllerPlugins');
 
-        api.getControllerPlugins( (err, data) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
-
-            var plugins = data.plugins;
+        this.status().then(  data => {
+            var plugins = data.plugins ? data.plugins : data;
             this.plugins = plugins; // store it
 
             for (var i=0; i < plugins.length; i++) {
@@ -270,6 +328,4 @@ class Controller extends Plugin {
 
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Controller = Controller;
-
+export default Controller;

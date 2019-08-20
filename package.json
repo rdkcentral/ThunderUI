@@ -4,19 +4,18 @@
   "description": "Web Platform for Embedded Framework User Interface",
   "main": "debug-server.js",
   "scripts": {
-    "start": "node debug-server.js"
+    "postinstall": "test -e .env.local || cp .env.example .env.local && test -e .env.production || cp .env.example .env.production",
+    "build": "NODE_ENV=production webpack",
+    "watch": "webpack --watch",
+    "serve": "http-server ./local -o -c-1",
+    "start": "concurrently 'npm run watch' 'npm run serve'"
   },
-  "dependencies": {
-    "node-static": "~0.6.7",
-    "grunt": "*",
-    "grunt-contrib-jshint": "*",
-    "grunt-contrib-uglify": "*",
-    "grunt-contrib-watch": "*",
-    "grunt-contrib-concat": "*",
-    "grunt-contrib-clean": "*",
-    "grunt-contrib-copy": "*",
-    "shelljs": "~0.7.x"
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run build && git add dist"
+    }
   },
+  "dependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/WebPlatformForEmbedded/WPEFrameworkUI.git"
@@ -26,5 +25,17 @@
   },
   "homepage": "https://github.com/WebPlatformForEmbedded/WPEFrameworkUI#readme",
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "ThunderJS": "github:WebPlatformForEmbedded/ThunderJS#v1.1.2",
+    "concurrently": "^4.1.1",
+    "copy-webpack-plugin": "^5.0.4",
+    "css-loader": "^3.2.0",
+    "dotenv-webpack": "^1.7.0",
+    "http-server": "^0.11.1",
+    "husky": "^3.0.3",
+    "style-loader": "^1.0.0",
+    "webpack": "^4.39.2",
+    "webpack-cli": "^3.3.6"
+  }
 }

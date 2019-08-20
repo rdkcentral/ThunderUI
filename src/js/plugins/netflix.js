@@ -1,10 +1,12 @@
 /** The Netflix plugin provides details on the netflix instance
  */
 
+import Plugin from '../core/plugin.js';
+
 class Netflix extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
     }
 
     render()        {
@@ -36,11 +38,29 @@ class Netflix extends Plugin {
 
         this.interval = setInterval(this.update.bind(this), conf.refresh_interval);
         this.update();
+
+        this.api.t.on('Netflix', 'visibilitychange', data => {
+            if (typeof data.hidden === 'boolean') {
+                this.isHidden = data.hidden;
+
+                if (this.rendered === true)
+                    this.update();
+            }
+        });
+
+        this.api.t.on('Netflix', 'statechange', data => {
+            if (typeof data.suspended === 'boolean') {
+                this.isSuspended = data.suspended;
+
+                if (this.rendered === true)
+                    this.update();
+            }
+        });
     }
 
     update(data) {
         var self = this;
-        api.getPluginData('Netflix', (error, data) => {
+        this.status().then( data => {
             if (data.esn)
                 document.getElementById('netflix-esn').innerHTML = data.esn;
 
@@ -77,22 +97,19 @@ class Netflix extends Plugin {
         var self = this;
 
         if (nextState === 'Resume') {
-            api.resumePlugin('Netflix', function (err, resp) {
-                if (err)
-                    self.render();
-
+            this.resume().then( () => {
                 self.update({ suspended : false });
+            }).catch(e => {
+                self.render();
             });
         } else {
-            api.suspendPlugin('Netflix', function (err, resp) {
-                if (err)
-                    self.render();
-
+            this.suspend().then( () => {
                 self.update({ suspended : true });
+            }).catch(e => {
+                self.render();
             });
         }
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Netflix = Netflix;
+export default Netflix;

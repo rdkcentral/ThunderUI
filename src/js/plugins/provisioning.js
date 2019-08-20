@@ -1,10 +1,12 @@
 /** The provision plugin checks the device identifier and is able to initiate a provisioning request if not provisioned
  */
 
+import Plugin from '../core/plugin.js';
+
 class Provisioning extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
     }
 
     render()        {
@@ -46,14 +48,39 @@ class Provisioning extends Plugin {
       this.update();
     }
 
-    update() {
-        api.getPluginData('Provisioning', function(error, response, status) {
-            if (error !== null) {
-                console.error(err);
-                this.status(err);
-                return;
-            }
+    triggerProvisioning() {
+        const _rest = {
+            method  : 'PUT',
+            path    : `${this.callsign}`
+        };
 
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'request'
+        };
+
+        // FIXME, no JSONRPC yet
+        return this.api.req(_rest);
+    }
+
+    // FIXME, status override because there is no jsonrpc yet
+    status() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'status'
+        };
+
+        // FIXME, no JSONRPC yet
+        return this.api.req(_rest);
+    }
+
+    update() {
+        this.status().then( response => {
             if (response === null || response === undefined || response === '')
               return;
 
@@ -67,13 +94,16 @@ class Provisioning extends Plugin {
             }
             //document.getElementById('provisionButton').style.display = (status == 200) ? 'none' : null;
             document.getElementById('provisionLabel').style.display = (status == 200) ? 'none' : null;
+        }).catch(err => {
+            console.error(err);
+            this.status(err);
         });
     }
 
     tiggerProvisioningRequest() {
         var self = this;
 
-        api.triggerProvisioning( (error, response) => {
+        this.triggerProvisioning().then( response => {
             document.getElementById('provisionButton').style.display = 'none';
             document.getElementById('provisionLabel').style.display = 'none';
 
@@ -82,5 +112,4 @@ class Provisioning extends Plugin {
     }
  }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Provisioning = Provisioning;
+export default Provisioning;

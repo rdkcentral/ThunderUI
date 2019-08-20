@@ -1,10 +1,12 @@
 /** The snapshot plugin captures snapshots from the device
  */
 
+import Plugin from '../core/plugin.js';
+
 class Snapshot extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
     }
 
     render()        {
@@ -29,12 +31,15 @@ class Snapshot extends Plugin {
       snapshotButton.onclick = this.createSnapshot.bind(this);
     }
 
+    getSnapshotLocator() {
+        return this.api.getURLStart('http') + 'Snapshot/Capture?' + new Date().getTime();
+    }
+
     createSnapshot() {
         var snapshotImage = document.getElementById('snapshotOutput');
         snapshotImage.src = '';
-        snapshotImage.src = api.getSnapshotLocator();
+        snapshotImage.src = this.getSnapshotLocator();
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Snapshot = Snapshot;
+export default Snapshot;

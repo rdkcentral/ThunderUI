@@ -1,14 +1,38 @@
 /** The tracing plugin controls the trace values for debugging output on the stdout
  */
 
+import Plugin from '../core/plugin.js';
+
 class TraceControl extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
+        this.displayName = 'Tracing';
 
         this.selectedTraceModule    = undefined;
         this.traceModules           = undefined;
         this.uniqueTraceModules     = undefined;
+    }
+
+    toggleTracing(module, id, state) {
+       var body = {
+            "module": module,
+            "category": id,
+            "state": state === 'on' ? 'enabled' : 'disabled'
+        };
+
+        const _rest = {
+            method  : 'PUT',
+            path    : 'TraceControl' +  '/' + module + '/' + id + '/' + state
+        };
+
+        const _rpc = {
+            plugin : 'TraceControl',
+            method : 'set',
+            params : body
+        };
+
+        return this.api.req(_rest, _rpc);
     }
 
     render()        {
@@ -31,7 +55,7 @@ class TraceControl extends Plugin {
 
         document.getElementById('tracingModules').onchange = this.getSelectedModuleAndShowCategories.bind(this);
 
-        api.getPluginData('TraceControl', function(error, response) {
+        this.status().then( response => {
             self.traceModules = response.settings ? response.settings : [];
             self.uniqueTraceModules = [];
             var traceModulesSelectElement = document.getElementById('tracingModules');
@@ -114,11 +138,10 @@ class TraceControl extends Plugin {
     }
 
     toggleTrace(m) {
-        api.toggleTracing(m.module, m.category, (m.state === 'enabled' ? 'off' : 'on'));
+        this.toggleTracing(m.module, m.category, (m.state === 'enabled' ? 'off' : 'on'));
         m.state = (m.state === 'enabled' ? 'disabled' : 'enabled');
     }
 
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.TraceControl = TraceControl;
+export default TraceControl;

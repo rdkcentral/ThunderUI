@@ -1,10 +1,12 @@
 /** The wifi plugin provides details on the available Wifi Adapters, scans for networks and allows the user to join networks through the UI
  */
 
+import Plugin from '../core/plugin.js';
+
 class WifiControl extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
         this.displayName = 'WiFi';
 
         this.configs = [];
@@ -15,7 +17,18 @@ class WifiControl extends Plugin {
         this.statusMessageTimer = null;
         this.rendered = false;
         this.wlanInterface = 'wlan0'; //FIXME, this can be anything really...
-        this.socketListenerId = api.addWebSocketListener(this.callsign, this.handleNotification.bind(this));
+
+        this.api.t.on('WifiControl', 'scanresults', (data) => {
+            if (this.rendered === true)
+                this.getNetworks();
+        });
+
+        this.api.t.on('WifiControl', 'connectionchange', (data) => {
+            this.connected = data.connected;
+
+            if (this.rendered === true)
+                this.update();
+        });
     }
 
     render()        {
@@ -161,13 +174,7 @@ class WifiControl extends Plugin {
 
     /* ----------------------------- DATA ------------------------------*/
     update() {
-        api.getPluginData(this.callsign, (err, resp) => {
-            if (err !== null) {
-                console.error(err);
-                this.status(err);
-                return;
-            }
-
+        this.status().then( resp => {
             // bail out if the plugin returns nothing
             if (resp === undefined)
                 return;
@@ -183,34 +190,49 @@ class WifiControl extends Plugin {
 
     scanForNetworks() {
         var self = this;
-        api.putPlugin(this.callsign, 'Scan', null, (err, resp) => {
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
 
+        const _rest = {
+            method  : 'PUT',
+            path    : `${this.callsign}/Scan`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'scan',
+        };
+
+        this.api.req(_rest, _rpc).then( resp => {
             // get the results
             setTimeout(this.getNetworks.bind(this), 5000);
         });
     }
 
     getConfigs() {
-        api.getPluginData(this.callsign + '/Configs', (err, resp) => {
-            if (err !== null) {
-                console.error(err);
-                this.status(err);
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/Configs`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'configs',
+        };
+
+        this.api.req(_rest, _rpc).then( resp => {
+            if (resp === undefined)
                 return;
-            }
 
-            if (resp === undefined || resp.configs.length === 0)
+            // backwards compatibility with REST
+            let _configs = resp.configs ? resp.configs : resp;
+
+            if (_configs === undefined || _configs.length === 0)
                 return;
 
-
-            this.configs = resp.configs;
+            this.configs = _configs;
             this.configListEl.innerHTML = '';
-            for (var i=0; i<resp.configs.length; i++) {
+            for (var i=0; i<_configs.length; i++) {
                 var newChild = this.configListEl.appendChild(document.createElement("option"));
-                newChild.innerHTML = `${resp.configs[i].ssid}`;
+                newChild.innerHTML = `${_configs[i].ssid}`;
             }
 
             this.renderConfigDetails();
@@ -218,12 +240,17 @@ class WifiControl extends Plugin {
     }
 
     getNetworks() {
-        api.getPluginData(this.callsign + '/Networks', (err, resp) => {
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/Networks`
+        };
 
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'networks'
+        };
+
+        this.api.req(_rest, _rpc).then( resp => {
             // bail out if the plugin returns nothing
             if (resp === undefined)
                 return;
@@ -233,17 +260,20 @@ class WifiControl extends Plugin {
             if (this.rendered === false)
                 return;
 
+            // backwards compatibility with REST
+            let _networks = resp.networks ? resp.networks : resp;
+
             this.networkListEl.innerHTML = '';
-            for (var i=0; i<resp.networks.length; i++) {
+            for (var i=0; i<_networks.length; i++) {
                 // some networks return /x00/x00/x00/x00 and we're filtering out that at the json parse in core/wpe.js, so lets skip it
-                if (resp.networks[i].ssid === '')
+                if (_networks[i].ssid === '')
                     continue;
 
                 // store the same list in this.networks
-                this.networks.push(resp.networks[i]);
+                this.networks.push(_networks[i]);
 
                 var newChild = this.networkListEl.appendChild(document.createElement("option"));
-                newChild.innerHTML = `${resp.networks[i].ssid} (${resp.networks[i].signal})`;
+                newChild.innerHTML = `${_networks[i].ssid} (${_networks[i].signal})`;
             }
         });
     }
@@ -256,7 +286,7 @@ class WifiControl extends Plugin {
 
         // the event connected just provides an async boolean, rerender the network status
         if (data.event && data.event === 'Connected') {
-            this.status('WLAN connection established');
+            this.statusMessage('WLAN connection established');
             this.update();
         }
 
@@ -265,7 +295,7 @@ class WifiControl extends Plugin {
         if (data.callsign === 'NetworkControl' && data.data && data.data.interface) {
             if (data.data.ip) {
                 if (data.data.interface === wlan) {
-                    this.status('Connection succesfull.');
+                    this.statusMessage('Connection succesfull.');
                     this.joining = false;
                     this.update();
                 }
@@ -273,7 +303,7 @@ class WifiControl extends Plugin {
                 // Ignore wlan DHCP failure when not in joining progress
                 if (data.data.interface === this.wlanInterface && this.joining === false) return;
 
-                this.status('DHCP request failure. Retrying...');
+                this.statusMessage('DHCP request failure. Retrying...');
                 this.requestDHCP();
             }
         }
@@ -291,7 +321,7 @@ class WifiControl extends Plugin {
 
     /* ----------------------------- RENDERING ------------------------------*/
 
-    status(message) {
+    statusMessage(message) {
         window.clearTimeout(this.statusMessageTimer);
         this.statusMessages.innerHTML = message;
 
@@ -320,7 +350,7 @@ class WifiControl extends Plugin {
     renderConfigDetails() {
         var idx = this.configListEl.selectedIndex;
 
-        if (idx < 0 || this.configs <= 0)
+        if (idx < 0 || this.configs.length === 0)
             return;
 
         this.ssidEl.value = this.configs[idx].ssid;
@@ -352,41 +382,87 @@ class WifiControl extends Plugin {
             type : this.methodEl.value,
         };
 
-        api.putPlugin(this.callsign, 'Config', JSON.stringify(config), (err, resp) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
+        const _rest = {
+            method  : 'PUT',
+            path    : `${this.callsign}/Config`,
+            config  : config
+        };
 
-            this.status(`Saved config for ${this.ssidEl.value}`);
+        const _rpc = {
+            plugin : this.callsign,
+            method : `config@${config.ssid}`,
+            params : config
+        };
+
+        this.api.req(_rest, _rpc).then( resp => {
+            this.statusMessage(`Saved config for ${this.ssidEl.value}`);
             self.getConfigs();
         });
 
     }
 
     requestDHCP() {
-        this.status('Requesting DHCP for wlan0');
-        api.putPlugin('NetworkControl', `${this.wlanInterface}/Request`, null);
+        this.statusMessage('Requesting DHCP for wlan0');
+
+        const _rest = {
+            method  : 'PUT',
+            path    : `NetworkControl/${this.wlanInterface}/Request`
+        };
+
+        const _rpc = {
+            plugin : 'NetworkControl',
+            method : 'request',
+            params : {
+                device: this.wlanInterface
+            }
+        };
+
+        this.api.req(_rest, _rpc);
     }
 
     connect() {
         var idx = this.configListEl.selectedIndex;
 
-        this.status(`Connecting to ${this.configs[idx].ssid}`);
+        this.statusMessage(`Connecting to ${this.configs[idx].ssid}`);
 
-        api.putPlugin(this.callsign, `Connect/${this.configs[idx].ssid}`, null, () =>{
+        const _rest = {
+            method  : 'PUT',
+            path    : `${this.callsign}/Connect/${this.configs[idx].ssid}`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'connect',
+            params : {
+                ssid: this.configs[idx].ssid
+            }
+        };
+
+        this.api.req(_rest, _rpc).then( () => {
             this.connecting = true;
             setTimeout(this.requestDHCP.bind(this), 5000);
         });
     }
 
     disconnect() {
-        // if we're not connected ignore.
-        if (this.connected === '')
+        if (this.connected === undefined || this.connected === '')
             return;
 
-        this.status(`Disconnecting from ${this.connected}`);
-        api.deletePlugin(this.callsign, 'Connect/' + this.connected, null);
+        const _rest = {
+            method  : 'DELETE',
+            path    : `${this.callsign}/Connect/${this.connected}`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'disconnect',
+            params : {
+                ssid: this.connected
+            }
+        };
+
+        this.statusMessage(`Disconnecting from ${this.connected}`);
+        this.api.req(_rest, _rpc);
     }
 
     close() {
@@ -394,5 +470,4 @@ class WifiControl extends Plugin {
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.WifiControl = WifiControl;
+export default WifiControl;

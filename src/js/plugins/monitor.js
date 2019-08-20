@@ -4,16 +4,31 @@
  * We'll only provide that information if the monitor plugin is loaded, hence this plugin provides that information to the other plugins.
  */
 
+import Plugin from '../core/plugin.js';
+
 class Monitor extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
         this.observablesList = [];
         this.restartList = [];
     }
 
-    render() {
+    getMemoryInfo(plugin) {
+       const _rest = {
+            method  : 'GET',
+            path    : 'Monitor'
+        };
 
+        const _rpc = {
+            plugin : 'Monitor',
+            method : 'status'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    render() {
         var mainDiv = document.getElementById('main');
         mainDiv.innerHTML = `<div class="title grid__col grid__col--8-of-8"></div>
         <table class="title grid__col grid__col--8-of-8">
@@ -36,17 +51,13 @@ class Monitor extends Plugin {
     }
 
     getObservableList() {
-        api.getPluginData(this.callsign, (error, data) => {
-        if (error) {
-            console.error(error);
-            return;
-        }
-        var plugins = [];
-        for (var i=0; i<data.length; i++) {
-            plugins[i] = data[i].name;
-        }
-        this.observablesList = plugins;
-        this.renderObservables();
+        this.status().then(data => {
+            var plugins = [];
+            for (var i=0; i<data.length; i++) {
+                plugins[i] = data[i].name ? data[i].name : data[i].observable;
+            }
+            this.observablesList = plugins;
+            this.renderObservables();
         });
     }
     renderObservables() {
@@ -67,25 +78,35 @@ class Monitor extends Plugin {
         }
     }
     setRestartThreshold(){
-       var i = observables.selectedIndex;
-       var body = '{"observable" : "' + observables.options[i].text + '","restartlimit" :"' +restart.value+'"}';
-       api.postPlugin(this.callsign,'',body, (err, resp) => {
-       if (err !== null) {
-           console.error(err);
-           return;
-       }
-       });
+        const i = observables.selectedIndex;
+        const restbody = '{"observable" : "' + observables.options[i].text + '","restartlimit" :"' +restart.value+'"}';
+
+        const _rest = {
+            method  : 'POST',
+            path    : `${this.callsign}`,
+            body    : restbody
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'restartlimits',
+            params : {
+                callsign: observables.options[i].text,
+                operational: {
+                    limit: restart.value
+                },
+                memory : {
+                    limit: restart.value
+                }
+            }
+        };
+
+        this.api.req(_rest, _rpc);
     }
 
     getMonitorDataAndDiv(plugin, callback) {
         var self = this;
-        api.getMemoryInfo(plugin, function (error, data) {
-            if (error) {
-                console.error(error);
-                self.callback('');
-                return;
-            }
-
+        this.getMemoryInfo(plugin).then( data => {
             // Monitor returns a list of measurements, find the right plugin and return it to the callback
             for (var i=0; i<data.length; i++) {
                 var _p = data[i];
@@ -172,5 +193,4 @@ class Monitor extends Plugin {
 
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Monitor = Monitor;
+export default Monitor;

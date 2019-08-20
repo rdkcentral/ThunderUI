@@ -1,3 +1,5 @@
 node_modules
-src/js/scripts.json
-src/js/main.js
+.env.local
+.env.production
+.DS_Store
+local

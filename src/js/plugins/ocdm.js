@@ -1,10 +1,12 @@
 /** The ocdm plugin manages different OpenCDM DRM modules
  */
 
+import Plugin from '../core/plugin.js';
+
 class OCDM extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
 
         this.ocdmTemplate = `<div class="label grid__col grid__col--2-of-8">
             {{Name}}
@@ -12,6 +14,34 @@ class OCDM extends Plugin {
         <div class="text grid__col grid__col--6-of-8">
             {{Designators}}
         </div>`;
+    }
+
+    drms() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'drms'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    keysystems(drm) {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : `keysystems@${drm}`
+        };
+
+        return this.api.req(_rest, _rpc);
     }
 
     render()        {
@@ -27,26 +57,24 @@ class OCDM extends Plugin {
     }
 
     update() {
-        api.getPluginData(this.callsign, (err, resp) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
-
-            if (resp === undefined || resp === null || resp.systems === undefined)
+        this.drms().then( resp => {
+            if (resp === undefined || resp === null)
                 return;
 
+            // backwards compatibility change with REST
+            let _systems = resp.systems ? resp.systems : resp;
 
-            for (var i=0; i<resp.systems.length; i++) {
-                var system = resp.systems[i];
+            for (let i=0; i<_systems.length; i++) {
+                let system = _systems[i];
+                // backwards compatilbility with rest
+                let keysystems = system.designators ? system.designators : system.keysystems;
 
-                var systemElement = this.ocdmTemplate.replace('{{Name}}', system.name);
-                systemElement = systemElement.replace('{{Designators}}', system.designators.toString());
+                let systemElement = this.ocdmTemplate.replace('{{Name}}', system.name);
+                systemElement = systemElement.replace('{{Designators}}', keysystems.toString());
                 this.systemDiv.innerHTML += systemElement;
             }
         });
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.OCDM = OCDM;
+export default OCDM;

@@ -2,14 +2,19 @@
  * This file is instantiated by menu.js
  */
 
+import Plugin from '../core/plugin.js';
+
 class RemoteControl extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
         this.displayName = 'Remote Control';
         this.onScreenKeyBoardIsRendered     = false;
         this.doNotHandleKeys                = false;
         this.devicesThatSupportPairing      = ['GreenPeakRF4CE', 'GreenPeak', 'RF4CE'];
+
+        this.autoFwdKeys                    = window.localStorage.getItem('autoFwdKeys');
+        this.automaticallyForwardKeys       = (this.autoFwdKeys !== 'false');
 
         /**
          * Human to WPE key codes.
@@ -152,6 +157,70 @@ class RemoteControl extends Plugin {
         window.addEventListener('keydown', this.handleKeyFromJs.bind(this, true));
     }
 
+    sendKey(key) {
+        var body = {
+            'device': 'Web',
+            'code'  : key,
+        };
+
+        const _rest = {
+            method  : 'PUT',
+            path    : 'RemoteControl/Web/Send',
+            body    : body
+        };
+
+        const _rpc = {
+            plugin : 'RemoteControl',
+            method : 'send',
+            params : body
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    sendKeyPress(key) {
+        var body = {
+            'device': 'Web',
+            'code'  : key,
+        };
+
+        const _rest = {
+            method  : 'PUT',
+            path    : 'RemoteControl/Web/Press',
+            body    : body
+        };
+
+        const _rpc = {
+            plugin : 'RemoteControl',
+            method : 'press',
+            params : body
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    sendKeyRelease(key) {
+        var body = {
+            'device': 'Web',
+            'code'  : key,
+        };
+
+        const _rest = {
+            method  : 'PUT',
+            path    : 'RemoteControl/Web/Release',
+            body    : body
+        };
+
+        const _rpc = {
+            plugin : 'RemoteControl',
+            method : 'release',
+            params : body
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+
     renderKey(keyString) {
         var statusBarEl = document.getElementById('keyPressed');
         if (statusBarEl !== null)
@@ -164,7 +233,7 @@ class RemoteControl extends Plugin {
     }
 
     handleKeyFromJs(keyDown, e) {
-        if (this.doNotHandleKeys === true || e.repeat) return;
+        if (this.doNotHandleKeys === true || e.repeat || this.automaticallyForwardKeys === false) return;
 
         var mappedKey = this.jsToWpeKeyMap[ e.which ];
         if (mappedKey === undefined)
@@ -172,8 +241,11 @@ class RemoteControl extends Plugin {
 
 
         this.renderKey(mappedKey.string);
-        var apiCall = keyDown ? api.sendKeyPress.bind(api, mappedKey.code) : api.sendKeyRelease.bind(api, mappedKey.code);
-        apiCall.call();
+
+        if (keyDown)
+            this.sendKeyPress(mappedKey.code);
+        else
+            this.sendKeyRelease(mappedKey.code);
     }
 
     handleKey(key) {
@@ -182,7 +254,7 @@ class RemoteControl extends Plugin {
             return;
 
         this.renderKey(mappedKey.string);
-        api.sendKey(mappedKey.code);
+        this.sendKey(mappedKey.code);
     }
 
     addKeyboardButton() {
@@ -226,12 +298,18 @@ class RemoteControl extends Plugin {
     }
 
     activatePairing(deviceName) {
-        api.putPlugin(this.callsign + '/' + deviceName, 'Pair', null, (err, resp) => {
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
-        });
+        const _rest = {
+            method  : 'PUT',
+            path    : `RemoteControl/${deviceName}/Pair`
+        };
+
+        const _rpc = {
+            plugin : 'RemoteControl',
+            method : 'pair',
+            params : { 'device': deviceName }
+        };
+
+        return this.api.req(_rest, _rpc);
     }
 
     render() {
@@ -254,10 +332,24 @@ class RemoteControl extends Plugin {
           <div id="remotesList" class="text grid__col grid__col--6-of-8"></div>
 
           <div id="pairingDiv"></div>
-          `;
+
+          <div class="label grid__col grid__col--2-of-8">
+            <label for="autofwd">Auto forward keys</label>
+          </div>
+          <div class="grid__col grid__col--6-of-8 " id="autofwdDiv">
+            <div class="checkbox">
+                <input type="checkbox" id="autoFwdCheckbox"></input>
+                <label for="autoFwdCheckbox"></label>
+            </div>
+           </div>`;
 
         var self = this;
-        api.getPluginData('RemoteControl', function (error, remotes) {
+
+        this.autoFwdCheckboxEl = document.getElementById('autoFwdCheckbox');
+        this.autoFwdCheckboxEl.checked = this.automaticallyForwardKeys;
+        this.autoFwdCheckboxEl.onclick = this.toggleAutoforwardOfKeys.bind(this);
+
+        this.status().then( remotes => {
             if (remotes === undefined || remotes.devices === undefined)
                 return;
 
@@ -294,7 +386,11 @@ class RemoteControl extends Plugin {
         });
     }
 
+
+    toggleAutoforwardOfKeys() {
+        this.automaticallyForwardKeys = this.automaticallyForwardKeys === true ? false : true;
+        window.localStorage.setItem('autoFwdKeys', this.automaticallyForwardKeys);
+    }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.RemoteControl = RemoteControl;
+export default RemoteControl;

@@ -1,15 +1,17 @@
 /** The WebKitBrowser plugin renders webkit information and provides control to the WPE WebKit browser
  */
 
+import { conf } from '../core/application.js';
+import Plugin from '../core/plugin.js';
+
 class WebKitBrowser extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
-        this.socketListenerId = api.addWebSocketListener(this.callsign, this.handleNotification.bind(this));
-        this.url = '';
-        this.fps = 0;
-        this.isHidden = false;
-        this.isSuspended = false;
+    constructor(pluginData, api) {
+        super(pluginData, api);
+        this._url = '';
+        this._fps = 0;
+        this._isHidden = false;
+        this._isSuspended = false;
         this.lastSetUrlKey = 'lastSetUrl';
         this.lastSetUrl = window.localStorage.getItem(this.lastSetUrlKey) || '';
         this.inspectorPort = '9998';
@@ -93,29 +95,92 @@ class WebKitBrowser extends Plugin {
         if (this.configuration !== undefined && this.configuration.inspector !== undefined) {
             this.inspectorPort = this.configuration.inspector.split(':')[1];
         }
+
+        //setup notifications
+        this.api.t.on('WebKitBrowser', 'urlchange', data => {
+            if (data.url && data.loaded) {
+                this._url = data.url;
+
+                if (this.rendered === true)
+                    this.update();
+            }
+        });
+
+        this.api.t.on('WebKitBrowser', 'visibilitychange', data => {
+            if (typeof data.hidden === 'boolean') {
+                this._isHidden = data.hidden;
+
+                if (this.rendered === true)
+                    this.update();
+            }
+        });
+
+        this.api.t.on('WebKitBrowser', 'statechange', data => {
+            if (typeof data.suspended === 'boolean') {
+                this._isSuspended = data.suspended;
+
+                if (this.rendered === true)
+                    this.update();
+            }
+        });
     }
 
-    handleNotification(json) {
-        if (this.rendered === false)
-            return;
+    status() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
 
-        //this only receives webkit events;
-        var data = json.data || {};
-        if (typeof data.suspended === 'boolean')
-            this.isSuspended = data.suspended;
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'state'
+        };
 
-        if (typeof data.hidden === 'boolean')
-            this.isHidden = data.hidden;
-
-        if (data.url && data.loaded)
-            this.url = data.url;
-
-        //@TODO, this does not exists? Maybe exporse over socket?
-        if (data.fps)
-            this.fps = data.fps;
-
-        this.update();
+        return this.api.req(_rest, _rpc);
     }
+
+    fps() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'fps'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    url() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'url'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    visibility() {
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'visibility'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
 
     render()        {
         var mainDiv = document.getElementById('main');
@@ -177,18 +242,24 @@ class WebKitBrowser extends Plugin {
 
         var self = this;
 
-
         //use api.req to deal with restful to jsonrpc transition phase (compatbility)
-        api.req('GET', api.getURLStart('http') + this.callsign, null,
-            'WebKitBrowser.1.status', {}, (err, resp) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            self.url = resp.url;
-            self.fps = resp.fps;
-            self.isHidden = resp.hidden;
-            self.isSuspended = resp.suspended;
+        this.fps().then( resp => {
+            self._fps = resp.fps ? resp.fps : resp;
+            self.update();
+        });
+
+        this.url().then( resp => {
+            self._url = resp.url ? resp.url : resp;
+            self.update();
+        });
+
+        this.visibility().then( resp => {
+            self._isHidden = resp.hidden ? resp.hidden : resp === "hidden";
+            self.update();
+        });
+
+        this.status().then( resp => {
+            self._isSuspended = resp.suspended ? resp.suspended : resp === 'suspended';
             self.update();
         });
     }
@@ -199,21 +270,16 @@ class WebKitBrowser extends Plugin {
         clearInterval(this.updateLoopInterval);
 
         delete this.updateLoopInterval;
-        delete this.socketListenerId;
-        delete this.url;
-        delete this.fps;
-        delete this.isHidden;
-        delete this.isSuspended;
 
         this.rendered = false;
     }
 
     update() {
-        document.getElementById(this.callsign + '_current_url').innerHTML = this.url;
-        document.getElementById(this.callsign + '_fps').innerHTML = this.fps;
+        document.getElementById(this.callsign + '_current_url').innerHTML = this._url;
+        document.getElementById(this.callsign + '_fps').innerHTML = this._fps;
 
-        var state = this.isSuspended ? 'Suspended' : 'Resumed';
-        var nextState = this.isSuspended ? 'Resume' : 'Suspend';
+        var state = this._isSuspended ? 'Suspended' : 'Resumed';
+        var nextState = this._isSuspended ? 'Resume' : 'Suspend';
 
         var stateEl = document.getElementById(this.callsign + 'StateInfo');
         stateEl.innerHTML = state;
@@ -222,8 +288,8 @@ class WebKitBrowser extends Plugin {
         suspendButton.innerHTML = nextState.toUpperCase();
         suspendButton.onclick = this.toggleSuspend.bind(this, nextState);
 
-        var visibilityState = this.isHidden ? 'Hidden' : 'Visible';
-        var nextVisibilityState = this.isHidden ? 'Show' : 'Hide';
+        var visibilityState = this._isHidden ? 'Hidden' : 'Visible';
+        var nextVisibilityState = this._isHidden ? 'Show' : 'Hide';
 
         var visbilityStateEl = document.getElementById(this.callsign + 'VisibilityStateInfo');
         visbilityStateEl.innerHTML = visibilityState.toUpperCase();
@@ -246,11 +312,25 @@ class WebKitBrowser extends Plugin {
     }
 
     setUrl(url) {
-        if (url !== '') {
-            console.log('Setting url ' + url + ' for ' + this.callsign);
-            api.setUrl(this.callsign, url);
-        }
+        if (url === '')
+            return;
 
+        console.log('Setting url ' + url + ' for ' + this.callsign);
+        var body = {'url':  url };
+
+        const _rest = {
+            method  : 'POST',
+            path    : this.callsign + '/URL',
+            body    : body
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'url',
+            params : url
+        };
+
+        this.api.req(_rest, _rpc);
 
         document.getElementById(this.callsign + '_linkPresets').selectedIndex = 0;
     }
@@ -263,7 +343,7 @@ class WebKitBrowser extends Plugin {
     }
 
     reloadUrl() {
-        api.setUrl(this.callsign, document.getElementById(this.callsign + '_current_url').innerHTML);
+        this.api.setUrl(this.callsign, document.getElementById(this.callsign + '_current_url').innerHTML);
     }
 
     getAndSetUrlFromPresets() {
@@ -282,31 +362,24 @@ class WebKitBrowser extends Plugin {
     }
 
     toggleSuspend(nextState) {
-        var self = this;
-
-        if (nextState === 'Resume') {
-            api.resumePlugin(self.callsign);
-        } else {
-            api.suspendPlugin(self.callsign);
-        }
+        if (nextState === 'Resume')
+            this.resume();
+        else
+            this.suspend();
     }
 
     toggleVisibility(nextState) {
-        var self = this;
-
-        if (nextState === 'Show') {
-            api.showPlugin(self.callsign);
-        } else {
-            api.hidePlugin(self.callsign);
-        }
+        if (nextState === 'Show')
+            this.show();
+        else
+            this.hide();
     }
 
     launchWebinspector() {
-        var url = "http://" + api.host + ':' + this.inspectorPort;
+        var url = "http://" + this.api.host + ':' + this.inspectorPort;
         var win = window.open(url, '_blank');
         win.focus();
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.WebKitBrowser = WebKitBrowser;
+export default WebKitBrowser;

@@ -1,10 +1,12 @@
 /** The compositor plugin manages the Westeros compositor and its cliens through the webui
  */
 
+import Plugin from '../core/plugin.js';
+
 class Compositor extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
 
         this.resolutions = ['720p', '720p50Hz', '1080p24Hz', '1080i50Hz', '1080p50Hz', '1080p60Hz'];
     }
@@ -52,12 +54,7 @@ class Compositor extends Plugin {
         }
 
         // get clients
-        api.getPluginData(this.callsign, (err, resp) => {
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
-
+        this.status().then( resp => {
             // compositor is not returning anything, guess we're in client mode and not managing nxserver
             if (resp === undefined || resp === null || resp.clients === undefined) {
                 this.compositorClientsDiv.innerHTML = 'No clients found.';
@@ -73,7 +70,7 @@ class Compositor extends Plugin {
     renderControls(clients) {
         this.controlDiv.innerHTML = `<div class="title grid__col grid__col--8-of-8">
             Controls
-        </div>        
+        </div>
         <div class="label grid__col grid__col--2-of-8">
             Focus
         </div>
@@ -165,19 +162,39 @@ class Compositor extends Plugin {
 
     compositorAction(action) {
         var client = this.menu.options[this.menu.selectedIndex].value;
-        api.postPlugin(this.callsign, client + '/' + action, null, (err, resp) => {
-            if (err)
-                console.error(err);
-        });
+
+        const _rest = {
+            method  : 'POST',
+            path    : `${this.callsign}/${client}/${action}`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : action,
+            params : { client: client }
+        };
+
+        // FIXME: no rpc interface defined
+        this.api.req(_rest);
     }
 
     compositorSetOpacity() {
         var client = this.menu.options[this.menu.selectedIndex].value;
         var opacity = document.getElementById('sliderOpacity').value;
-        api.postPlugin(this.callsign, client + '/Opacity/' + opacity, null, (err, resp) => {
-            if (err)
-                console.error(err);
-        });
+
+        const _rest = {
+            method  : 'POST',
+            path    : `${this.callsign}/${client}/Opacity/${opacity}`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'opacity',
+            params : { opacity: opacity }
+        };
+
+        // FIXME: no rpc interface defined
+        this.api.req(_rest);
     }
 
     updateValue(element, toUpdateElement) {
@@ -186,10 +203,20 @@ class Compositor extends Plugin {
 
     compositorVisible(state) {
         var client = this.menu.options[this.menu.selectedIndex].value;
-        api.postPlugin(this.callsign, client + '/Visible/' + state, null, (err, resp) => {
-            if (err)
-                console.error(err);
-        });
+
+        const _rest = {
+            method  : 'POST',
+            path    : `${this.callsign}/Visible/${state}`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'visibility',
+            params : { visible: state }
+        };
+
+        // FIXME: no rpc interface defined
+        this.api.req(_rest);
     }
 
     compositorSetGeometry() {
@@ -199,22 +226,40 @@ class Compositor extends Plugin {
         var w = document.getElementById('compositorWidthGeometry').value;
         var h = document.getElementById('compositorHeightGeometry').value;
 
-        api.postPlugin(this.callsign, client + '/Geometry/' + x + '/' + y + '/' + w + '/' + h, null, (err, resp) => {
-            if (err)
-                console.error(err);
-        });
+
+        const _rest = {
+            method  : 'POST',
+            path    : `${this.callsign}/${client}/${Geometry}/${x}/${y}/${w}/${h}`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'action',
+            params : { client: client }
+        };
+
+        // FIXME: no rpc interface defined
+        this.api.req(_rest);
     }
 
     setResolution() {
         var _res = this.resolutionsList.options[this.resolutionsList.selectedIndex].value;
 
-        api.postPlugin(this.callsign, 'Resolution/' + _res, null, (err, resp) => {
-            if (err)
-                console.error(err);
-        });
+        const _rest = {
+            method  : 'PUT',
+            path    : `${this.callsign}/Resolution/${_res}`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'action',
+            params : { client: client }
+        };
+
+        // FIXME: no rpc interface defined
+        this.api.req(_rest);
     }
 
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Compositor = Compositor;
+export default Compositor;

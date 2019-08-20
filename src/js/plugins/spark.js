@@ -1,10 +1,12 @@
 /** The WebKitBrowser plugin renders webkit information and provides control to the WPE WebKit browser
  */
 
+import Plugin from '../core/plugin.js';
+
 class Spark extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
         this.socketListenerId = api.addWebSocketListener(this.callsign, this.handleNotification.bind(this));
         this.url = '';
         this.isHidden = false;
@@ -51,22 +53,33 @@ class Spark extends Plugin {
             { Name:"http://www.sparkui.org/examples/gallery/picturepile.js",        URL:"http://www.sparkui.org/examples/gallery/picturepile.js"},
             { Name:"http://www.sparkui.org/examples/gallery/gallery.js",            URL:"http://www.sparkui.org/examples/gallery/gallery.js"},
         ];
+
+        //setup notifications
+        this.api.t.on('Spark', 'urlchange', data => {
+            if (data.url && data.loaded) {
+                this.url = data.url;
+                this.handleNotification();
+            }
+        });
+
+        this.api.t.on('Spark', 'visibilitychange', data => {
+            if (typeof data.hidden === 'boolean') {
+                this.isHidden = data.hidden;
+                this.handleNotification();
+            }
+        });
+
+        this.api.t.on('Spark', 'statechange', data => {
+            if (typeof data.suspended === 'boolean') {
+                this.isSuspended = data.suspended;
+                this.handleNotification();
+            }
+        });
     }
 
     handleNotification(json) {
         if (this.rendered === false)
             return;
-
-        //this only receives webkit events;
-        var data = json.data || {};
-        if (typeof data.suspended === 'boolean')
-            this.isSuspended = data.suspended;
-
-        if (typeof data.hidden === 'boolean')
-            this.isHidden = data.hidden;
-
-        if (data.url && data.loaded)
-            this.url = data.url;
 
         this.update();
     }
@@ -150,13 +163,25 @@ class Spark extends Plugin {
     }
 
     setUrl(url) {
-        if (url !== '') {
-            console.log('Setting url ' + url + ' for ' + this.callsign);
-            api.setUrl(this.callsign, url);
-        }
+        if (url === '')
+            return;
 
-
+        console.log('Setting url ' + url + ' for ' + this.callsign);
         document.getElementById(this.callsign + '_linkPresets').selectedIndex = 0;
+
+        const _rest = {
+            method  : 'POST',
+            path    : this.callsign + '/URL',
+            body    : body
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'seturl',
+            params : body
+        };
+
+        this.api.req(_rest, _rpc);
     }
 
     getAndSetUrl() {
@@ -168,39 +193,34 @@ class Spark extends Plugin {
 
     getAndSetUrlFromPresets() {
         var idx = document.getElementById(this.callsign + '_linkPresets').selectedIndex;
-        if (idx > 0) {
+        if (idx > 0)
             this.setUrl(this.presets[idx].URL);
-        }
     }
 
     handleKey(e) {
         var input = document.getElementById(`${this.callsign}_url`);
 
-        if (e.which === 13 && input && input === document.activeElement) {
+        if (e.which === 13 && input && input === document.activeElement)
             this.getAndSetUrl();
-        }
     }
 
     toggleSuspend(nextState) {
         var self = this;
 
-        if (nextState === 'Resume') {
-            api.resumePlugin(self.callsign);
-        } else {
-            api.suspendPlugin(self.callsign);
-        }
+        if (nextState === 'Resume')
+            this.resume();
+        else
+            this.suspend();
     }
 
     toggleVisibility(nextState) {
         var self = this;
 
-        if (nextState === 'Show') {
-            api.showPlugin(self.callsign);
-        } else {
-            api.hidePlugin(self.callsign);
-        }
+        if (nextState === 'Show')
+            this.show();
+        else
+            this.hide();
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Spark = Spark;
+export default Spark;

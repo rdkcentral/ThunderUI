@@ -1,10 +1,12 @@
 /** The Power plugin provides control on Power modes
  */
 
+import Plugin from '../core/plugin.js';
+
 class Power extends Plugin {
 
-    constructor(pluginData) {
-        super(pluginData);
+    constructor(pluginData, api) {
+        super(pluginData, api);
 
         this.mainDiv = document.getElementById('main');
         this.state = 1;
@@ -16,6 +18,20 @@ class Power extends Plugin {
             5   : 'Hibernate',
             6   : 'Power Off'
         };
+    }
+
+    state() {
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/State`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'state'
+        };
+
+        return this.api.req(_rest, _rpc);
     }
 
     render()        {
@@ -61,12 +77,7 @@ class Power extends Plugin {
     }
 
     update(data) {
-        api.getPluginData('Power/State', (error, resp) => {
-            if (error) {
-                console.error(error);
-                return;
-            }
-
+        this.state().then( resp => {
             if (resp.PowerState !== undefined) {
                 this.powerStateDiv.innerHTML = this.stateLookup[ resp.PowerState ];
                 this.stateSelectorEl.children[ resp.PowerState - 1 ].selected = true;
@@ -75,26 +86,33 @@ class Power extends Plugin {
     }
 
     changeState(nextState) {
-
-        var body = { 
-            'PowerState' : this.stateSelectorEl.value 
+        const _rest = {
+            method  : 'POST',
+            path    : `${this.callsign}/State`,
+            body    : {
+                'PowerState' : this.stateSelectorEl.value,
+            }
         };
 
-        if (this.timeoutInput.value !== "")
-            body.Timeout = this.timeoutInput.value;
-
-        api.postPlugin(this.callsign, 'State', JSON.stringify(body), (error, resp) => {
-            if (error) {
-                console.error(error);
-                return;
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'state',
+            params : {
+                'powerstate' : this.stateSelectorEl.value
             }
+        };
 
-            // only makes sense if were going from hot standby to running :-)
+        if (this.timeoutInput.value !== '') {
+            _rest.body.Timeout = this.timeoutInput.value;
+            _rpc.body.timeout = this.timeoutInput.value;
+        }
+
+        //FIXME doesn't have a rpc specification yet
+        this.api.req(_rest).then( () => {
             if (nextState < 2)
                 setTimeout(this.update, 5000);
         });
     }
 }
 
-window.pluginClasses = window.pluginClasses || {};
-window.pluginClasses.Power = Power;
+export default Power;
