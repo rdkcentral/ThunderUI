@@ -22,8 +22,6 @@ To build a release version of Thunder UI please run:
 npm run build
 ```
 
-If you want to create a release version pointing to a different host than the default `127.0.0.1`, you can adjust this in `.env.production`.
-
 ## Local
 
 To run a local copy of Thunder UI (for dev purposes), first update the host in `.env.local` to point to the IP address of your local device.
