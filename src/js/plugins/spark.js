@@ -7,7 +7,6 @@ class Spark extends Plugin {
 
     constructor(pluginData, api) {
         super(pluginData, api);
-        this.socketListenerId = api.addWebSocketListener(this.callsign, this.handleNotification.bind(this));
         this.url = '';
         this.isHidden = false;
         this.isSuspended = false;
