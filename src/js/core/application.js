@@ -38,6 +38,9 @@ var activePlugin    = window.localStorage.getItem('lastActivePlugin') || undefin
 */
 function init(host){
     // initialize the WPE Framework API
+    if (host === undefined)
+        host = resolveHostnamePort();
+
     api = new WpeApi(host);
     api.getControllerPlugins().then( data => {
         fetchedPlugins = data;
@@ -63,6 +66,21 @@ function init(host){
 
         showPlugin(activePlugin !== undefined ? activePlugin : conf.startPlugin);
     })
+}
+
+function resolveHostnamePort() {
+    let hostname = window.location.hostname;
+    let port;
+
+    if (window.location.host === window.location.hostname)
+            port = 80;
+        else
+            port = window.location.host.substring(window.location.hostname.length + 1);
+
+    if ((port !== "") && (port !== 80))
+        hostname += ":" + port;
+
+    return hostname;
 }
 
 /** (global) renders a plugin in the main div */

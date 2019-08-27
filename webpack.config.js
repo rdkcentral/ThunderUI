@@ -16,7 +16,7 @@ module.exports = {
           { from: './src/img/ml.svg', to: './img/ml.svg' },
         ]),
         new Dotenv({
-          path: process.env.NODE_ENV === 'production' ? './.env.production' : './.env.local',
+          path: process.env.NODE_ENV === 'production' ? null : './.env.local',
         }),
     ],
     module: {
