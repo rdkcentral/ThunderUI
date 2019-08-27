@@ -3,6 +3,7 @@
 
 import { conf } from '../core/application.js';
 import Plugin from '../core/plugin.js';
+import Monitor from './monitor.js';
 
 class WebKitBrowser extends Plugin {
 
@@ -15,6 +16,7 @@ class WebKitBrowser extends Plugin {
         this.lastSetUrlKey = 'lastSetUrl';
         this.lastSetUrl = window.localStorage.getItem(this.lastSetUrlKey) || '';
         this.inspectorPort = '9998';
+        this.monitor = undefined;
         this.updateLoopInterval = undefined;
 
         this.template = `<div id="content_{{callsign}}" class="grid">
@@ -123,6 +125,20 @@ class WebKitBrowser extends Plugin {
                     this.update();
             }
         });
+
+        // see if we can init a monitor
+        this.api.getControllerPlugins().then( plugins => {
+            let _monitorData = plugins.filter( p => {
+                if (p.callsign === 'Monitor')
+                    return true
+                else
+                    return false
+            });
+
+            if (_monitorData !== undefined)
+                this.monitor = new Monitor(_monitorData, this.api);
+        });
+
     }
 
     status() {
@@ -240,28 +256,17 @@ class WebKitBrowser extends Plugin {
         if (this.rendered === false)
             return;
 
-        var self = this;
+        let self = this;
 
-        //use api.req to deal with restful to jsonrpc transition phase (compatbility)
-        this.fps().then( resp => {
-            self._fps = resp.fps ? resp.fps : resp;
-            self.update();
-        });
-
-        this.url().then( resp => {
-            self._url = resp.url ? resp.url : resp;
-            self.update();
-        });
-
-        this.visibility().then( resp => {
-            self._isHidden = resp.hidden ? resp.hidden : resp === "hidden";
-            self.update();
-        });
-
-        this.status().then( resp => {
-            self._isSuspended = resp.suspended ? resp.suspended : resp === 'suspended';
-            self.update();
-        });
+        this.status()
+            .then( resp => {self._isSuspended = resp.suspended ? resp.suspended : resp === 'suspended'; })
+            .then( this.fps.bind(this) )
+            .then( resp => { self._fps = resp.fps ? resp.fps : resp; })
+            .then( this.url.bind(this) )
+            .then( resp => { self._url = resp.url ? resp.url : resp; })
+            .then( this.visibility.bind(this) )
+            .then( resp => { self._isHidden = resp.hidden ? resp.hidden : resp === "hidden"; })
+        .then( this.update.bind(this) );
     }
 
 
@@ -299,12 +304,9 @@ class WebKitBrowser extends Plugin {
         visibilityButton.onclick = this.toggleVisibility.bind(this, nextVisibilityState);
 
         // get memory data and div if the monitor plugin is loaded
-        if (plugins.Monitor !== undefined && plugins.Monitor.getMonitorDataAndDiv !== undefined) {
-            var memoryDiv = document.getElementById(this.callsign + 'Memory');
-            plugins.Monitor.getMonitorDataAndDiv(this.callsign, (d) => {
-                if (d === undefined)
-                    return;
-
+        if (this.monitor) {
+            this.monitor.getMonitorDataAndDiv().then( d => {
+                var memoryDiv = document.getElementById(this.callsign + 'Memory');
                 memoryDiv.innerHTML = '';
                 memoryDiv.appendChild(d);
             });

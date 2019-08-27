@@ -106,34 +106,35 @@ class Monitor extends Plugin {
 
     getMonitorDataAndDiv(plugin, callback) {
         var self = this;
-        this.getMemoryInfo(plugin).then( data => {
-            // Monitor returns a list of measurements, find the right plugin and return it to the callback
-            for (var i=0; i<data.length; i++) {
-                var _p = data[i];
 
-                if (_p.observable === plugin || _p.name === plugin) {
-                    self.createMonitorDiv(_p, callback);
-                    break;
-                }
+        return new Promise( (resolve, reject) => {
+            this.getMemoryInfo(plugin).then( data => {
+                // Monitor returns a list of measurements, find the right plugin and return it to the callback
 
-                // we didnt find anything
-                if (i === data.length-1)
-                    callback();
-            }
+                let pluginData = data.filter( _p => {
+                    if (_p.observable === plugin || _p.name === plugin)
+                        return true
+                    else
+                        return valse
+                });
+
+                if (pluginData && pluginData[0])
+                    resolve( self.createMonitorDiv(pluginData[0]) );
+                else
+                    reject();
+            });
         });
+
     }
 
-    createMonitorDiv(data, callback) {
-        if (data === null || data === undefined)
-            callback();
-
+    createMonitorDiv(data) {
         // compatibility with old API
         if (data.measurment !== undefined)
             data.measurements = data.measurment;
 
         // we only care about resident memory data
         if (data.measurements === undefined || data.measurements.resident === undefined)
-            callback();
+            return;
 
         var measurementData = data.measurements;
         var div = document.createElement('div');
@@ -184,7 +185,7 @@ class Monitor extends Plugin {
         processText.innerHTML = measurementData.process.last;
         div.appendChild(processText);
 
-        callback(div);
+        return div;
     }
 
     bytesToMbString(bytes) {

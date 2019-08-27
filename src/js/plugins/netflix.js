@@ -2,11 +2,44 @@
  */
 
 import Plugin from '../core/plugin.js';
+import Monitor from './monitor.js';
 
 class Netflix extends Plugin {
 
     constructor(pluginData, api) {
         super(pluginData, api);
+        this.monitor = undefined;
+
+        this.api.t.on('Netflix', 'visibilitychange', data => {
+            if (typeof data.hidden === 'boolean') {
+                this.isHidden = data.hidden;
+
+                if (this.rendered === true)
+                    this.update();
+            }
+        });
+
+        this.api.t.on('Netflix', 'statechange', data => {
+            if (typeof data.suspended === 'boolean') {
+                this.isSuspended = data.suspended;
+
+                if (this.rendered === true)
+                    this.update();
+            }
+        });
+
+        // see if we can init a monitor
+        this.api.getControllerPlugins().then( plugins => {
+            let _monitorData = plugins.filter( p => {
+                if (p.callsign === 'Monitor')
+                    return true
+                else
+                    return false
+            });
+
+            if (_monitorData !== undefined)
+                this.monitor = new Monitor(_monitorData, this.api);
+        });
     }
 
     render()        {
@@ -39,23 +72,6 @@ class Netflix extends Plugin {
         this.interval = setInterval(this.update.bind(this), conf.refresh_interval);
         this.update();
 
-        this.api.t.on('Netflix', 'visibilitychange', data => {
-            if (typeof data.hidden === 'boolean') {
-                this.isHidden = data.hidden;
-
-                if (this.rendered === true)
-                    this.update();
-            }
-        });
-
-        this.api.t.on('Netflix', 'statechange', data => {
-            if (typeof data.suspended === 'boolean') {
-                this.isSuspended = data.suspended;
-
-                if (this.rendered === true)
-                    this.update();
-            }
-        });
     }
 
     update(data) {
@@ -76,12 +92,9 @@ class Netflix extends Plugin {
             netflixButton.onclick = this.toggleSuspend.bind(this, nextState);
 
             // get memory data and div if the monitor plugin is loaded
-            if (plugins.Monitor !== undefined && plugins.Monitor.getMonitorDataAndDiv !== undefined) {
-                var memoryDiv = document.getElementById(this.callsign + 'Memory');
-                plugins.Monitor.getMonitorDataAndDiv(this.callsign, (d) => {
-                    if (d === undefined)
-                        return;
-
+            if (this.monitor) {
+                this.monitor.getMonitorDataAndDiv().then( d => {
+                    var memoryDiv = document.getElementById(this.callsign + 'Memory');
                     memoryDiv.innerHTML = '';
                     memoryDiv.appendChild(d);
                 });
