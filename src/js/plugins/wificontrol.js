@@ -153,18 +153,6 @@ class WifiControl extends Plugin {
         this.accesspointEl              = document.getElementById('Wifi_Mode');
         this.hiddenEl                   = document.getElementById('Wifi_Hidden');
 
-
-        //make sure we do not send keys to the remote when typing
-        this.passwordEl.onblur = function() {
-            if (plugins.RemoteControl !== undefined)
-                plugins.RemoteControl.doNotHandleKeys = false;
-        };
-
-        this.passwordEl.onfocus = function() {
-            if (plugins.RemoteControl !== undefined)
-                plugins.RemoteControl.doNotHandleKeys = true;
-        };
-
         this.update();
         setTimeout(this.getNetworks.bind(this), 200);
         setTimeout(this.getConfigs.bind(this), 400);
