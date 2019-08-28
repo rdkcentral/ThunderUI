@@ -2,7 +2,7 @@
  * Thunder UI API layer
  */
 
-import ThunderJS from '../../../node_modules/ThunderJS/module/thunderJS.js'
+import ThunderJS from 'ThunderJS'
 
 export default class WpeApi {
     constructor(host) {
