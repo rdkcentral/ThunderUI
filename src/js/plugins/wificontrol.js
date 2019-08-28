@@ -326,7 +326,7 @@ class WifiControl extends Plugin {
         this.statusMessages.innerHTML = message;
 
         // clear after 5s
-        this.statusMessageTimer = setTimeout(this.status, 5000, '');
+        this.statusMessageTimer = setTimeout(this.statusMessage.bind(this), 5000, '');
     }
 
     renderStatus () {
