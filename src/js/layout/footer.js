@@ -8,6 +8,7 @@ class Footer {
         this.renderInMenu   = false;
         this.connected      = true;
         this.footer         = document.getElementById('statusBar')
+        this.paused         = (window.localStorage.getItem('paused') === 'true');
 
         this.footer.innerHTML = `
             <div class="status">
@@ -74,7 +75,7 @@ class Footer {
         // start update loop
         this.interval = setInterval(this.update.bind(this), conf.refresh_interval);
         this.update();
-
+        this.updateStatisticsBlock();
     }
 
     render(deviceInfo) {
@@ -102,13 +103,13 @@ class Footer {
             this.deviceInfo.status().then(this.render.bind(this));
     }
 
-    togglePause() {
-        this.pauseButton.innerHTML = (this.paused === true) ? 'hide statistics' : 'show statistics';
+    updateStatisticsBlock() {
+        this.pauseButton.innerHTML = (this.paused === false) ? 'hide statistics' : 'show statistics';
 
         var elements = this.footer.getElementsByClassName('status'),
             i = 0;
 
-        if (this.paused === true) {
+        if (this.paused === false) {
             for(i; i < elements.length; i++) {
                 elements[i].style.display = 'block';
             }
@@ -120,9 +121,13 @@ class Footer {
             this.footer.style.padding = '0px';
         }
 
-        document.getElementById('notifications-block').style.bottom = (this.paused === true) ? "300px" : "60px";
+        document.getElementById('notifications-block').style.bottom = (this.paused === false) ? "300px" : "60px";
+    }
 
+    togglePause() {
         this.paused = (this.paused === true) ? false : true;
+        this.updateStatisticsBlock();
+        window.localStorage.setItem('paused', this.paused);
     }
 
     deviceIsConnected(connected) {
