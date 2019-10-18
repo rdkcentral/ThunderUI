@@ -11,7 +11,9 @@ export default class WpeApi {
         this.mainDiv = document.getElementById('main');
 
         this.socket = null;
-        this.t = ThunderJS({ 'host' : host });
+
+        let _host = host.split(':')
+        this.t = ThunderJS({ 'host' : _host[0], 'port': _host[1] });
 
         this.socketListeners = {};
 
