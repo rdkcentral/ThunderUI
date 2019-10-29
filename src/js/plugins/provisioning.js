@@ -86,6 +86,7 @@ class Provisioning extends Plugin {
 
             var id = response.id;
             var tokens = response.tokens || [];
+            var status = response.status;
 
             document.getElementById('device').innerHTML = id;
             document.getElementById('status').innerHTML = (status == 200) ? 'provisioned' : 'not provisioned';
