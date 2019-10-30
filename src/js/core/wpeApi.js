@@ -6,14 +6,13 @@ import ThunderJS from 'ThunderJS'
 
 export default class WpeApi {
     constructor(host) {
-        this.host = host;
         this.prefixForService = 'Service';
         this.mainDiv = document.getElementById('main');
 
         this.socket = null;
 
-        let _host = host.split(':')
-        this.t = ThunderJS({ 'host' : _host[0], 'port': _host[1] });
+        this.host = host.split(':')
+        this.t = ThunderJS({ 'host' : this.host[0], 'port': this.host[1] });
 
         this.socketListeners = {};
 

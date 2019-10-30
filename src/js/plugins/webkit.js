@@ -79,7 +79,7 @@ class WebKitBrowser extends Plugin {
             { Name:"Aquarium",          URL:"http://webglsamples.org/aquarium/aquarium.html" },
             { Name:"Particles",         URL:"http://oos.moxiecode.com/js_webgl/particles_morph/" },
             { Name:"EME v3 (race car)", URL:"http://cdn.metrological.com/static/eme-v3-clean.html" },
-            { Name:"MSE 2018 (no vp9)",          URL:"http://yt-dash-mse-test.commondatastorage.googleapis.com/unit-tests/2018.html?novp9=true" },
+            { Name:"MSE 2018 (no vp9)", URL:"http://yt-dash-mse-test.commondatastorage.googleapis.com/unit-tests/2018.html?novp9=true" },
             { Name:"EME 2018",          URL:"http://yt-dash-mse-test.commondatastorage.googleapis.com/unit-tests/2018.html?test_type=encryptedmedia-test" },
             { Name:"Progressive",       URL:"http://yt-dash-mse-test.commondatastorage.googleapis.com/unit-tests/2018.html?test_type=progressive-test" },
             { Name:"YouTube",           URL:"http://youtube.com/tv" },
@@ -378,7 +378,7 @@ class WebKitBrowser extends Plugin {
     }
 
     launchWebinspector() {
-        var url = "http://" + this.api.host + ':' + this.inspectorPort;
+        var url = "http://" + this.api.host[0] + ':' + this.inspectorPort;
         var win = window.open(url, '_blank');
         win.focus();
     }

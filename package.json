@@ -7,6 +7,7 @@
     "postinstall": "test -e .env.local || cp .env.example .env.local",
     "build": "NODE_ENV=production webpack",
     "watch": "webpack --watch",
+    "local": "webpack",
     "serve": "http-server ./local -o -c-1",
     "start": "concurrently 'npm run watch' 'npm run serve'"
   },
