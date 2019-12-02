@@ -30,6 +30,12 @@ class DeviceInfo extends Plugin {
         this.macIdEl            = undefined;
         this.ipAddressEl        = undefined;
 
+        this.chartOptions       = {interval: 1000,maxElements: 50}
+        this.ramChart           = undefined;
+        this.gpuChart           = undefined;
+        this.cpuChart           = undefined;
+        this.chartIntervalId    = undefined;
+
         this.template = `<div class="title grid__col grid__col--8-of-8">
             Device
           </div>
@@ -134,7 +140,50 @@ class DeviceInfo extends Plugin {
           </div>
           <div id="CpuLoad" class="text grid__col grid__col--6-of-8">
             -
-          </div>`;
+          </div>
+          
+          <div class="title grid__col grid__col--8-of-8">
+            CPU / GPU / RAM Graphs
+            
+          </div>
+          <div class="label grid__col grid__col--2-of-8">
+            Poll interval in milliseconds
+          </div>
+          <div id="FreeRam" class="text grid__col grid__col--6-of-8">
+            <input type="number" id="graph_poll_interval" value="1000" >
+          </div>
+          <div class="label grid__col grid__col--2-of-8">
+            Max elements per graph
+          </div>
+          <div id="FreeRam" class="text grid__col grid__col--6-of-8">
+            <input type="number" id="graph_max_elements" value="50" >
+          </div>          
+          
+          </div>
+          <div class="text grid__col grid__col--8-of-8">
+            <button type="button" id="startGraphs" >Start graphs</button>
+          </div>
+          <div id="graphs" style="display: none">
+              <div class="title grid__col grid__col--8-of-8">
+                RAM realtime
+              </div>
+              <div class="title grid__col grid__col--8-of-8">
+                <canvas id="graph_ram" width="800" height="250"></canvas>
+              </div>
+                <div class="title grid__col grid__col--8-of-8">
+                GPU RAM realtime
+              </div>
+              <div class="title grid__col grid__col--8-of-8">
+                <canvas id="graph_gpu" width="800" height="250"></canvas>               
+              </div>
+                <div class="title grid__col grid__col--8-of-8">
+                CPU realtime
+              </div>
+              <div class="title grid__col grid__col--8-of-8">
+                <canvas id="graph_cpu" width="800" height="250"></canvas>               
+              </div>    
+          </div>      
+            `;
     }
 
 
@@ -235,6 +284,9 @@ class DeviceInfo extends Plugin {
 
 
         });
+        var provisionButton = document.getElementById('startGraphs');
+        provisionButton.onclick = this.startRealtimeGraphs.bind(this);
+
     }
 
     render() {
@@ -259,6 +311,92 @@ class DeviceInfo extends Plugin {
         this.ipAddressEl        = document.getElementById("IpAddress");
 
         this.update();
+
+
+    }
+
+    startRealtimeGraphs() {
+        this.chartOptions.maxElements = parseInt(document.getElementById('graph_max_elements').value)
+        this.chartOptions.interval = parseInt(document.getElementById('graph_poll_interval').value)
+        this.cpuChart = this.generateGraph('CPU usage',document.getElementById('graph_cpu').getContext('2d'), '#34c749', '%');
+        this.ramChart = this.generateGraph('RAM used',document.getElementById('graph_ram').getContext('2d'),'#fc5652', 'MB');
+        this.gpuChart = this.generateGraph('GPU RAM used',document.getElementById('graph_gpu').getContext('2d'), '#fdbc40', 'MB');
+        this.chartIntervalId = setInterval(this.updateGraphs.bind(this), this.chartOptions.interval);
+        document.getElementById('graphs').style.display = 'block';
+    }
+
+    generateGraph(title, ctx, color, suffix) {
+
+        let config = {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: title,
+                    backgroundColor: color,
+                    borderColor: color,
+                    data: [],
+                    fill: false,
+                }]
+            },
+            options: {
+                responsive: false,
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            // Include a dollar sign in the ticks
+                            callback: function(value, index, values) {
+                                return value + suffix;
+                            }
+                        }
+                    }]
+                }
+            }
+        };
+        return new Chart(ctx, config);
+    }
+
+    updateGraphs() {
+        let self = this;
+
+        this.systeminfo().then((sysInfo) => {
+            const xLabel = self.getTimestampForGraph();
+            if (self.ramChart) {
+                self.ramChart.config.data.labels.push(xLabel);
+                self.ramChart.config.data.datasets[0].data.push((sysInfo.totalram - sysInfo.freeram)  / 1024 / 1024)
+                if (self.ramChart.config.data.labels.length > self.chartOptions.maxElements) {
+                    self.ramChart.config.data.labels.shift();
+                    self.ramChart.config.data.datasets[0].data.shift();
+                }
+                self.ramChart.update();
+            }
+
+            if (self.gpuChart) {
+                self.gpuChart.config.data.labels.push(xLabel);
+                self.gpuChart.config.data.datasets[0].data.push((sysInfo.totalgpuram - sysInfo.freegpuram)  / 1024 / 1024)
+                if (self.gpuChart.config.data.labels.length > self.chartOptions.maxElements) {
+                    self.gpuChart.config.data.labels.shift();
+                    self.gpuChart.config.data.datasets[0].data.shift();
+                }
+                self.gpuChart.update();
+            }
+            if (self.cpuChart) {
+                self.cpuChart.config.data.labels.push(xLabel);
+                self.cpuChart.config.data.datasets[0].data.push(parseFloat(sysInfo.cpuload).toFixed(1))
+                if (self.cpuChart.config.data.labels.length > self.chartOptions.maxElements) {
+                    self.cpuChart.config.data.labels.shift();
+                    self.cpuChart.config.data.datasets[0].data.shift();
+                }
+                self.cpuChart.update();
+            }
+        });
+    }
+
+    close() {
+        clearInterval(this.chartIntervalId)
+        delete this.ramChart;
+        delete this.cpuChart;
+        delete this.gpuChart;
     }
 
     updateNetworkInterface(deviceInfo) {
@@ -268,6 +406,12 @@ class DeviceInfo extends Plugin {
 
     bytesToMbString(bytes) {
         return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    }
+
+    getTimestampForGraph() {
+        const date = new Date();
+        return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+
     }
 }
 
