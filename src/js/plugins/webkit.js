@@ -90,7 +90,7 @@ class WebKitBrowser extends Plugin {
             { Name:"Pasta",             URL:"http://alteredqualia.com/three/examples/webgl_pasta.html" },
             { Name:"CSS3",              URL:"http://css3test.com" },
             { Name:"Kraken",            URL:"http://krakenbenchmark.mozilla.org/kraken-1.1/driver.html" },
-            { Name:"KeyPress Test",     URL:"http://www.asquare.net/javascript/tests/KeyCode.html" }
+            { Name:"KeyPress Test",     URL:"http://keycode.info" }
         ];
 
         // get inspector link
