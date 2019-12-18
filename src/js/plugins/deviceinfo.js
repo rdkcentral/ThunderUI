@@ -198,10 +198,18 @@ class DeviceInfo extends Plugin {
             method : 'systeminfo'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.displayInfo().then((info) => {
+            console.log(info);
+            return new Promise((resolve, reject) => {
+                this.deviceInfo()
+                    .then((deviceInfo) => {
+                        resolve({...info, ...deviceInfo});
+                    })
+            });
+        })
     }
 
-    systeminfo() {
+    deviceInfo() {
         const _rest = {
             method  : 'GET',
             path    : 'DeviceInfo'
@@ -214,6 +222,21 @@ class DeviceInfo extends Plugin {
 
         return this.api.req(_rest, _rpc);
     }
+
+    displayInfo() {
+        const _rest = {
+            method  : 'GET',
+            path    : 'DisplayInfo'
+        };
+
+        const _rpc = {
+            plugin : 'DisplayInfo',
+            method : 'displayinfo'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
 
     addresses() {
         const _rest = {
@@ -244,7 +267,7 @@ class DeviceInfo extends Plugin {
     }
 
     update() {
-        this.systeminfo().then( deviceInfo => {
+        this.deviceInfo().then( deviceInfo => {
 
             // backwards compatibility
             let systeminfo = deviceInfo.systeminfo ? deviceInfo.systeminfo : deviceInfo;
@@ -257,9 +280,7 @@ class DeviceInfo extends Plugin {
             this.totalRamEl.innerHTML           = this.bytesToMbString(systeminfo.totalram);
             this.usedRamEl.innerHTML            = this.bytesToMbString(systeminfo.totalram - systeminfo.freeram);
             this.freeRamEl.innerHTML            = this.bytesToMbString(systeminfo.freeram);
-            this.totalGpuRamEl.innerHTML        = this.bytesToMbString(systeminfo.totalgpuram);
-            this.freeGpuRamEl.innerHTML         = this.bytesToMbString(systeminfo.freegpuram);
-            this.usedGpuRamEl.innerHTML         = this.bytesToMbString(systeminfo.totalgpuram - systeminfo.freegpuram);
+
             this.cpuLoadEl.innerHTML            = parseFloat(systeminfo.cpuload).toFixed(1) + " %";
 
 
@@ -283,6 +304,12 @@ class DeviceInfo extends Plugin {
             });
 
 
+        });
+
+        this.displayInfo().then((systeminfo) => {
+            this.totalGpuRamEl.innerHTML        = this.bytesToMbString(systeminfo.totalgpuram);
+            this.freeGpuRamEl.innerHTML         = this.bytesToMbString(systeminfo.freegpuram);
+            this.usedGpuRamEl.innerHTML         = this.bytesToMbString(systeminfo.totalgpuram - systeminfo.freegpuram);
         });
         var provisionButton = document.getElementById('startGraphs');
         provisionButton.onclick = this.startRealtimeGraphs.bind(this);
@@ -359,8 +386,8 @@ class DeviceInfo extends Plugin {
     updateGraphs() {
         let self = this;
 
-        this.systeminfo().then((sysInfo) => {
-            const xLabel = self.getTimestampForGraph();
+        const xLabel = self.getTimestampForGraph();
+        this.deviceInfo().then((sysInfo) => {
             if (self.ramChart) {
                 self.ramChart.config.data.labels.push(xLabel);
                 self.ramChart.config.data.datasets[0].data.push((sysInfo.totalram - sysInfo.freeram)  / 1024 / 1024)
@@ -371,15 +398,7 @@ class DeviceInfo extends Plugin {
                 self.ramChart.update();
             }
 
-            if (self.gpuChart) {
-                self.gpuChart.config.data.labels.push(xLabel);
-                self.gpuChart.config.data.datasets[0].data.push((sysInfo.totalgpuram - sysInfo.freegpuram)  / 1024 / 1024)
-                if (self.gpuChart.config.data.labels.length > self.chartOptions.maxElements) {
-                    self.gpuChart.config.data.labels.shift();
-                    self.gpuChart.config.data.datasets[0].data.shift();
-                }
-                self.gpuChart.update();
-            }
+
             if (self.cpuChart) {
                 self.cpuChart.config.data.labels.push(xLabel);
                 self.cpuChart.config.data.datasets[0].data.push(parseFloat(sysInfo.cpuload).toFixed(1))
@@ -390,6 +409,19 @@ class DeviceInfo extends Plugin {
                 self.cpuChart.update();
             }
         });
+
+        this.displayInfo().then((info) => {
+            if (self.gpuChart) {
+                self.gpuChart.config.data.labels.push(xLabel);
+                self.gpuChart.config.data.datasets[0].data.push((info.totalgpuram - info.freegpuram)  / 1024 / 1024)
+                if (self.gpuChart.config.data.labels.length > self.chartOptions.maxElements) {
+                    self.gpuChart.config.data.labels.shift();
+                    self.gpuChart.config.data.datasets[0].data.shift();
+                }
+                self.gpuChart.update();
+            }
+        })
+
     }
 
     close() {
