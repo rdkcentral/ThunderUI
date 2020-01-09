@@ -345,7 +345,7 @@ class WebKitBrowser extends Plugin {
     }
 
     reloadUrl() {
-        this.api.setUrl(this.callsign, document.getElementById(this.callsign + '_current_url').innerHTML);
+        this.setUrl(this.callsign, document.getElementById(this.callsign + '_current_url').innerHTML);
     }
 
     getAndSetUrlFromPresets() {

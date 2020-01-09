@@ -141,10 +141,9 @@ class DeviceInfo extends Plugin {
           <div id="CpuLoad" class="text grid__col grid__col--6-of-8">
             -
           </div>
-          
+
           <div class="title grid__col grid__col--8-of-8">
             CPU / GPU / RAM Graphs
-            
           </div>
           <div class="label grid__col grid__col--2-of-8">
             Poll interval in milliseconds
@@ -157,8 +156,8 @@ class DeviceInfo extends Plugin {
           </div>
           <div id="FreeRam" class="text grid__col grid__col--6-of-8">
             <input type="number" id="graph_max_elements" value="50" >
-          </div>          
-          
+          </div>
+
           </div>
           <div class="text grid__col grid__col--8-of-8">
             <button type="button" id="startGraphs" >Start graphs</button>
@@ -174,15 +173,15 @@ class DeviceInfo extends Plugin {
                 GPU RAM realtime
               </div>
               <div class="title grid__col grid__col--8-of-8">
-                <canvas id="graph_gpu" width="800" height="250"></canvas>               
+                <canvas id="graph_gpu" width="800" height="250"></canvas>
               </div>
                 <div class="title grid__col grid__col--8-of-8">
                 CPU realtime
               </div>
               <div class="title grid__col grid__col--8-of-8">
-                <canvas id="graph_cpu" width="800" height="250"></canvas>               
-              </div>    
-          </div>      
+                <canvas id="graph_cpu" width="800" height="250"></canvas>
+              </div>
+          </div>
             `;
     }
 
@@ -199,7 +198,6 @@ class DeviceInfo extends Plugin {
         };
 
         return this.displayInfo().then((info) => {
-            console.log(info);
             return new Promise((resolve, reject) => {
                 this.deviceInfo()
                     .then((deviceInfo) => {

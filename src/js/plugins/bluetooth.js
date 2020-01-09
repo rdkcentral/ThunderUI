@@ -8,10 +8,7 @@ class BluetoothControl extends Plugin {
     constructor(pluginData, api) {
         super(pluginData, api);
 
-        this.discoveredDevices = [];
-        this.pairedDevices = [];
-        this.connectedDevices = [];
-        this.devStatus = [];
+        this._devices = [];
         this.scanning = false;
         this.displayName = 'BluetoothControl';
     }
@@ -19,27 +16,17 @@ class BluetoothControl extends Plugin {
     render()        {
         var mainDiv = document.getElementById('main');
 
-        mainDiv.innerHTML = `<div class="label grid__col grid__col--2-of-8">
-            Device Type
-        </div>
-        <div class="text grid__col grid__col--6-of-8">
-            <select id="BT_DeviceType">
-                <option value="1" selected="selected">LOW ENERGY</option>
-                <option value="0">REGULAR</option>
-            </select>
-        </div>
-
+        mainDiv.innerHTML = `
         <div class="title grid__col grid__col--8-of-8">
             Status
         </div>
 
         <div class="label grid__col grid__col--2-of-8">
-            Connected Devices
+            Devices
         </div>
         <div class="text grid__col grid__col--6-of-8">
-            <select id="BT_ConnectedDevices"></select>
+            <select id="BT_Devices"></select>
         </div>
-
         <div class="label grid__col grid__col--2-of-8">
             Scanning
         </div>
@@ -47,35 +34,65 @@ class BluetoothControl extends Plugin {
             OFF
         </div>
 
-        <div class="label grid__col grid__col--2-of-8">
-            Paired devices
+        <div class="title grid__col grid__col--8-of-8">
+            Device
         </div>
-        <div class="text grid__col grid__col--6-of-8">
-            <select id="BT_PairedDevices"></select>
+        <div class="label grid__col grid__col--2-of-8">
+            Name
+        </div>
+        <div id="BT_Name" class="text grid__col grid__col--6-of-8">
+            -
+        </div>
+        <div class="label grid__col grid__col--2-of-8">
+            Type
+        </div>
+        <div id="BT_Type" class="text grid__col grid__col--6-of-8">
+            -
+        </div>
+        <div class="label grid__col grid__col--2-of-8">
+            Connected
+        </div>
+        <div id="BT_Connected" class="text grid__col grid__col--6-of-8">
+            -
+        </div>
+        <div class="label grid__col grid__col--2-of-8">
+            Paired
+        </div>
+        <div id="BT_Paired" class="text grid__col grid__col--6-of-8">
+            -
         </div>
 
-        <div class="label grid__col grid__col--2-of-8"></div>
+        <div class="label grid__col grid__col--2-of-8">Controls</div>
         <div class="text grid__col grid__col--6-of-8">
             <button type="button" id="BT_Connect">Connect</button>
             <button type="button" id="BT_Disconnect">Disconnect</button>
+            <button type="button" id="BT_Pair">Pair</button>
+            <button type="button" id="BT_Unpair">Unpair</button>
+        </div>
+
+        <div class="label grid__col grid__col--2-of-8">Remote</div>
+        <div class="text grid__col grid__col--6-of-8">
+            <button type="button" id="BT_Assign">Assign</button>
+            <button type="button" id="BT_Revoke">Revoke</button>
         </div>
 
         <div class="title grid__col grid__col--8-of-8">
             Discovery
         </div>
-
-
         <div class="label grid__col grid__col--2-of-8">
-            Discovered Devices
+            <label for="autofwd">Scan</label>
         </div>
-        <div class="text grid__col grid__col--6-of-8">
-            <select id="BT_DiscoveredDevices"></select>
-        </div>
-        <div class="label grid__col grid__col--2-of-8">
-        </div>
-        <div class="text grid__col grid__col--6-of-8">
+        <div class="grid__col grid__col--6-of-8">
             <button type="button" id="BT_ScanForDevices">Scan</button>
-            <button type="button" id="BT_Pair">Pair</button>
+        </div>
+        <div class="label grid__col grid__col--2-of-8">
+            BlueTooth Low Energy
+        </div>
+        <div class="grid__col grid__col--6-of-8">
+            <div class="checkbox">
+                <input type="checkbox" id="BT_LE" checked></input>
+                <label for="BT_LE"></label>
+            </div>
         </div>
 
         <br>
@@ -83,112 +100,125 @@ class BluetoothControl extends Plugin {
         <div id="statusMessages" class="text grid__col grid__col--8-of-8"></div>
         `;
 
-
         // bind elements
 
         // ---- button ----
         this.scanButton                 = document.getElementById('BT_ScanForDevices');
         this.pairButton                 = document.getElementById('BT_Pair');
+        this.unpairButton               = document.getElementById('BT_Unpair');
         this.connectButton              = document.getElementById('BT_Connect');
         this.disconnectButton           = document.getElementById('BT_Disconnect');
+        this.btLowEnergyButton          = document.getElementById('BT_LE');
+        this.assignButton               = document.getElementById('BT_Assign');
+        this.revokeButton               = document.getElementById('BT_Revoke');
+
+        // ---- device list ----
+        this.deviceList                 = document.getElementById('BT_Devices')
+        this.deviceList.onchange        = this.renderDevice.bind(this);
 
         // Bind buttons
         this.scanButton.onclick         = this.scanForDevices.bind(this);
         this.pairButton.onclick         = this.pairDevice.bind(this);
+        this.unpairButton.onclick       = this.unpairDevice.bind(this);
         this.disconnectButton.onclick   = this.disconnect.bind(this);
         this.connectButton.onclick      = this.connect.bind(this);
+        this.assignButton.onclick       = this.assign.bind(this);
+        this.revokeButton.onclick       = this.revoke.bind(this);
+
+        // ---- Text fields
+        this.nameEl                     = document.getElementById("BT_Name");
+        this.typeEl                     = document.getElementById("BT_Type");
+        this.connectedEl                = document.getElementById("BT_Connected");
+        this.pairedEl                   = document.getElementById("BT_Paired")
 
         // ---- Status -----
         this.scanningStatus             = document.getElementById('BT_Scanning');
         this.statusMessages             = document.getElementById('statusMessages');
 
         // ---- Connected Devices -----
-        this.connectedDeviceList        = document.getElementById('BT_ConnectedDevices');
+        this.deviceList                 = document.getElementById('BT_Devices');
 
-        // ---- Paired Devices -----
-        this.pairedDeviceList           = document.getElementById('BT_PairedDevices');
+        this.api.t.on("BluetoothControl", "scancomplete", this.update.bind(this));
+        //this.api.t.on("BluetoothControl", "devicestatechange",this.onDeviceStateChange.bind(this));
 
-        // ---- Discovered Devices ----
-        this.discoveredDeviceList       = document.getElementById('BT_DiscoveredDevices');
-
-        // Disable buttons
-        this.pairButton.disabled = true;
-        this.connectButton.disabled = true;
-        this.disconnectButton.disabled = true;
-
-        setTimeout(this.update.bind(this), 1000);
+        this.update()
     }
 
     /* ----------------------------- DATA ------------------------------*/
 
+    devices() {
+        const _rpc = {
+            plugin : 'BluetoothControl',
+            method : 'devices'
+        };
+
+        return this.api.req(null, _rpc);
+    }
+
+    device(address) {
+        const _rpc = {
+            plugin: 'BluetoothControl',
+            method: 'device@' + address
+        }
+
+        return this.api.req(null, _rpc)
+    }
+
     update() {
-        this.status().then( status => {
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
+        this.scanning = false
+        this.renderScanStatus()
 
+        this.devices().then( devices => {
             // bail out if the plugin returns nothing
-            if (resp === undefined)
+            if (devices === undefined)
                 return;
 
-            if(resp.devices !== undefined) {
-                this.discoveredDevices = resp.devices;
-                this.renderDevices();
+            this._devices = []
+            this.deviceList.innerHTML = '';
+
+
+            if (devices && devices.length){
+                devices.forEach( (address) => {
+                    this._devices.push({ address : address })
+                    var newDeviceChild = this.deviceList.appendChild(document.createElement("option"));
+                    newDeviceChild.innerHTML = address
+                });
+
+                this.renderDevice()
             }
-
-            if (typeof resp.scanning === 'boolean')
-                this.scanning = resp.scanning;
-
-            this.renderStatus();
         });
     }
 
 
     /* ----------------------------- RENDERING ------------------------------*/
 
-    renderStatus () {
+    renderScanStatus () {
         this.scanningStatus.innerHTML = this.scanning === true ? 'ON' : 'OFF';
-
-        if(!this.scanning) {
-            this.scanButton.disabled = false;
-
-	    if (this.discoveredDevices.length)
-            this.pairButton.disabled = false;
-
-	    if (this.pairedDevices.length)
-            this.connectButton.disabled = false;
-
-	    if (this.connectedDevices.length)
-            this.disconnectButton.disabled = false;
-            clearInterval(this.Timer);
-	    }
     }
 
-    renderDevices() {
-        this.pairedDeviceList.innerHTML = '';
-        this.discoveredDeviceList.innerHTML = '';
-        this.connectedDeviceList.innerHTML = '';
-        this.connectedDevices = [];
+    renderDevice() {
+        var idx = this.deviceList.selectedIndex;
 
-        for (var i=0; i<this.discoveredDevices.length; i++) {
-            var newDeviceChild = this.discoveredDeviceList.appendChild(document.createElement("option"));
-            newDeviceChild.innerHTML = this.discoveredDevices[i].name !== '' ? this.discoveredDevices[i].name : this.discoveredDevices[i].address;
-
-            if (this.discoveredDevices[i].paired) {
-                var newPairedChild = this.pairedDeviceList.appendChild(document.createElement("option"));
-                this.pairedDevices.push( this.discoveredDevices[i]);
-
-                newPairedChild.innerHTML = this.discoveredDevices[i].name !== '' ? this.discoveredDevices[i].name : this.discoveredDevices[i].address;
-            }
-
-            if(this.discoveredDevices[i].connected) {
-                var newConnectedChild = this.connectedDeviceList.appendChild(document.createElement("option"));
-                this.connectedDevices.push( this.discoveredDevices[i]);
-
-                newConnectedChild.innerHTML = this.discoveredDevices[i].name !== '' ? this.discoveredDevices[i].name : this.discoveredDevices[i].address;
-            }
+        if (this._devices[idx].name === undefined) {
+            let address = this._devices[idx].address
+            this.device(address).then( (data)=>{
+                if (data) {
+                    this._devices[idx] = { address, ...data }
+                    this.updateDevice(idx)
+                }
+            })
+        } else {
+            this.updateDevice[idx]
         }
+    }
+
+    updateDevice(idx) {
+        let device = this._devices[idx]
+
+        this.nameEl.innerHTML = device.name
+        this.typeEl.innerHTML = device.type
+        this.connectedEl.innerHTML = device.connected
+        this.pairedEl.innerHTML = device.paired
     }
 
     updateStatus(message) {
@@ -202,117 +232,143 @@ class BluetoothControl extends Plugin {
     /* ----------------------------- BUTTONS ------------------------------*/
 
     scanForDevices() {
-        this.renderStatus(`Start scanning`);
-        var f = document.getElementById("BT_DeviceType");
-        var device = f.options[f.selectedIndex].value;
+        this.updateStatus(`Start scanning`);
+        this.scanning = true
+        this.renderScanStatus()
 
         const _rest = {
             method  : 'PUT',
-            path    : '/Scan/?LowEnergy='+device,
+            path    : '/Scan/?LowEnergy=' + this.btLowEnergyButton.checked,
             body    : null
         };
 
         const _rpc = {
-            plugin : this.callsign,
-            method : 'status',
+            plugin : 'BluetoothControl',
+            method : 'scan',
+            params : {
+                type : this.btLowEnergyButton.checked ? 'LowEnergy' : 'Regular',
+                timeout: 10
+            }
         };
 
-        this.api.req(_rest, _rpc).then( resp => {
-            this.scanButton.disabled = true;
-            this.pairButton.disabled = true;
-	        this.connectButton.disabled = true;
-	        this.disconnectButton.disabled = true;
-            setTimeout(this.update.bind(this), 100);
-            // update every 3s
-            this.Timer = setInterval(this.update.bind(this), 3000);
-        });
+        this.api.req(_rest, _rpc);
     }
 
     pairDevice() {
-        var idx = this.discoveredDeviceList.selectedIndex;
-
-        if (this.discoveredDevices[idx].name === "")
-            this.renderStatus(`Pairing to ${this.discoveredDevices[idx].address}`);
-        else
-            this.renderStatus(`Pairing to ${this.discoveredDevices[idx].name}`);
+        var idx = this.deviceList.selectedIndex;
+        this.updateStatus(`Pairing to ${this._devices[idx].name}`);
 
         const _rest = {
             method  : 'PUT',
             path    : '/Pair',
-            body    : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+            body    : '{"address" : "' + this._devices[idx].address + '"}'
         };
 
         const _rpc = {
             plugin : this.callsign,
             method : 'pair',
-            body   : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+            params : {
+                "address" : this._devices[idx].address
+            }
         };
 
-        this.api.req(_rest, _rpc).then( resp => {
-            this.pairButton.disabled = true;
-            setTimeout(this.update.bind(this), 1000);
-        });
+        this.api.req(_rest, _rpc)
+    }
+
+    unpairDevice() {
+        var idx = this.deviceList.selectedIndex;
+        this.updateStatus(`Pairing to ${this._devices[idx].name}`);
+
+        const _rest = {
+            method  : 'PUT',
+            path    : '/Unpair',
+            body    : '{"address" : "' + this._devices[idx].address + '"}'
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'unpair',
+            params : {
+                "address" : this._devices[idx].address
+            }
+        };
+
+        this.api.req(_rest, _rpc)
     }
 
     connect() {
-        var idx = this.pairedDeviceList.selectedIndex;
-        if (this.pairedDevices[idx].name === "")
-            this.renderStatus(`Connecting to ${this.pairedDevices[idx].address}`);
-        else
-            this.renderStatus(`Connecting to ${this.pairedDevices[idx].name}`);
+        var idx = this.deviceList.selectedIndex;
+        this.updateStatus(`Connecting to ${this._devices[idx].name}`);
 
         const _rest = {
             method  : 'PUT',
             path    : '/Connect',
-            body    : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+            body    : '{"address" : "' + this._devices[idx].address + '"}'
         };
 
         const _rpc = {
             plugin : this.callsign,
             method : 'connect',
-            body   : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+            params : {
+                "address" : this._devices[idx].address
+            }
         };
 
-        this.api.req(_rest, _rpc).then( resp => {
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
-            this.connectButton.disabled = true;
-            setTimeout(this.update.bind(this), 1000);
-        });
+        this.api.req(_rest, _rpc)
     }
 
     disconnect() {
-        var idx = this.connectedDeviceList.selectedIndex;
-        if (this.connectedDevices[idx].name === "")
-            this.renderStatus(`Disconnecting to ${this.connectedDevices[idx].address}`);
-        else
-            this.renderStatus(`Disconnecting to ${this.connectedDevices[idx].name}`);
+        var idx = this.deviceList.selectedIndex;
+        this.updateStatus(`Disconnecting from ${this._devices[idx].name}`);
 
         const _rest = {
             method  : 'DELETE',
             path    : '/Connect',
-            body    : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+            body    : '{"address" : "' + this._devices[idx].address + '"}'
         };
 
         const _rpc = {
             plugin : this.callsign,
             method : 'pair',
-            body   : '{"address" : "' + this.discoveredDevices[idx].address + '"}'
+            params : {
+                "address" : this._devices[idx].address
+            }
         };
 
-        api.req(_rest, _rpc).then( resp => {
-            if (err !== null) {
-                console.error(err);
-                return;
-            }
-        this.disconnectButton.disabled = true;
-        setTimeout(this.update.bind(this), 1000);
-        });
+        this.api.req(_rest, _rpc)
     }
+
+    assign() {
+        var idx = this.deviceList.selectedIndex;
+        this.updateStatus(`Assigning ${this._devices[idx].name}`);
+
+        const _rpc = {
+            plugin : 'BluetoothRemoteControl',
+            method : 'assign',
+            params : {
+                "address" : this._devices[idx].address
+            }
+        };
+
+        this.api.req(null, _rpc)
+    }
+
+    revoke() {
+        var idx = this.deviceList.selectedIndex;
+        this.updateStatus(`Revoking ${this._devices[idx].name}`);
+
+        const _rpc = {
+            plugin : 'BluetoothRemoteControl',
+            method : 'revoke',
+            params : {
+                "address" : this._devices[idx].address
+            }
+        };
+
+        this.api.req(null, _rpc)
+    }
+
     close() {
-        clearInterval(this.Timer);
         clearInterval(this.statusMessageTimer);
     }
 }

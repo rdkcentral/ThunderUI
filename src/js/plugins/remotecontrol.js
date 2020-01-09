@@ -312,6 +312,20 @@ class RemoteControl extends Plugin {
         return this.api.req(_rest, _rpc);
     }
 
+    devices() {
+        const _rest = {
+            method  : 'GET',
+            path    : 'RemoteControl'
+        };
+
+        const _rpc = {
+            plugin : 'RemoteControl',
+            method : 'devices'
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
     render() {
         var mainDiv = document.getElementById('main');
 
@@ -349,11 +363,11 @@ class RemoteControl extends Plugin {
         this.autoFwdCheckboxEl.checked = this.automaticallyForwardKeys;
         this.autoFwdCheckboxEl.onclick = this.toggleAutoforwardOfKeys.bind(this);
 
-        this.status().then( remotes => {
-            if (remotes === undefined || remotes.devices === undefined)
+        this.devices().then( remotes => {
+            if (remotes === undefined)
                 return;
 
-            var devices = remotes.devices;
+            var devices = remotes.devices !== undefined ? remotes.devices : remotes;
             var remotesDiv = document.getElementById('remotesList');
             var pairingDiv = document.getElementById('pairingDiv');
 
