@@ -81,7 +81,7 @@ export default class WpeApi {
     }
 
     getURLStart(protocol, addControllerCallsign) {
-        var url = protocol + "://" + this.host + '/' + this.prefixForService + '/';
+        var url = protocol + "://" + this.host[0] + ':' + this.host[1] + '/' + this.prefixForService + '/';
         return url;
     };
 
