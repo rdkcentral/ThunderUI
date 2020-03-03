@@ -29,7 +29,8 @@ export default class WpeApi {
 
         this.socket = null;
 
-        this.host = host.split(':')
+        this.host = host.split(':');
+        if (!this.host[1]) this.host[1] = 80;
         this.t = ThunderJS({ 'host' : this.host[0], 'port': this.host[1] });
 
         this.socketListeners = {};

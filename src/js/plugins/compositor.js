@@ -26,6 +26,9 @@ class Compositor extends Plugin {
     constructor(pluginData, api) {
         super(pluginData, api);
 
+        this._rpcMapping = {
+            'Top': 'putontop'
+        };
         this.resolutions = ['720p', '720p50Hz', '1080p24Hz', '1080i50Hz', '1080p50Hz', '1080p60Hz'];
     }
 
@@ -61,6 +64,8 @@ class Compositor extends Plugin {
         this.controlDiv         = document.getElementById('controls');
         this.compositorClientsDiv = document.getElementById('compositorClientsDiv');
 
+        this.controlDiv.style.display = 'none';
+
         // update resolutions field
         this.resolutionsList.innerHTML = '';
 
@@ -72,17 +77,30 @@ class Compositor extends Plugin {
         }
 
         // get clients
-        this.status().then( resp => {
+        this.getClients().then( resp => {
             // compositor is not returning anything, guess we're in client mode and not managing nxserver
-            if (resp === undefined || resp === null || resp.clients === undefined) {
+            if (resp === undefined || resp === null || !Array.isArray(resp)) {
                 this.compositorClientsDiv.innerHTML = 'No clients found.';
                 return;
             }
 
-            if (resp.clients.length > 0) {
-                this.renderControls(resp.clients);
+            if (resp.length > 0) {
+                this.renderControls(resp);
             }
         });
+    }
+
+    getClients() {
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/Clients`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'clients'
+        };
+        return this.api.req(_rest, _rpc);
     }
 
     renderControls(clients) {
@@ -94,7 +112,6 @@ class Compositor extends Plugin {
         </div>
         <div class="text grid__col grid__col--6-of-8">
             <button type="button" id="compositorSetTop">Set Top</button>
-            <button type="button" id="compositorSetInput">Set Input</button>
         </div>
         <div class="text grid__col grid__col--8-of-8"></div>
         <div class="label grid__col grid__col--2-of-8">
@@ -149,7 +166,6 @@ class Compositor extends Plugin {
         </div>`;
 
         document.getElementById('compositorSetTop').onclick         = this.compositorAction.bind(this, 'Top');
-        document.getElementById('compositorSetInput').onclick       = this.compositorAction.bind(this, 'Input');
         document.getElementById('sliderOpacity').onchange           = this.updateValue.bind(this, 'sliderOpacity', 'numOpacity');
         document.getElementById('numOpacity').onchange              = this.updateValue.bind(this, 'numOpacity', 'sliderOpacity');
         document.getElementById('numOpacity').onkeyup               = this.updateValue.bind(this, 'numOpacity', 'sliderOpacity');
@@ -159,6 +175,7 @@ class Compositor extends Plugin {
         document.getElementById('webkit_hide').onclick              = this.compositorVisible.bind(this, 'Hide');
         document.getElementById('webkit_show').onclick              = this.compositorVisible.bind(this, 'Show');
         document.getElementById('compositorGeometry').onclick       = this.compositorSetGeometry.bind(this);
+        document.getElementById('compositorClients').onchange       = this.clientChange.bind(this);
 
         var menu = document.getElementById('compositorClients');
         menu.innerHTML = '';
@@ -188,12 +205,16 @@ class Compositor extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : action,
+            method :  this._rpcMapping[action],
             params : { client: client }
         };
 
-        // FIXME: no rpc interface defined
-        this.api.req(_rest);
+        this.api.req(_rest,_rpc);
+    }
+
+    clientChange() {
+        //show controls after selecting a client
+        this.controlDiv.style.display = '';
     }
 
     compositorSetOpacity() {
@@ -207,12 +228,10 @@ class Compositor extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'opacity',
-            params : { opacity: opacity }
+            method : 'opacity@'+client,
+            params :  opacity
         };
-
-        // FIXME: no rpc interface defined
-        this.api.req(_rest);
+        this.api.req(_rest,_rpc);
     }
 
     updateValue(element, toUpdateElement) {
@@ -220,6 +239,7 @@ class Compositor extends Plugin {
     }
 
     compositorVisible(state) {
+        console.log(state);
         var client = this.menu.options[this.menu.selectedIndex].value;
 
         const _rest = {
@@ -229,12 +249,11 @@ class Compositor extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'visibility',
-            params : { visible: state }
+            method : 'visiblity@'+client,
+            params : state === 'Show' ? 'visible':'hidden'
         };
 
-        // FIXME: no rpc interface defined
-        this.api.req(_rest);
+        this.api.req(_rest,_rpc);
     }
 
     compositorSetGeometry() {
@@ -247,17 +266,16 @@ class Compositor extends Plugin {
 
         const _rest = {
             method  : 'POST',
-            path    : `${this.callsign}/${client}/${Geometry}/${x}/${y}/${w}/${h}`
+            path    : `${this.callsign}/${client}/Geometry/${x}/${y}/${w}/${h}`
         };
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'action',
-            params : { client: client }
+            method : 'geometry@' + client,
+            params : { x: x, y:y, width: w, height: h }
         };
 
-        // FIXME: no rpc interface defined
-        this.api.req(_rest);
+        this.api.req(_rest,_rpc);
     }
 
     setResolution() {
