@@ -34,6 +34,7 @@ import Spark from './spark.js';
 import Switchboard from './switchboard.js';
 import TimeSync from './timesync.js';
 import TraceControl from './tracing.js';
+import VolumeControl from './volumecontrol.js';
 import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
@@ -57,6 +58,7 @@ export default {
     Switchboard,
     TimeSync,
     TraceControl,
+    VolumeControl,
     WebKitBrowser,
     WebShell,
     WifiControl,
