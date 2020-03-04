@@ -289,7 +289,6 @@ class DeviceInfo extends Plugin {
             let systeminfo = deviceInfo.systeminfo ? deviceInfo.systeminfo : deviceInfo;
 
             this.deviceNameEl.innerHTML         = systeminfo.devicename;
-            this.deviceIdEl.innerHTML           = systeminfo.deviceid;
             this.serialNumberEl.innerHTML       = systeminfo.serialnumber;
             this.versionEl.innerHTML            = systeminfo.version;
             this.uptimeEl.innerHTML             = systeminfo.uptime;
