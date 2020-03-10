@@ -217,12 +217,15 @@ class WifiControl extends Plugin {
         };
 
         this.api.req(_rest, _rpc).then( resp => {
+            this.update();
             // get the results
             setTimeout(this.getNetworks.bind(this), 5000);
         });
     }
 
     getConfigs() {
+        this.update();
+
         const _rest = {
             method  : 'GET',
             path    : `${this.callsign}/Configs`
@@ -256,6 +259,8 @@ class WifiControl extends Plugin {
     }
 
     getNetworks() {
+        this.update();
+
         const _rest = {
             method  : 'GET',
             path    : `${this.callsign}/Networks`
@@ -298,6 +303,7 @@ class WifiControl extends Plugin {
         if (this.rendered === false)
             return;
 
+        this.update()
         var data = json.data || {};
 
         // the event connected just provides an async boolean, rerender the network status
