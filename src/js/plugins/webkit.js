@@ -72,13 +72,6 @@ class WebKitBrowser extends Plugin {
                     <button id="{{callsign}}SuspendButton" type="button"></button>
             </div>
 
-            <div class="label grid__col grid__col--2-of-8">Visibility</div>
-            <div id="{{callsign}}VisibilityStateInfo" class="text grid__col grid__col--6-of-8"></div>
-            <div class="label grid__col grid__col--2-of-8"></div>
-            <div class="text grid__col grid__col--6-of-8">
-                <button type="button" id="{{callsign}}VisibilityButton">HIDE</button>
-            </div>
-
             <div class="label grid__col grid__col--2-of-8">Web Inspector</div>
             <div class="text grid__col grid__col--6-of-8">
                 <button type="button" id="{{callsign}}Inspector">INSPECT</button>
@@ -117,7 +110,7 @@ class WebKitBrowser extends Plugin {
         }
 
         //setup notifications
-        this.api.t.on('WebKitBrowser', 'urlchange', data => {
+        this.api.t.on(this.callsign, 'urlchange', data => {
             if (data.url && data.loaded) {
                 this._url = data.url;
 
@@ -126,7 +119,7 @@ class WebKitBrowser extends Plugin {
             }
         });
 
-        this.api.t.on('WebKitBrowser', 'visibilitychange', data => {
+        this.api.t.on(this.callsign, 'visibilitychange', data => {
             if (typeof data.hidden === 'boolean') {
                 this._isHidden = data.hidden;
 
@@ -135,7 +128,7 @@ class WebKitBrowser extends Plugin {
             }
         });
 
-        this.api.t.on('WebKitBrowser', 'statechange', data => {
+        this.api.t.on(this.callsign, 'statechange', data => {
             if (typeof data.suspended === 'boolean') {
                 this._isSuspended = data.suspended;
 
@@ -201,21 +194,6 @@ class WebKitBrowser extends Plugin {
         return this.api.req(_rest, _rpc);
     }
 
-    visibility() {
-        const _rest = {
-            method  : 'GET',
-            path    : this.callsign
-        };
-
-        const _rpc = {
-            plugin : this.callsign,
-            method : 'visibility'
-        };
-
-        return this.api.req(_rest, _rpc);
-    }
-
-
     render()        {
         var mainDiv = document.getElementById('main');
         var webKitHtmlString = this.template.replace(/{{callsign}}/g, this.callsign);
@@ -251,19 +229,6 @@ class WebKitBrowser extends Plugin {
         var inspectorButton = document.getElementById(this.callsign + 'Inspector');
         inspectorButton.onclick = this.launchWebinspector.bind(this);
 
-        window.addEventListener('keydown', this.handleKey.bind(this));
-
-        var urlInputEl = document.getElementById(this.callsign + '_url');
-        urlInputEl.onblur = function() {
-            if (plugins.RemoteControl !== undefined)
-                plugins.RemoteControl.doNotHandleKeys = false;
-        };
-
-        urlInputEl.onfocus = function() {
-            if (plugins.RemoteControl !== undefined)
-                plugins.RemoteControl.doNotHandleKeys = true;
-        };
-
         this.updateLoopInterval = setInterval(this.updateLoop.bind(this), conf.refresh_interval);
 
         this.rendered = true;
@@ -282,8 +247,6 @@ class WebKitBrowser extends Plugin {
             .then( resp => { self._fps = resp.fps ? resp.fps : resp; })
             .then( this.url.bind(this) )
             .then( resp => { self._url = resp.url ? resp.url : resp; })
-            .then( this.visibility.bind(this) )
-            .then( resp => { self._isHidden = resp.hidden ? resp.hidden : resp === "hidden"; })
         .then( this.update.bind(this) );
     }
 
@@ -310,16 +273,6 @@ class WebKitBrowser extends Plugin {
         var suspendButton = document.getElementById(this.callsign + 'SuspendButton');
         suspendButton.innerHTML = nextState.toUpperCase();
         suspendButton.onclick = this.toggleSuspend.bind(this, nextState);
-
-        var visibilityState = this._isHidden ? 'Hidden' : 'Visible';
-        var nextVisibilityState = this._isHidden ? 'Show' : 'Hide';
-
-        var visbilityStateEl = document.getElementById(this.callsign + 'VisibilityStateInfo');
-        visbilityStateEl.innerHTML = visibilityState.toUpperCase();
-
-        var visibilityButton = document.getElementById(this.callsign + 'VisibilityButton');
-        visibilityButton.innerHTML = nextVisibilityState.toUpperCase();
-        visibilityButton.onclick = this.toggleVisibility.bind(this, nextVisibilityState);
 
         // get memory data and div if the monitor plugin is loaded
         if (this.monitor) {
@@ -386,13 +339,6 @@ class WebKitBrowser extends Plugin {
             this.resume();
         else
             this.suspend();
-    }
-
-    toggleVisibility(nextState) {
-        if (nextState === 'Show')
-            this.show();
-        else
-            this.hide();
     }
 
     launchWebinspector() {

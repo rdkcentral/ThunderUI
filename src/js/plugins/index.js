@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import BluetoothControl from './bluetooth.js';
+import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
 import Controller from './controller.js';
 import DeviceInfo from './deviceinfo.js';
@@ -41,6 +42,7 @@ import WifiControl from './wificontrol.js';
 
 export default {
     BluetoothControl,
+    Cobalt,
     Compositor,
     Controller,
     DeviceInfo,
