@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import BluetoothControl from './bluetooth.js';
+import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
 import Controller from './controller.js';
 import DeviceInfo from './deviceinfo.js';
@@ -34,12 +35,14 @@ import Spark from './spark.js';
 import Switchboard from './switchboard.js';
 import TimeSync from './timesync.js';
 import TraceControl from './tracing.js';
+import VolumeControl from './volumecontrol.js';
 import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
 
 export default {
     BluetoothControl,
+    Cobalt,
     Compositor,
     Controller,
     DeviceInfo,
@@ -57,6 +60,7 @@ export default {
     Switchboard,
     TimeSync,
     TraceControl,
+    VolumeControl,
     WebKitBrowser,
     WebShell,
     WifiControl,

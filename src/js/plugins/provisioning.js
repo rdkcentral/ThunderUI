@@ -74,14 +74,12 @@ class Provisioning extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'request'
+            method : 'provision'
         };
 
-        // FIXME, no JSONRPC yet
-        return this.api.req(_rest);
+        return this.api.req(_rest, _rpc);
     }
 
-    // FIXME, status override because there is no jsonrpc yet
     status() {
         const _rest = {
             method  : 'GET',
@@ -90,11 +88,10 @@ class Provisioning extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'status'
+            method : 'state'
         };
 
-        // FIXME, no JSONRPC yet
-        return this.api.req(_rest);
+        return this.api.req(_rest, _rpc);
     }
 
     update() {

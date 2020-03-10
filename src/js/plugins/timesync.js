@@ -76,7 +76,7 @@ class TimeSync extends Plugin {
       setButton.onclick = this.setTime.bind(this);
 
       let syncButton = document.getElementById('sync');
-      syncButton.onclick = this.syncTime.bind(this);
+      syncButton.onclick = this.synchronizeTime.bind(this);
 
       this.timeEl         = document.getElementById('time');
       this.sourceEl       = document.getElementById('source');
@@ -91,18 +91,26 @@ class TimeSync extends Plugin {
       this.update();
     }
 
-    syncTime() {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}`
-        };
+    synchronizeTime() {
+      this.syncTime().then( this.synchronize() )
+    }
 
+    synchronize() {
+      const _rpc = {
+          plugin : this.callsign,
+          method : 'synchronize'
+      };
+
+      return this.api.req(null, _rpc);
+    }
+
+    syncTime() {
         const _rpc = {
             plugin : this.callsign,
             method : 'synctime'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     setTime() {

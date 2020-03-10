@@ -33,7 +33,6 @@ class DeviceInfo extends Plugin {
 
         this.deviceNameEl       = undefined;
         this.serialNumberEl     = undefined;
-        this.deviceIdEl         = undefined;
         this.versionEl          = undefined;
         this.uptimeEl           = undefined;
         this.totalRamEl         = undefined;
@@ -68,12 +67,6 @@ class DeviceInfo extends Plugin {
             S/N
           </div>
           <div id="SerialNumber" class="text grid__col grid__col--6-of-8">
-            -
-          </div>
-          <div class="label grid__col grid__col--2-of-8">
-            Identifier
-          </div>
-          <div id="DeviceId" class="text grid__col grid__col--6-of-8">
             -
           </div>
           <div class="label grid__col grid__col--2-of-8">
@@ -289,7 +282,6 @@ class DeviceInfo extends Plugin {
             let systeminfo = deviceInfo.systeminfo ? deviceInfo.systeminfo : deviceInfo;
 
             this.deviceNameEl.innerHTML         = systeminfo.devicename;
-            this.deviceIdEl.innerHTML           = systeminfo.deviceid;
             this.serialNumberEl.innerHTML       = systeminfo.serialnumber;
             this.versionEl.innerHTML            = systeminfo.version;
             this.uptimeEl.innerHTML             = systeminfo.uptime;
@@ -336,7 +328,6 @@ class DeviceInfo extends Plugin {
         this.mainDiv.innerHTML = this.template;
 
         this.deviceNameEl       = document.getElementById("DeviceName");
-        this.deviceIdEl         = document.getElementById("DeviceId");
         this.serialNumberEl     = document.getElementById("SerialNumber");
         this.versionEl          = document.getElementById("Version");
         this.uptimeEl           = document.getElementById("Uptime");
