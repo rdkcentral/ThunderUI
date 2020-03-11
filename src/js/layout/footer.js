@@ -103,7 +103,7 @@ class Footer {
         this.deviceIsConnected(true);
 
         this.versionSpan.innerHTML      = deviceInfo.version;
-        this.serialSpan.innerHTML       = deviceInfo.deviceid;
+        this.serialSpan.innerHTML       = deviceInfo.serialnumber;
         this.uptimeSpan.innerHTML       = deviceInfo.uptime;
         this.totalRamSpan.innerHTML     = this.bytesToMbString(deviceInfo.totalram);
         this.usedRamSpan.innerHTML      = this.bytesToMbString(deviceInfo.totalram - deviceInfo.freeram);
