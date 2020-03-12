@@ -295,7 +295,7 @@ class BluetoothControl extends Plugin {
 
     unpairDevice() {
         var idx = this.deviceList.selectedIndex;
-        this.updateStatus(`Pairing to ${this._devices[idx].name}`);
+        this.updateStatus(`Unpairing ${this._devices[idx].name}`);
 
         const _rest = {
             method  : 'PUT',
