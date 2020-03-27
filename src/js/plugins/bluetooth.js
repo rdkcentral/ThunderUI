@@ -236,9 +236,14 @@ class BluetoothControl extends Plugin {
         })
     }
 
-    updateStatus(message) {
+    updateStatus(message, error = false) {
         window.clearTimeout(this.statusMessageTimer);
         this.statusMessages.innerHTML = message;
+
+        if (error)
+            this.statusMessages.style = 'color: red'
+        else
+            this.statusMessages.style = ''
 
         // clear after 5s
         this.statusMessageTimer = setTimeout(this.updateStatus, 5000, '');
@@ -258,12 +263,6 @@ class BluetoothControl extends Plugin {
         this.scanning = true
         this.renderScanStatus()
 
-        const _rest = {
-            method  : 'PUT',
-            path    : '/Scan/?LowEnergy=' + this.btLowEnergyButton.checked,
-            body    : null
-        };
-
         const _rpc = {
             plugin : 'BluetoothControl',
             method : 'scan',
@@ -273,18 +272,15 @@ class BluetoothControl extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc);
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+            this.updateStatus(`Error: ${e.message}`);
+        })
     }
 
     pairDevice() {
         var idx = this.deviceList.selectedIndex;
         this.updateStatus(`Pairing to ${this._devices[idx].name}`);
-
-        const _rest = {
-            method  : 'PUT',
-            path    : '/Pair',
-            body    : '{"address" : "' + this._devices[idx].address + '"}'
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -294,18 +290,15 @@ class BluetoothControl extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc)
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
     }
 
     unpairDevice() {
         var idx = this.deviceList.selectedIndex;
         this.updateStatus(`Unpairing ${this._devices[idx].name}`);
-
-        const _rest = {
-            method  : 'PUT',
-            path    : '/Unpair',
-            body    : '{"address" : "' + this._devices[idx].address + '"}'
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -315,18 +308,15 @@ class BluetoothControl extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc)
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
     }
 
     connect() {
         var idx = this.deviceList.selectedIndex;
         this.updateStatus(`Connecting to ${this._devices[idx].name}`);
-
-        const _rest = {
-            method  : 'PUT',
-            path    : '/Connect',
-            body    : '{"address" : "' + this._devices[idx].address + '"}'
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -336,18 +326,15 @@ class BluetoothControl extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc)
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
     }
 
     disconnect() {
         var idx = this.deviceList.selectedIndex;
         this.updateStatus(`Disconnecting from ${this._devices[idx].name}`);
-
-        const _rest = {
-            method  : 'DELETE',
-            path    : '/Connect',
-            body    : '{"address" : "' + this._devices[idx].address + '"}'
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -357,7 +344,10 @@ class BluetoothControl extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc)
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
     }
 
     assign() {
@@ -387,7 +377,10 @@ class BluetoothControl extends Plugin {
             }
         };
 
-        this.api.req(null, _rpc)
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
     }
 
     close() {
