@@ -156,8 +156,8 @@ class BluetoothControl extends Plugin {
         // ---- Connected Devices -----
         this.deviceList                 = document.getElementById('BT_Devices');
 
-        this.api.t.on("BluetoothControl", "scancomplete", this.update.bind(this));
-        //this.api.t.on("BluetoothControl", "devicestatechange",this.onDeviceStateChange.bind(this));
+        this.api.t.on("BluetoothControl", "scancomplete",       this.scanComplete.bind(this));
+        this.api.t.on("BluetoothControl", "devicestatechange",  this.render.bind(this));
 
         this.update()
     }
@@ -170,7 +170,17 @@ class BluetoothControl extends Plugin {
             method : 'devices'
         };
 
-        return this.api.req(null, _rpc);
+        return this.api.req(null, _rpc).then( devices => {
+            // bail out if the plugin returns nothing
+            if (devices === undefined)
+                return;
+
+            this._devices = []
+            if (devices && devices.length)
+                devices.forEach( (address) => { this._devices.push({ address : address }) });
+
+            return this._devices
+        });
     }
 
     device(address) {
@@ -182,31 +192,12 @@ class BluetoothControl extends Plugin {
         return this.api.req(null, _rpc)
     }
 
-    update() {
+    scanComplete() {
         this.scanning = false
         this.renderScanStatus()
-
-        this.devices().then( devices => {
-            // bail out if the plugin returns nothing
-            if (devices === undefined)
-                return;
-
-            this._devices = []
-            this.deviceList.innerHTML = '';
-
-
-            if (devices && devices.length){
-                devices.forEach( (address) => {
-                    this._devices.push({ address : address })
-                    var newDeviceChild = this.deviceList.appendChild(document.createElement("option"));
-                    newDeviceChild.innerHTML = address
-                });
-
-                this.renderDevice()
-            }
-        });
+        this.update()
+        this.updateStatus('Scan complete');
     }
-
 
     /* ----------------------------- RENDERING ------------------------------*/
 
@@ -214,37 +205,55 @@ class BluetoothControl extends Plugin {
         this.scanningStatus.innerHTML = this.scanning === true ? 'ON' : 'OFF';
     }
 
-    renderDevice() {
-        var idx = this.deviceList.selectedIndex;
+    updateDeviceList() {
+        this.deviceList.innerHTML = '';
 
-        if (this._devices[idx].name === undefined) {
-            let address = this._devices[idx].address
-            this.device(address).then( (data)=>{
-                if (data) {
-                    this._devices[idx] = { address, ...data }
-                    this.updateDevice(idx)
-                }
-            })
-        } else {
-            this.updateDevice[idx]
+        if (this._devices && this._devices.length){
+            this._devices.forEach( (d) => {
+                var newDeviceChild = this.deviceList.appendChild(document.createElement("option"));
+                newDeviceChild.innerHTML = d.address
+            });
+
+            this.renderDevice()
         }
     }
 
-    updateDevice(idx) {
-        let device = this._devices[idx]
+    renderDevice() {
+        let idx = this.deviceList.selectedIndex;
+        if (idx === -1 || this._devices.length === 0)
+            return
 
-        this.nameEl.innerHTML = device.name
-        this.typeEl.innerHTML = device.type
-        this.connectedEl.innerHTML = device.connected
-        this.pairedEl.innerHTML = device.paired
+
+        let address = this._devices[idx].address
+        this.device(address).then( (data)=>{
+            if (data)
+                this._devices[idx] = { address, ...data }
+
+            this.nameEl.innerHTML = this._devices[idx].name
+            this.typeEl.innerHTML = this._devices[idx].type
+            this.connectedEl.innerHTML = this._devices[idx].connected
+            this.pairedEl.innerHTML = this._devices[idx].paired
+        })
     }
 
-    updateStatus(message) {
+    updateStatus(message, error = false) {
         window.clearTimeout(this.statusMessageTimer);
         this.statusMessages.innerHTML = message;
 
+        if (error)
+            this.statusMessages.style = 'color: red'
+        else
+            this.statusMessages.style = ''
+
         // clear after 5s
         this.statusMessageTimer = setTimeout(this.updateStatus, 5000, '');
+    }
+
+    update() {
+        this.renderScanStatus()
+        this.devices().then( () => {
+            this.updateDeviceList()
+        })
     }
 
     /* ----------------------------- BUTTONS ------------------------------*/
@@ -253,12 +262,6 @@ class BluetoothControl extends Plugin {
         this.updateStatus(`Start scanning`);
         this.scanning = true
         this.renderScanStatus()
-
-        const _rest = {
-            method  : 'PUT',
-            path    : '/Scan/?LowEnergy=' + this.btLowEnergyButton.checked,
-            body    : null
-        };
 
         const _rpc = {
             plugin : 'BluetoothControl',
@@ -269,18 +272,15 @@ class BluetoothControl extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc);
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+            this.updateStatus(`Error: ${e.message}`);
+        })
     }
 
     pairDevice() {
         var idx = this.deviceList.selectedIndex;
         this.updateStatus(`Pairing to ${this._devices[idx].name}`);
-
-        const _rest = {
-            method  : 'PUT',
-            path    : '/Pair',
-            body    : '{"address" : "' + this._devices[idx].address + '"}'
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -290,18 +290,15 @@ class BluetoothControl extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc)
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
     }
 
     unpairDevice() {
         var idx = this.deviceList.selectedIndex;
         this.updateStatus(`Unpairing ${this._devices[idx].name}`);
-
-        const _rest = {
-            method  : 'PUT',
-            path    : '/Unpair',
-            body    : '{"address" : "' + this._devices[idx].address + '"}'
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -311,18 +308,15 @@ class BluetoothControl extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc)
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
     }
 
     connect() {
         var idx = this.deviceList.selectedIndex;
         this.updateStatus(`Connecting to ${this._devices[idx].name}`);
-
-        const _rest = {
-            method  : 'PUT',
-            path    : '/Connect',
-            body    : '{"address" : "' + this._devices[idx].address + '"}'
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -332,28 +326,28 @@ class BluetoothControl extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc)
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
     }
 
     disconnect() {
         var idx = this.deviceList.selectedIndex;
         this.updateStatus(`Disconnecting from ${this._devices[idx].name}`);
 
-        const _rest = {
-            method  : 'DELETE',
-            path    : '/Connect',
-            body    : '{"address" : "' + this._devices[idx].address + '"}'
-        };
-
         const _rpc = {
             plugin : this.callsign,
-            method : 'pair',
+            method : 'disconnect',
             params : {
                 "address" : this._devices[idx].address
             }
         };
 
-        this.api.req(_rest, _rpc)
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
     }
 
     assign() {
@@ -383,7 +377,10 @@ class BluetoothControl extends Plugin {
             }
         };
 
-        this.api.req(null, _rpc)
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
     }
 
     close() {
