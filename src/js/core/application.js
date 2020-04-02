@@ -74,7 +74,7 @@ function init(host){
 
         }
 
-        plugins.footer = new Footer(plugins.DeviceInfo);
+        plugins.footer = new Footer(plugins.DeviceInfo, api);
         plugins.menu = new Menu(plugins, api);
         plugins.menu.render(activePlugin !== undefined ? activePlugin : conf.startPlugin);
         plugins.notifications = new Notifications(api);
