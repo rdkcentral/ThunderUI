@@ -58,16 +58,18 @@ class VolumeControl extends Plugin {
 
         this.mutedEl          = document.getElementById("muted");
         this.volumeEl         = document.getElementById("volume");
+        this.muteBtn          = document.getElementById('muteBtn');
         document.getElementById('volumeUp').onclick = this.volumeChange.bind(this, 10);
         document.getElementById('volumeDown').onclick = this.volumeChange.bind(this, -10);
-        document.getElementById('muteBtn').onclick = this.mute.bind(this);
+        muteBtn.onclick = this.mute.bind(this);
 
         this.update()
     }
 
     update() {
         this.muted().then( muted => {
-            this.mutedEl.innerHTML = muted
+            this.mutedEl.innerHTML = muted;
+            muteBtn.innerHTML = (muted ? 'Unmute' : 'Mute');
         });
 
         this.volume().then( volume => {
