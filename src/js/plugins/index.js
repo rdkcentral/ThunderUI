@@ -23,6 +23,7 @@ import Controller from './controller.js';
 import DeviceInfo from './deviceinfo.js';
 import DialServer from './dialserver.js';
 import LocationSync from './locationsync.js';
+import IOConnector from './ioconnector.js';
 import Monitor from './monitor.js';
 import Netflix from './netflix.js';
 import NetworkControl from './networkcontrol.js';
@@ -48,6 +49,7 @@ export default {
     DeviceInfo,
     DialServer,
     LocationSync,
+    IOConnector,
     Monitor,
     Netflix,
     NetworkControl,
