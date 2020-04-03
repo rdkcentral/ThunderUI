@@ -83,7 +83,7 @@ class VolumeControl extends Plugin {
             method : 'muted'
         };
 
-        if (mute)
+        if (mute !== undefined)
             _rpc.params = mute
 
         return this.api.req(null, _rpc);
@@ -95,7 +95,7 @@ class VolumeControl extends Plugin {
             method : 'volume'
         };
 
-        if (vol)
+        if (vol !== undefined)
             _rpc.params = vol
 
         return this.api.req(null, _rpc);
