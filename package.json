@@ -1,5 +1,5 @@
 {
-  "name": "WPEFrameworkUI",
+  "name": "ThunderUI",
   "version": "0.3.0",
   "description": "Web Platform for Embedded Framework User Interface",
   "main": "debug-server.js",
@@ -19,12 +19,12 @@
   "dependencies": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/WebPlatformForEmbedded/WPEFrameworkUI.git"
+    "url": "git+https://github.com/rdkcentral/ThunderUI.git"
   },
   "bugs": {
-    "url": "https://github.com/WebPlatformForEmbedded/WPEFrameworkUI/issues"
+    "url": "https://github.com/rdkcentral/ThunderUI/issues"
   },
-  "homepage": "https://github.com/WebPlatformForEmbedded/WPEFrameworkUI#readme",
+  "homepage": "https://github.com/rdkcentral/ThunderUI#readme",
   "author": "",
   "license": "ISC",
   "devDependencies": {

@@ -272,7 +272,7 @@ class Compositor extends Plugin {
         const _rpc = {
             plugin : this.callsign,
             method : 'geometry@' + client,
-            params : { x: x, y:y, width: w, height: h }
+            params : { x: parseInt(x), y: parseInt(y), width: parseInt(w), height: parseInt(h) }
         };
 
         this.api.req(_rest,_rpc);

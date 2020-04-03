@@ -110,6 +110,7 @@ class WebKitBrowser extends Plugin {
         }
 
         //setup notifications
+        /*
         this.api.t.on(this.callsign, 'urlchange', data => {
             if (data.url && data.loaded) {
                 this._url = data.url;
@@ -136,6 +137,7 @@ class WebKitBrowser extends Plugin {
                     this.update();
             }
         });
+        */
 
         // see if we can init a monitor
         this.api.getControllerPlugins().then( plugins => {
@@ -303,7 +305,7 @@ class WebKitBrowser extends Plugin {
             params : url
         };
 
-        this.api.req(_rest, _rpc);
+        this.api.req(_rest, null);
 
         document.getElementById(this.callsign + '_linkPresets').selectedIndex = 0;
     }

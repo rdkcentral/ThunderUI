@@ -21,7 +21,8 @@
 import { conf } from '../core/application.js';
 
 class Footer {
-    constructor(deviceInfoPlugin) {
+    constructor(deviceInfoPlugin, api) {
+        this.api            = api;
         this.deviceInfo     = deviceInfoPlugin;
         this.renderInMenu   = false;
         this.connected      = true;
@@ -94,13 +95,19 @@ class Footer {
         this.interval = setInterval(this.update.bind(this), conf.refresh_interval);
         this.update();
         this.updateStatisticsBlock();
+
+        this.api.t.on('connect', () => {
+            this.deviceIsConnected(true)
+        });
+
+        this.api.t.on('disconnect', () => {
+            this.deviceIsConnected(false)
+        });
     }
 
     render(deviceInfo) {
         if (deviceInfo === undefined)
             return;
-
-        this.deviceIsConnected(true);
 
         this.versionSpan.innerHTML      = deviceInfo.version;
         this.serialSpan.innerHTML       = deviceInfo.serialnumber;
@@ -113,6 +120,11 @@ class Footer {
     }
 
     update() {
+        if (this.connected === false)
+            this.deviceInfo.status().catch(e => {
+                //
+            })
+
         if (this.paused === true || (this.deviceInfo && this.deviceInfo.state !== 'activated'))
             return;
 
