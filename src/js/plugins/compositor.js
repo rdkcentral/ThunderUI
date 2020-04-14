@@ -39,6 +39,10 @@ class Compositor extends Plugin {
             Compositor
         </div>
         <div class="label grid__col grid__col--2-of-8">
+        Z-Order
+        </div>
+        <div id="zorder" class="text grid__col grid__col--6-of-8"></div>
+        <div class="label grid__col grid__col--2-of-8">
             <label for="compositorResolutions">Resolution</label>
         </div>
         <div class="text grid__col grid__col--6-of-8">
@@ -88,6 +92,17 @@ class Compositor extends Plugin {
                 this.renderControls(resp);
             }
         });
+
+        this.zorder().then(zorder => {
+            document.getElementById('zorder').innerHTML = zorder.toString()
+        });
+
+        this.resolution().then(res => {
+            if (this.resolutions.indexOf(res) === -1)
+                return
+
+            this.resolutionsList.selectedIndex = this.resolutions.indexOf(res)
+        });
     }
 
     getClients() {
@@ -119,7 +134,7 @@ class Compositor extends Plugin {
         </div>
         <div class="text grid__col grid__col--6-of-8">
             <input id="sliderOpacity" type="range" min="0" max="256" step="1" value="256"/>
-            <input type="number" min="0" max="256" id="numOpacity" size="5" value="256"/>
+            <input id="numOpacity" type="number" min="0" max="256"  size="5" value="256"/>
         </div>
         <div class="label grid__col grid__col--2-of-8"></div>
         <div class="text grid__col grid__col--6-of-8">
@@ -215,23 +230,45 @@ class Compositor extends Plugin {
     clientChange() {
         //show controls after selecting a client
         this.controlDiv.style.display = '';
+
+        const client = this.menu.options[this.menu.selectedIndex].value;
+        if (client === 'Select a client')
+            return
+
+        this.geometry(client).then(geo => {
+            document.getElementById('compositorXGeometry').value = geo.x
+            document.getElementById('compositorYGeometry').value = geo.y
+            document.getElementById('compositorWidthGeometry').value = geo.width
+            document.getElementById('compositorHeightGeometry').value = geo.height
+        });
+
+    }
+
+    // write only :(
+    opacity(client, value) {
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/${client}/Opacity/${value}`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'opacity@'+client,
+        };
+
+        if (value !== undefined) {
+            _rest.method = 'POST'
+            _rpc.params = value
+        }
+
+        return this.api.req(_rest,_rpc);
     }
 
     compositorSetOpacity() {
         var client = this.menu.options[this.menu.selectedIndex].value;
         var opacity = document.getElementById('sliderOpacity').value;
 
-        const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}/${client}/Opacity/${opacity}`
-        };
-
-        const _rpc = {
-            plugin : this.callsign,
-            method : 'opacity@'+client,
-            params :  opacity
-        };
-        this.api.req(_rest,_rpc);
+        return this.opacity(client, opacity);
     }
 
     updateValue(element, toUpdateElement) {
@@ -256,44 +293,70 @@ class Compositor extends Plugin {
         this.api.req(_rest,_rpc);
     }
 
-    compositorSetGeometry() {
-        var client = this.menu.options[this.menu.selectedIndex].value;
-        var x = document.getElementById('compositorXGeometry').value;
-        var y = document.getElementById('compositorYGeometry').value;
-        var w = document.getElementById('compositorWidthGeometry').value;
-        var h = document.getElementById('compositorHeightGeometry').value;
-
-
+    geometry(client, attributes) {
         const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}/${client}/Geometry/${x}/${y}/${w}/${h}`
+            method  : 'GET',
+            path    : `${this.callsign}/${client}/Geometry`
         };
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'geometry@' + client,
-            params : { x: parseInt(x), y: parseInt(y), width: parseInt(w), height: parseInt(h) }
+            method : 'geometry@' + client
         };
 
-        this.api.req(_rest,_rpc);
+        if (attributes !== undefined) {
+            _rest.method = 'POST'
+            _rest.path += `/${attributes.x}/${attributes.y}/${attributes.w}/${attributes.h}`
+            _rpc.params = { x: parseInt(attributes.x), y: parseInt(attributes.y), width: parseInt(attributes.w), height: parseInt(attributes.h) }
+        }
+
+        return this.api.req(_rest,_rpc);
+    }
+
+    zorder(client) {
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'zorder'
+        };
+
+        return this.api.req(null, _rpc);
+    }
+
+    compositorSetGeometry() {
+        const client = this.menu.options[this.menu.selectedIndex].value;
+        const attributes = {
+            x : document.getElementById('compositorXGeometry').value,
+            y : document.getElementById('compositorYGeometry').value,
+            w : document.getElementById('compositorWidthGeometry').value,
+            h : document.getElementById('compositorHeightGeometry').value
+        };
+
+        return this.geometry(client, attributes)
+    }
+
+    resolution(value) {
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/Resolution`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'resolution',
+        };
+
+        if (value !== undefined) {
+            _rest.method = 'POST'
+            _rest.path += `/${value}`
+            _rpc.params = value
+        }
+
+        return this.api.req(_rest, _rpc);
     }
 
     setResolution() {
         var _res = this.resolutionsList.options[this.resolutionsList.selectedIndex].value;
-
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/Resolution/${_res}`
-        };
-
-        const _rpc = {
-            plugin : this.callsign,
-            method : 'action',
-            params : { client: client }
-        };
-
-        // FIXME: no rpc interface defined
-        this.api.req(_rest);
+        return this.resolution(_res)
     }
 
 }
