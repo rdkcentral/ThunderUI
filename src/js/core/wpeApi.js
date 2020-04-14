@@ -28,6 +28,7 @@ export default class WpeApi {
         this.mainDiv = document.getElementById('main');
 
         this.socket = null;
+        this.plugins = undefined
 
         this.host = host.split(':');
         if (!this.host[1]) this.host[1] = 80;
@@ -144,6 +145,10 @@ export default class WpeApi {
 
     // The only call we do directly, others are through the individual plugins
     getControllerPlugins() {
+        //if cache is available, return it
+        if (this.plugins !== undefined)
+            return Promise.resolve(this.plugins)
+
         const _rest = {
             method  : 'GET',
             path    : 'Controller/Plugins'
@@ -154,7 +159,11 @@ export default class WpeApi {
             method : 'status'
         };
 
-        return this.req(_rest, _rpc);
+        return this.req(_rest, _rpc).then(plugins => {
+            //cache the response
+            this.plugins = plugins
+            return plugins
+        });
     }
 
     startWebShell(callback) {
