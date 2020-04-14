@@ -173,7 +173,9 @@ class Monitor extends Plugin {
 
             var text = document.createElement('div');
             text.className = "text grid__col grid__col--6-of-8";
-            text.innerHTML = this.bytesToMbString(measurementData.resident[i]);
+            let memoryData = measurementData.resident[i];
+            if (measurementData.shared[i]) memoryData -= measurementData.shared[i];
+            text.innerHTML = this.bytesToMbString(memoryData);
             div.appendChild(text);
         }
 
