@@ -147,6 +147,12 @@ class Compositor extends Plugin {
             <button type="button" id="webkit_hide">Hide</button>
             <button type="button" id="webkit_show">Show</button>
         </div>
+        <div class="label grid__col grid__col--2-of-8">
+            Lifecycle
+        </div>
+        <div class="text grid__col grid__col--6-of-8">
+            <button type="button" id="kill">Kill</button>
+        </div>
         <div class="text grid__col grid__col--8-of-8"></div>
         <div class="title grid__col grid__col--8-of-8">
             Geometry
@@ -191,6 +197,7 @@ class Compositor extends Plugin {
         document.getElementById('webkit_show').onclick              = this.compositorVisible.bind(this, 'Show');
         document.getElementById('compositorGeometry').onclick       = this.compositorSetGeometry.bind(this);
         document.getElementById('compositorClients').onchange       = this.clientChange.bind(this);
+        document.getElementById('kill').onclick                     = this.kill.bind(this)
 
         var menu = document.getElementById('compositorClients');
         menu.innerHTML = '';
@@ -357,6 +364,20 @@ class Compositor extends Plugin {
     setResolution() {
         var _res = this.resolutionsList.options[this.resolutionsList.selectedIndex].value;
         return this.resolution(_res)
+    }
+
+    kill() {
+        const client = this.menu.options[this.menu.selectedIndex].value;
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'kill',
+            params : {
+                client: client
+            }
+        };
+
+        return this.api.req(null, _rpc).then( this.render() )
     }
 
 }
