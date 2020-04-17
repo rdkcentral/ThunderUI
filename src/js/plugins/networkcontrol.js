@@ -47,34 +47,36 @@ class NetworkControl extends Plugin {
             </select>
           </div>
           <div class="label grid__col grid__col--2-of-8">
-            IP Address
-          </div>
-          <div id="ip" class="text grid__col grid__col--6-of-8">
-            -
-          </div>
-          <div class="label grid__col grid__col--2-of-8">
-            Broadcast
-          </div>
-          <div id="broadcast" class="text grid__col grid__col--6-of-8">
-            -
-          </div>
-          <div class="label grid__col grid__col--2-of-8">
-            Gateway
-          </div>
-          <div id="gateway" class="text grid__col grid__col--6-of-8">
-            -
-          </div>
-          <div class="label grid__col grid__col--2-of-8">
-            mask
-          </div>
-          <div id="mask" class="text grid__col grid__col--6-of-8">
-            -
-          </div>
-          <div class="label grid__col grid__col--2-of-8">
             mode
           </div>
           <div id="mode" class="text grid__col grid__col--6-of-8">
             -
+          </div>
+          <div id="ipSettings" style="display: none">
+            <div class="label grid__col grid__col--2-of-8">
+              IP Address
+            </div>
+            <div id="ip" class="text grid__col grid__col--6-of-8">
+              -
+            </div>
+            <div class="label grid__col grid__col--2-of-8">
+              Broadcast
+            </div>
+            <div id="broadcast" class="text grid__col grid__col--6-of-8">
+              -
+            </div>
+            <div class="label grid__col grid__col--2-of-8">
+              Gateway
+            </div>
+            <div id="gateway" class="text grid__col grid__col--6-of-8">
+              -
+            </div>
+            <div class="label grid__col grid__col--2-of-8">
+              mask
+            </div>
+            <div id="mask" class="text grid__col grid__col--6-of-8">
+              -
+            </div>
           </div>
 
           <div id="syncLabel" class="label grid__col grid__col--2-of-8">
@@ -83,7 +85,7 @@ class NetworkControl extends Plugin {
           <div class="text grid__col grid__col--6-of-8">
             <button type="button" id="reload" onclick="">Reload</button>
             <button type="button" id="request" onclick="">Request</button>
-            <button type="button" id="assign" onclick="">Assign</button>
+            <!-- <button type="button" id="assign" onclick="">Assign</button> -->
             <button type="button" id="flush" onclick="">Flush</button>
           </div>`;
 
@@ -96,8 +98,8 @@ class NetworkControl extends Plugin {
       let requestButton = document.getElementById('request');
       request.onclick = this.request.bind(this);
 
-      let assignButton = document.getElementById('assign');
-      assignButton.onclick = this.assign.bind(this);
+      //let assignButton = document.getElementById('assign');
+      //assignButton.onclick = this.assign.bind(this);
 
       let flushButton = document.getElementById('flush');
       flushButton.onclick = this.flush.bind(this);
@@ -222,11 +224,17 @@ class NetworkControl extends Plugin {
             this.interfacesOptsEl.selectedIndex = this.selectedNetworkInterface;
             let _selected = this._addresses[this.selectedNetworkInterface];
 
-            this.ipEl.innerHTML         = _selected.address;
-            this.broadcastEl.innerHTML  = _selected.broadcast;
-            this.gatewayEl.innerHTML    = _selected.gateway;
-            this.maskEl.innerHTML       = _selected.mask;
             this.modeEl.innerHTML       = _selected.mode;
+
+            if (_selected.mode !== 'Dynamic') {
+              document.getElementById('ipSettings').style.display = 'block'
+              this.ipEl.innerHTML         = _selected.address;
+              this.broadcastEl.innerHTML  = _selected.broadcast;
+              this.gatewayEl.innerHTML    = _selected.gateway;
+              this.maskEl.innerHTML       = _selected.mask;
+            } else {
+              document.getElementById('ipSettings').style.display = 'none'
+            }
         });
     }
 
