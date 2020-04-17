@@ -29,7 +29,7 @@ class Controller extends Plugin {
         this.plugins = undefined;
         this.mainDiv = undefined;
 
-        this.api.t.on('Controller', 'statechange', data => {
+        this.controllerListener = this.api.t.on('Controller', 'statechange', data => {
             // check if we have a state change
             if (data.state !== undefined && this.rendered === true)
                 this.render();
@@ -342,6 +342,10 @@ class Controller extends Plugin {
     updateSuspendLabel(callsign, nextState) {
         var suspendLabel = document.getElementById(callsign + 'suspendlabel');
         suspendLabel.innerHTML = nextState;
+    }
+
+    close() {
+        if (this.controllerListener && typeof this.controllerListener.dispose === 'function') this.controllerListener.dispose();
     }
 
 }
