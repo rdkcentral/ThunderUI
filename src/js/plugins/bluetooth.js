@@ -202,7 +202,15 @@ class BluetoothControl extends Plugin {
     /* ----------------------------- RENDERING ------------------------------*/
 
     renderScanStatus () {
-        this.scanningStatus.innerHTML = this.scanning === true ? 'ON' : 'OFF';
+        const _rest = {
+            method  : 'GET',
+            path    : this.callsign
+        };
+
+        // unfortunately not supported on JSON RPC yet
+        return this.api.req(_rest, null).then( results => {
+            this.scanningStatus.innerHTML = results.scanning === true ? 'ON' : 'OFF';
+        });
     }
 
     updateDeviceList() {
