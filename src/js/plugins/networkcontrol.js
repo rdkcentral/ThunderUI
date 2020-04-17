@@ -109,7 +109,7 @@ class NetworkControl extends Plugin {
       this.modeEl         = document.getElementById('mode');
 
       // FIXME not documented, guessing
-      this.api.t.on('NetworkControl', 'networkupdate', (data) => {
+      this.networkListener = this.api.t.on('NetworkControl', 'networkupdate', (data) => {
           console.log('NETWORK NOT', data);
           this.update();
       });
@@ -233,6 +233,10 @@ class NetworkControl extends Plugin {
     updateNetworkInterface(deviceInfo) {
         this.selectedNetworkInterface = this.interfacesOptsEl.selectedIndex;
         this.update();
+    }
+
+    close() {
+      if (this.networkListener && typeof this.networkListener.dispose === 'function') this.networkListener.dispose();
     }
 }
 

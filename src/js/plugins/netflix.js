@@ -28,7 +28,7 @@ class Netflix extends Plugin {
         super(pluginData, api);
         this.monitor = undefined;
 
-        this.api.t.on('Netflix', 'visibilitychange', data => {
+        this.netflixVisibilityListener = this.api.t.on('Netflix', 'visibilitychange', data => {
             if (typeof data.hidden === 'boolean') {
                 this.isHidden = data.hidden;
 
@@ -37,7 +37,7 @@ class Netflix extends Plugin {
             }
         });
 
-        this.api.t.on('Netflix', 'statechange', data => {
+        this.netflixStateListener = this.api.t.on('Netflix', 'statechange', data => {
             if (typeof data.suspended === 'boolean') {
                 this.isSuspended = data.suspended;
 
@@ -122,6 +122,8 @@ class Netflix extends Plugin {
 
     close() {
         clearInterval(this.interval);
+        if (this.netflixVisibilityListener && typeof this.netflixVisibilityListener.dispose === 'function') this.netflixVisibilityListener.dispose();
+        if (this.netflixStateListener && typeof this.netflixStateListener.dispose === 'function') this.netflixStateListener.dispose();
     }
 
     toggleSuspend(nextState) {
@@ -141,6 +143,7 @@ class Netflix extends Plugin {
             });
         }
     }
+
 }
 
 export default Netflix;

@@ -156,8 +156,8 @@ class BluetoothControl extends Plugin {
         // ---- Connected Devices -----
         this.deviceList                 = document.getElementById('BT_Devices');
 
-        this.api.t.on("BluetoothControl", "scancomplete",       this.scanComplete.bind(this));
-        this.api.t.on("BluetoothControl", "devicestatechange",  this.render.bind(this));
+        this.scanListener = this.api.t.on("BluetoothControl", "scancomplete",       this.scanComplete.bind(this));
+        this.deviceStateListener = this.api.t.on("BluetoothControl", "devicestatechange",  this.render.bind(this));
 
         this.update()
     }
@@ -385,6 +385,9 @@ class BluetoothControl extends Plugin {
 
     close() {
         clearInterval(this.statusMessageTimer);
+
+        if (this.scanListener && typeof this.scanListener.dispose === 'function') this.scanListener.dispose();
+        if (this.scanListener && typeof this.scanListener.dispose === 'function') this.deviceStateListener.dispose();
     }
 }
 

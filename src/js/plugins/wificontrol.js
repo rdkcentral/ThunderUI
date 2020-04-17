@@ -36,12 +36,12 @@ class WifiControl extends Plugin {
         this.rendered = false;
         this.wlanInterface = 'wlan0'; //FIXME, this can be anything really...
 
-        this.api.t.on('WifiControl', 'scanresults', (data) => {
+        this.wifiScanListener = this.api.t.on('WifiControl', 'scanresults', (data) => {
             if (this.rendered === true)
                 this.getNetworks();
         });
 
-        this.api.t.on('WifiControl', 'connectionchange', (data) => {
+        this.wifiConnectionListener = this.api.t.on('WifiControl', 'connectionchange', (data) => {
             this.connected = data.connected;
 
             if (this.rendered === true)
@@ -542,6 +542,9 @@ class WifiControl extends Plugin {
 
     close() {
         this.rendered = false;
+
+        if (this.wifiConnectionListener && typeof this.wifiConnectionListener.dispose === 'function') this.wifiConnectionListener.dispose();
+        if (this.wifiScanListener && typeof this.wifiScanListener.dispose === 'function') this.wifiScanListener.dispose();
     }
 }
 

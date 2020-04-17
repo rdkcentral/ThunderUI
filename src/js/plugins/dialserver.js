@@ -26,11 +26,11 @@ class DIALServer extends Plugin {
     constructor(pluginData, api) {
         super(pluginData, api);
 
-        this.api.t.on('DIALServer', 'start', (message) => {
+        this.dialListenerStart = this.api.t.on('DIALServer', 'start', (message) => {
             this.dialMessage('start', message);
         });
 
-        this.api.t.on('DIALServer', 'stop', (message) => {
+        this.dialListenerStop = this.api.t.on('DIALServer', 'stop', (message) => {
             this.dialMessage('stop', message);
         });
     }
@@ -58,6 +58,11 @@ class DIALServer extends Plugin {
         div.appendChild(span);
 
         this.statusMessagesEl.appendChild(div);
+    }
+
+    close() {
+        if (this.dialListenerStart && typeof this.dialListenerStart.dispose === 'function') this.dialListenerStart.dispose();
+        if (this.dialListenerStop && typeof this.dialListenerStop.dispose === 'function') this.dialListenerStop.dispose();
     }
 }
 

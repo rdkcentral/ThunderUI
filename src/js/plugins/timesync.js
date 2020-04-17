@@ -83,7 +83,7 @@ class TimeSync extends Plugin {
       this.syncedEl       = document.getElementById('synced');
 
       // FIXME not documented, guessing
-      this.api.t.on('TimeSync', 'update', (data) => {
+      this.timesyncListener = this.api.t.on('TimeSync', 'update', (data) => {
           console.log('TIME NOT', data);
           this.update();
       });
@@ -154,6 +154,10 @@ class TimeSync extends Plugin {
                 this.syncedEl.innerHTML = data.time;
             });
         });
+    }
+
+    close() {
+      if (this.timesyncListener && typeof this.timesyncListener.dispose === 'function') this.timesyncListener.dispose()
     }
 }
 

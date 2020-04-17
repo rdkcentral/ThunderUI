@@ -72,21 +72,21 @@ class Spark extends Plugin {
         ];
 
         //setup notifications
-        this.api.t.on('Spark', 'urlchange', data => {
+        this.sparkUrlListener = this.api.t.on('Spark', 'urlchange', data => {
             if (data.url && data.loaded) {
                 this.url = data.url;
                 this.handleNotification();
             }
         });
 
-        this.api.t.on('Spark', 'visibilitychange', data => {
+        this.sparkVisibilityListener = this.api.t.on('Spark', 'visibilitychange', data => {
             if (typeof data.hidden === 'boolean') {
                 this.isHidden = data.hidden;
                 this.handleNotification();
             }
         });
 
-        this.api.t.on('Spark', 'statechange', data => {
+        this.sparkStateListener = this.api.t.on('Spark', 'statechange', data => {
             if (typeof data.suspended === 'boolean') {
                 this.isSuspended = data.suspended;
                 this.handleNotification();
@@ -149,6 +149,10 @@ class Spark extends Plugin {
 
     close() {
         window.removeEventListener('keydown', this.handleKey.bind(this), false);
+
+        if (this.sparkUrlListener && typeof this.sparkUrlListener.dispose === 'function') this.sparkUrlListener.dispose();
+        if (this.sparkStateListener && typeof this.sparkStateListener.dispose === 'function') this.sparkStateListener.dispose();
+        if (this.sparkVisibilityListener && typeof this.sparkVisibilityListener.dispose === 'function') this.sparkVisibilityListener.dispose();
 
         delete this.socketListenerId;
         delete this.isHidden;
