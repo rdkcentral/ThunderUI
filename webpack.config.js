@@ -30,7 +30,7 @@ module.exports = {
     mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
     devtool: process.env.NODE_ENV === 'production' ? '' : 'source-map',
     resolve: {
-      mainFields: ['cjs', 'browser', 'module', 'main'],
+      mainFields: ['module', 'main', 'browser'],
     },
     plugins: [
         new CopyPlugin([
