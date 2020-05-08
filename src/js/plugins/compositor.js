@@ -211,6 +211,7 @@ class Compositor extends Plugin {
     }
 
     compositorAction(action) {
+        const client = this.menu.options[this.menu.selectedIndex].value;
         const _rpc = {
             plugin : this.callsign,
             method :  action,
