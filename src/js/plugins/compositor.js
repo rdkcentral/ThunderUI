@@ -211,11 +211,9 @@ class Compositor extends Plugin {
     }
 
     compositorAction(action) {
-
-
         const _rpc = {
             plugin : this.callsign,
-            method :  this._rpcMapping[action],
+            method :  action,
             params : { client: client }
         };
 
