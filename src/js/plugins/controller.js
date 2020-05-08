@@ -28,15 +28,7 @@ class Controller extends Plugin {
         super(pluginData, api);
         this.plugins = undefined;
         this.mainDiv = undefined;
-
-        this.controllerListener = this.api.t.on('Controller', 'statechange', data => {
-            // check if we have a state change
-            if (data.state !== undefined && this.rendered === true)
-                this.render();
-
-            if (data.suspended !== undefined && this.rendered === true)
-                this.render();
-        });
+        this.controllerListener = undefined;
     }
 
     /**
@@ -232,6 +224,17 @@ class Controller extends Plugin {
     }
 
     render() {
+        if (!this.controllerListener) {
+            this.controllerListener = this.api.t.on('Controller', 'statechange', data => {
+                // check if we have a state change
+                if (data.state !== undefined && this.rendered === true)
+                    this.render();
+
+                if (data.suspended !== undefined && this.rendered === true)
+                    this.render();
+            });
+        }
+
         this.mainDiv = document.getElementById('main');
         this.mainDiv.innerHTML = `
           <div class="title grid__col grid__col--8-of-8">
@@ -345,9 +348,11 @@ class Controller extends Plugin {
     }
 
     close() {
-        if (this.controllerListener && typeof this.controllerListener.dispose === 'function') this.controllerListener.dispose();
+        if (this.controllerListener && typeof this.controllerListener.dispose === 'function') {
+          this.controllerListener.dispose();
+          this.controllerListener = null;
+        }
     }
-
 }
 
 export default Controller;
