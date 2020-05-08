@@ -26,10 +26,11 @@ class Compositor extends Plugin {
     constructor(pluginData, api) {
         super(pluginData, api);
 
-        this._rpcMapping = {
-            'Top': 'putontop'
-        };
         this.resolutions = ['720p', '720p50Hz', '1080p24Hz', '1080i50Hz', '1080p50Hz', '1080p60Hz'];
+
+        //By default the compositor makes sure that the key input wil always go to the top screen
+        //Unless topHasInput is set to false, if false we can manually decide to which window the input needs to go.
+        this._hideSetInputButton =  pluginData.configuration.topHasInput || pluginData.configuration.topHasInput === undefined || false;
     }
 
     render()        {
@@ -106,16 +107,13 @@ class Compositor extends Plugin {
     }
 
     getClients() {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/Clients`
-        };
 
+        //clients & zorder call are the same.
         const _rpc = {
             plugin : this.callsign,
-            method : 'clients'
+            method : 'zorder'
         };
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     renderControls(clients) {
@@ -127,6 +125,7 @@ class Compositor extends Plugin {
         </div>
         <div class="text grid__col grid__col--6-of-8">
             <button type="button" id="compositorSetTop">Set Top</button>
+            <button style="display: ${this._hideSetInputButton ? 'none': 'inline'}" type="button" id="compositorSetInput">Set Input</button>
         </div>
         <div class="text grid__col grid__col--8-of-8"></div>
         <div class="label grid__col grid__col--2-of-8">
@@ -186,7 +185,8 @@ class Compositor extends Plugin {
             <button type="button" id="compositorGeometry">Set</button>
         </div>`;
 
-        document.getElementById('compositorSetTop').onclick         = this.compositorAction.bind(this, 'Top');
+        document.getElementById('compositorSetTop').onclick         = this.compositorAction.bind(this, 'putontop');
+        document.getElementById('compositorSetInput').onclick       = this.compositorAction.bind(this, 'select');
         document.getElementById('sliderOpacity').onchange           = this.updateValue.bind(this, 'sliderOpacity', 'numOpacity');
         document.getElementById('numOpacity').onchange              = this.updateValue.bind(this, 'numOpacity', 'sliderOpacity');
         document.getElementById('numOpacity').onkeyup               = this.updateValue.bind(this, 'numOpacity', 'sliderOpacity');
@@ -218,12 +218,7 @@ class Compositor extends Plugin {
     }
 
     compositorAction(action) {
-        var client = this.menu.options[this.menu.selectedIndex].value;
 
-        const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}/${client}/${action}`
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -231,7 +226,7 @@ class Compositor extends Plugin {
             params : { client: client }
         };
 
-        this.api.req(_rest,_rpc);
+        this.api.req(null,_rpc);
     }
 
     clientChange() {
