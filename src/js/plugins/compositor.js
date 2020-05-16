@@ -27,10 +27,6 @@ class Compositor extends Plugin {
         super(pluginData, api);
 
         this.resolutions = ['720p', '720p50Hz', '1080p24Hz', '1080i50Hz', '1080p50Hz', '1080p60Hz'];
-
-        //By default the compositor makes sure that the key input wil always go to the top screen
-        //Unless topHasInput is set to false, if false we can manually decide to which window the input needs to go.
-        this._hideSetInputButton =  pluginData.configuration.topHasInput || pluginData.configuration.topHasInput === undefined || false;
     }
 
     render()        {
@@ -125,7 +121,7 @@ class Compositor extends Plugin {
         </div>
         <div class="text grid__col grid__col--6-of-8">
             <button type="button" id="compositorSetTop">Set Top</button>
-            <button style="display: ${this._hideSetInputButton ? 'none': 'inline'}" type="button" id="compositorSetInput">Set Input</button>
+            <button type="button" id="compositorSetInput">Set Input</button>
         </div>
         <div class="text grid__col grid__col--8-of-8"></div>
         <div class="label grid__col grid__col--2-of-8">
