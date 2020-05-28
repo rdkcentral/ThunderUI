@@ -26,7 +26,7 @@ class Compositor extends Plugin {
     constructor(pluginData, api) {
         super(pluginData, api);
 
-        this.resolutions = ['720p', '720p50Hz', '1080p24Hz', '1080i50Hz', '1080p50Hz', '1080p60Hz'];
+        this.resolutions = ['720p', '720p50Hz', '1080p24Hz', '1080i50Hz', '1080p50Hz', '1080p60Hz', '2160p50Hz', '2160p60Hz'];
     }
 
     render()        {
