@@ -318,7 +318,7 @@ class WebKitBrowser extends Plugin {
     }
 
     reloadUrl() {
-        this.setUrl(this.callsign, document.getElementById(this.callsign + '_current_url').innerHTML);
+        this.setUrl(this._url);
     }
 
     getAndSetUrlFromPresets() {
