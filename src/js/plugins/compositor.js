@@ -128,8 +128,8 @@ class Compositor extends Plugin {
             Opacity
         </div>
         <div class="text grid__col grid__col--6-of-8">
-            <input id="sliderOpacity" type="range" min="0" max="256" step="1" value="256"/>
-            <input id="numOpacity" type="number" min="0" max="256"  size="5" value="256"/>
+            <input id="sliderOpacity" type="range" min="0" max="255" step="1" value="255"/>
+            <input id="numOpacity" type="number" min="0" max="255"  size="5" value="255"/>
         </div>
         <div class="label grid__col grid__col--2-of-8"></div>
         <div class="text grid__col grid__col--6-of-8">
