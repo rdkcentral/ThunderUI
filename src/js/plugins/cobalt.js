@@ -61,11 +61,13 @@ class Cobalt extends WebKitBrowser {
                     <button id="{{callsign}}SuspendButton" type="button"></button>
             </div>
 
-            <div class="label grid__col grid__col--2-of-8">Visibility</div>
-            <div id="{{callsign}}VisibilityStateInfo" class="text grid__col grid__col--6-of-8"></div>
-            <div class="label grid__col grid__col--2-of-8"></div>
-            <div class="text grid__col grid__col--6-of-8">
-                <button type="button" id="{{callsign}}VisibilityButton">HIDE</button>
+            <div style="display:none;">
+	            <div class="label grid__col grid__col--2-of-8">Visibility</div>
+	            <div id="{{callsign}}VisibilityStateInfo" class="text grid__col grid__col--6-of-8"></div>
+	            <div class="label grid__col grid__col--2-of-8"></div>
+	            <div class="text grid__col grid__col--6-of-8">
+	                <button type="button" id="{{callsign}}VisibilityButton">HIDE</button>
+	            </div>
             </div>
 
             <div style="visibility:hidden;">
