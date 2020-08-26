@@ -83,7 +83,7 @@ class PlayerInfo extends Plugin {
       params: dolbymod
     };
 
-    this.api.req(_rest, null);
+    this.api.req(_rest, _rpc);
   }
 
   setDolbymode() {
