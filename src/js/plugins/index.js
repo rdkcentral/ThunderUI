@@ -21,6 +21,8 @@ import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
 import Controller from './controller.js';
 import DeviceInfo from './deviceinfo.js';
+import DisplayInfo from './displayInfo.js';
+import PlayerInfo from './playerInfo.js';
 import DialServer from './dialserver.js';
 import LocationSync from './locationsync.js';
 import IOConnector from './ioconnector.js';
@@ -47,6 +49,8 @@ export default {
     Compositor,
     Controller,
     DeviceInfo,
+    DisplayInfo,
+    PlayerInfo,
     DialServer,
     LocationSync,
     IOConnector,
