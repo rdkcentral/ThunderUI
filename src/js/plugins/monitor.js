@@ -33,14 +33,14 @@ class Monitor extends Plugin {
     }
 
     getMemoryInfo(plugin) {
-       const _rest = {
-            method  : 'GET',
-            path    : 'Monitor'
+        const _rest = {
+            method: 'GET',
+            path: 'Monitor'
         };
 
         const _rpc = {
-            plugin : 'Monitor',
-            method : 'status'
+            plugin: 'Monitor',
+            method: 'status'
         };
 
         return this.api.req(_rest, _rpc);
@@ -51,27 +51,27 @@ class Monitor extends Plugin {
         mainDiv.innerHTML = `<div class="title grid__col grid__col--8-of-8"></div>
         <table class="title grid__col grid__col--8-of-8">
         <tr><td><div class="text grid__col grid__col--6-of-8">Observables</div></td>
-        <td><div class="text grid__col grid__col--6-of-8">
-            <select id="observables" style="width: fit-content;"></select>                   </div></td><td rowspan="4">
+        <td><div class="text grid__col grid__col--6-of-8" style="width: 400px;">
+            <select id="observables"></select>                   </div></td><td rowspan="4">
         <div id="plugOutput"></div></td></tr><tr><td>
-        <div class="text grid__col grid__col--6-of-8">RestartThreshold</div></td><td><div class="text grid__col grid__col--6-of-8"><select id="restart" style="width: -webkit-fill-available;"> </select>
+        <div class="text grid__col grid__col--6-of-8">RestartThreshold</div></td><td><div class="text grid__col grid__col--6-of-8" style="width: 400px;"><select id="restart"> </select>
         </div> </td></tr><tr><td></td><td>
         <div class="text grid__col grid__col--6-of-8">
-            <button type="button" id="setRestart" style="width: 100%;"> Set</button></div></td></tr></table>`;
+            <button type="button" id="setRestart"> Set</button></div></td></tr></table>`;
 
         this.getObservableList();
 
-        this.observableListEl              = document.getElementById('observables');
-        this.restartListEl                 = document.getElementById('restart');
+        this.observableListEl = document.getElementById('observables');
+        this.restartListEl = document.getElementById('restart');
 
-        this.bt_setRestart                 = document.getElementById('setRestart');
-        this.bt_setRestart.onclick         = this.setRestartThreshold.bind(this);
+        this.bt_setRestart = document.getElementById('setRestart');
+        this.bt_setRestart.onclick = this.setRestartThreshold.bind(this);
     }
 
     getObservableList() {
         this.status().then(data => {
             var plugins = [];
-            for (var i=0; i<data.length; i++) {
+            for (var i = 0; i < data.length; i++) {
                 plugins[i] = data[i].name ? data[i].name : data[i].observable;
             }
             this.observablesList = plugins;
@@ -79,41 +79,41 @@ class Monitor extends Plugin {
         });
     }
     renderObservables() {
-         this.observableListEl.innerHTML = '';
-         for (var i=0; i<this.observablesList.length; i++){
+        this.observableListEl.innerHTML = '';
+        for (var i = 0; i < this.observablesList.length; i++) {
             var newChild = this.observableListEl.appendChild(document.createElement("option"));
             newChild.innerHTML = `${this.observablesList[i]}`;
-         }
-         var restartLimit= [];
-         for (i=1; i<=20; i++) {
+        }
+        var restartLimit = [];
+        for (i = 1; i <= 20; i++) {
             restartLimit[i] = i;
-         }
-         this.restartList = restartLimit;
-         this.restartListEl.innerHTML = '';
-         for (i=1; i<=20; i++) {
-           var newOptionChild = this.restartListEl.appendChild(document.createElement("option"));
-           newOptionChild.innerHTML = `${this.restartList[i]}`;
+        }
+        this.restartList = restartLimit;
+        this.restartListEl.innerHTML = '';
+        for (i = 1; i <= 20; i++) {
+            var newOptionChild = this.restartListEl.appendChild(document.createElement("option"));
+            newOptionChild.innerHTML = `${this.restartList[i]}`;
         }
     }
-    setRestartThreshold(){
+    setRestartThreshold() {
         const i = observables.selectedIndex;
-        const restbody = '{"observable" : "' + observables.options[i].text + '","restartlimit" :"' +restart.value+'"}';
+        const restbody = '{"observable" : "' + observables.options[i].text + '","restartlimit" :"' + restart.value + '"}';
 
         const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}`,
-            body    : restbody
+            method: 'POST',
+            path: `${this.callsign}`,
+            body: restbody
         };
 
         const _rpc = {
-            plugin : this.callsign,
-            method : 'restartlimits',
-            params : {
+            plugin: this.callsign,
+            method: 'restartlimits',
+            params: {
                 callsign: observables.options[i].text,
                 operational: {
                     limit: restart.value
                 },
-                memory : {
+                memory: {
                     limit: restart.value
                 }
             }
@@ -125,11 +125,11 @@ class Monitor extends Plugin {
     getMonitorDataAndDiv(plugin, callback) {
         var self = this;
 
-        return new Promise( (resolve, reject) => {
-            this.getMemoryInfo(plugin).then( data => {
+        return new Promise((resolve, reject) => {
+            this.getMemoryInfo(plugin).then(data => {
                 // Monitor returns a list of measurements, find the right plugin and return it to the callback
 
-                let pluginData = data.filter( _p => {
+                let pluginData = data.filter(_p => {
                     if (_p.observable === plugin || _p.name === plugin)
                         return true
                     else
@@ -137,7 +137,7 @@ class Monitor extends Plugin {
                 });
 
                 if (pluginData && pluginData[0])
-                    resolve( self.createMonitorDiv(pluginData[0]) );
+                    resolve(self.createMonitorDiv(pluginData[0]));
                 else
                     reject();
             });
