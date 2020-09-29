@@ -21,56 +21,56 @@
 import Plugin from '../core/plugin.js';
 
 class DeviceIdentification extends Plugin {
-  constructor(pluginData, api) {
-    super(pluginData, api);
-    this.displayName = 'Device Identification';
-  }
+    constructor(pluginData, api) {
+        super(pluginData, api);
+        this.displayName = 'Device Identification';
+    }
 
-  render() {
-    var mainDiv = document.getElementById('main');
+    render() {
+        var mainDiv = document.getElementById('main');
 
-    mainDiv.innerHTML = `
-        <div class="title grid__col grid__col--8-of-8">
-            Device Identification
-        </div>
-        <div class="label grid__col grid__col--2-of-8">
-            Firmware Version
-        </div>
-        <div id="firmware_version" class="text grid__col grid__col--6-of-8">
-            -
-        </div>
-        <div class="label grid__col grid__col--2-of-8">
-            Chip set
-        </div>
-        <div id="chipset" class="text grid__col grid__col--6-of-8">
-            -
-        </div>
-                `;
-    this.firmware_version = document.getElementById('firmware_version');
-    this.chipset = document.getElementById('chipset');
-    this.update();
-  }
+        mainDiv.innerHTML = `
+            <div class="title grid__col grid__col--8-of-8">
+                Device Identification
+            </div>
+            <div class="label grid__col grid__col--2-of-8">
+                Firmware Version
+            </div>
+            <div id="firmware_version" class="text grid__col grid__col--6-of-8">
+                -
+            </div>
+            <div class="label grid__col grid__col--2-of-8">
+                Chip set
+            </div>
+            <div id="chipset" class="text grid__col grid__col--6-of-8">
+                -
+            </div>
+                    `;
+        this.firmware_version = document.getElementById('firmware_version');
+        this.chipset = document.getElementById('chipset');
+        this.update();
+    }
 
-  deviceIdentification() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
+    deviceIdentification() {
+        const _rest = {
+          method: 'GET',
+          path: `${this.callsign}`,
+        };
 
-    const _rpc = {
-      plugin: this.callsign,
-      method: 'deviceidentification',
-    };
+        const _rpc = {
+          plugin: this.callsign,
+          method: 'deviceidentification',
+        };
 
-    return this.api.req(_rest, _rpc);
-  }
+        return this.api.req(_rest, _rpc);
+    }
 
-  update() {
-    this.deviceIdentification().then(response => {
-      this.firmware_version.innerHTML = response.firmwareversion;
-      this.chipset.innerHTML = response.chipset;
-    });
-  }
+    update() {
+        this.deviceIdentification().then(response => {
+          this.firmware_version.innerHTML = response.firmwareversion;
+          this.chipset.innerHTML = response.chipset;
+        });
+    }
 }
 
 export default DeviceIdentification;
