@@ -21,18 +21,17 @@
 import Plugin from '../core/plugin.js';
 
 class FrameRate extends Plugin {
-	constructor(pluginData, api) {
-		super(pluginData, api);
+  constructor(pluginData, api) {
+    super(pluginData, api);
 
-		this.renderInMenu = true;
-		this.displayName = 'Frame Rate';
-		this.mainDiv = document.getElementById('main');
+    this.renderInMenu = true;
+    this.displayName = 'Frame Rate';
+    this.mainDiv = document.getElementById('main');
 
-		this.template = `
+    this.template = `
 			<div class="title grid__col grid__col--8-of-8">
 				Frame Rate
 			</div>
-
 			<div class="label grid__col grid__col--2-of-8">
 				Collection frequency (in ms)
 			</div>
@@ -70,112 +69,111 @@ class FrameRate extends Plugin {
 				<button id="fps_button" type="button">UPDATE</button>
 			</div>
             `;
-	}
+  }
 
-	render() {
-		this.mainDiv.innerHTML = this.template;
-		this.minFps = document.getElementById('Min_FPS');
-		this.maxFps = document.getElementById('Max_FPS');
-		this.avgFps = document.getElementById('Avg_FPS');
-		this.frequencyButton = document.getElementById('frequency_button');
-		this.fpsButton = document.getElementById('fps_button');
-		this.stopButton = document.getElementById('stop_button');
-		this.fps = document.getElementById('fps');
-		this.frequency = document.getElementById('freq');
-		this.frequencyButton.onclick = this.set.bind(this);
-		this.fpsButton.onclick = this.update.bind(this);
-		this.stopButton.onclick = this.stopCollection.bind(this);
-		this.onFpsEvent = this.api.t.on(this.callsign, 'onFpsEvent', notification => {
-			this.minFps.innerHTML = notification.min;
-			this.maxFps.innerHTML = notification.max;
-			this.avgFps.innerHTML = notification.average;
-		});
-	}
+  render() {
+    this.mainDiv.innerHTML = this.template;
+    this.minFps = document.getElementById('Min_FPS');
+    this.maxFps = document.getElementById('Max_FPS');
+    this.avgFps = document.getElementById('Avg_FPS');
+    this.frequencyButton = document.getElementById('frequency_button');
+    this.fpsButton = document.getElementById('fps_button');
+    this.stopButton = document.getElementById('stop_button');
+    this.fps = document.getElementById('fps');
+    this.frequency = document.getElementById('freq');
+    this.frequencyButton.onclick = this.set.bind(this);
+    this.fpsButton.onclick = this.update.bind(this);
+    this.stopButton.onclick = this.stopCollection.bind(this);
+    this.onFpsEvent = this.api.t.on(this.callsign, 'onFpsEvent', notification => {
+      this.minFps.innerHTML = notification.min;
+      this.maxFps.innerHTML = notification.max;
+      this.avgFps.innerHTML = notification.average;
+    });
+  }
 
-	setFrequency(frequency) {
-		const _rest = {
-			method: 'PUT',
-			path: `${this.callsign}`,
-		};
+  setFrequency(frequency) {
+    const _rest = {
+      method: 'PUT',
+      path: `${this.callsign}`,
+    };
 
-		const _rpc = {
-			plugin: this.callsign,
-			method: 'setCollectionFrequency',
-			params: { frequency: frequency },
-		};
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'setCollectionFrequency',
+      params: { frequency: frequency },
+    };
 
-		return this.api.req(_rest, _rpc);
-	}
+    return this.api.req(_rest, _rpc);
+  }
 
-	updateFrequency(fps) {
-		const _rest = {
-			method: 'PUT',
-			path: `${this.callsign}`,
-		};
+  updateFrequency(fps) {
+    const _rest = {
+      method: 'PUT',
+      path: `${this.callsign}`,
+    };
 
-		const _rpc = {
-			plugin: this.callsign,
-			method: 'updateFps',
-			params: { newFpsValue: parseInt(fps) },
-		};
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'updateFps',
+      params: { newFpsValue: parseInt(fps) },
+    };
 
-		return this.api.req(_rest, _rpc);
-	}
+    return this.api.req(_rest, _rpc);
+  }
 
-	update() {
-		this.updateFrequency(this.fps.value);
-	}
+  update() {
+    this.updateFrequency(this.fps.value);
+  }
 
-	set() {
-		if (this.frequency.checkValidity()) {
-			this.setFrequency(this.frequency.value).then(() => {
-				this.stop().then(() => {
-					this.start();
-				});
-			});
-		}
-	}
+  set() {
+    if (this.frequency.checkValidity()) {
+      this.setFrequency(this.frequency.value).then(() => {
+        this.stop().then(() => {
+          this.start();
+        });
+      });
+    }
+  }
 
-	start() {
-		const _rest = {
-			method: 'GET',
-			path: `${this.callsign}`,
-		};
+  start() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`,
+    };
 
-		const _rpc = {
-			plugin: this.callsign,
-			method: 'startFpsCollection',
-		};
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'startFpsCollection',
+    };
 
-		return this.api.req(_rest, _rpc);
-	}
+    return this.api.req(_rest, _rpc);
+  }
 
-	stopCollection() {
-		this.stop().then(() => {
-			this.minFps.innerHTML = '-';
-			this.maxFps.innerHTML = '-';
-			this.avgFps.innerHTML = '-';
-		});
-	}
+  stopCollection() {
+    this.stop().then(() => {
+      this.minFps.innerHTML = '-';
+      this.maxFps.innerHTML = '-';
+      this.avgFps.innerHTML = '-';
+    });
+  }
 
-	stop() {
-		const _rest = {
-			method: 'GET',
-			path: `${this.callsign}`,
-		};
+  stop() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`,
+    };
 
-		const _rpc = {
-			plugin: this.callsign,
-			method: 'stopFpsCollection',
-		};
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'stopFpsCollection',
+    };
 
-		return this.api.req(_rest, _rpc);
-	}
+    return this.api.req(_rest, _rpc);
+  }
 
-	close() {
-		this.stopCollection()
-	}
-
+  close() {
+    this.stopCollection();
+  }
 }
 
 export default FrameRate;

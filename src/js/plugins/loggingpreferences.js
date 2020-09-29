@@ -21,18 +21,17 @@
 import Plugin from '../core/plugin.js';
 
 class LoggingPreferences extends Plugin {
-	constructor(pluginData, api) {
-		super(pluginData, api);
+  constructor(pluginData, api) {
+    super(pluginData, api);
 
-		this.renderInMenu = true;
-		this.displayName = 'Logging Preferences';
-		this.mainDiv = document.getElementById('main');
+    this.renderInMenu = true;
+    this.displayName = 'Logging Preferences';
+    this.mainDiv = document.getElementById('main');
 
-		this.template = `
+    this.template = `
 			<div class="title grid__col grid__col--8-of-8">
 				Logging Preferences
 			</div>
-
 			<div class="label grid__col grid__col--2-of-8">
 				Keystroke Mask
 			</div>
@@ -45,69 +44,69 @@ class LoggingPreferences extends Plugin {
 				-
 			</div>
             `;
-	}
+  }
 
-	getKeyStrokeMask() {
-		const _rest = {
-			method: 'GET',
-			path: `${this.callsign}`,
-		};
+  getKeyStrokeMask() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`,
+    };
 
-		const _rpc = {
-			plugin: this.callsign,
-			method: 'isKeystrokeMaskEnabled',
-		};
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'isKeystrokeMaskEnabled',
+    };
 
-		return this.api.req(_rest, _rpc);
-	}
+    return this.api.req(_rest, _rpc);
+  }
 
-	setKeyStrokeMask(bool) {
-		const _rest = {
-			method: 'PUT',
-			path: `${this.callsign}`,
-		};
+  setKeyStrokeMask(bool) {
+    const _rest = {
+      method: 'PUT',
+      path: `${this.callsign}`,
+    };
 
-		const _rpc = {
-			plugin: this.callsign,
-			method: 'setKeystrokeMaskEnabled',
-			params: { keystrokeMaskEnabled: bool },
-		};
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'setKeystrokeMaskEnabled',
+      params: { keystrokeMaskEnabled: bool },
+    };
 
-		return this.api.req(_rest, _rpc);
-	}
+    return this.api.req(_rest, _rpc);
+  }
 
-	update() {
-		this.getKeyStrokeMask().then(response => {
-			if (response.keystrokeMaskEnabled) {
-				this.logPreference.checked = true;
-				this.keyStroke.innerHTML = 'Enabled';
-			} else if (!response.keystrokeMaskEnabled) {
-				this.logPreference.checked = false;
-				this.keyStroke.innerHTML = 'Disabled';
-			}
-		});
-	}
+  update() {
+    this.getKeyStrokeMask().then(response => {
+      if (response.keystrokeMaskEnabled) {
+        this.logPreference.checked = true;
+        this.keyStroke.innerHTML = 'Enabled';
+      } else if (!response.keystrokeMaskEnabled) {
+        this.logPreference.checked = false;
+        this.keyStroke.innerHTML = 'Disabled';
+      }
+    });
+  }
 
-	render() {
-		this.mainDiv.innerHTML = this.template;
-		this.keyStroke = document.getElementById('KeyStrokeMaskStatus');
-		this.logPreference = document.getElementById('LogPreference');
-		this.update();
-		this.logPreference.onclick = this.mask.bind(this);
-		this.onKeystrokeMaskEnabledChange = this.api.t.on(
-			this.callsign,
-			'onKeystrokeMaskEnabledChange',
-			this.update.bind(this)
-		);
-	}
+  render() {
+    this.mainDiv.innerHTML = this.template;
+    this.keyStroke = document.getElementById('KeyStrokeMaskStatus');
+    this.logPreference = document.getElementById('LogPreference');
+    this.update();
+    this.logPreference.onclick = this.mask.bind(this);
+    this.onKeystrokeMaskEnabledChange = this.api.t.on(
+      this.callsign,
+      'onKeystrokeMaskEnabledChange',
+      this.update.bind(this)
+    );
+  }
 
-	mask() {
-		if (this.logPreference.checked) {
-			this.setKeyStrokeMask(true);
-		} else if (!this.logPreference.checked) {
-			this.setKeyStrokeMask(false);
-		}
-	}
+  mask() {
+    if (this.logPreference.checked) {
+      this.setKeyStrokeMask(true);
+    } else if (!this.logPreference.checked) {
+      this.setKeyStrokeMask(false);
+    }
+  }
 }
 
 export default LoggingPreferences;

@@ -21,14 +21,14 @@
 import Plugin from '../core/plugin.js';
 
 class HdcpProfile extends Plugin {
-	constructor(pluginData, api) {
-		super(pluginData, api);
+  constructor(pluginData, api) {
+    super(pluginData, api);
 
-		this.renderInMenu = true;
-		this.displayName = 'HDCP Profile';
-		this.mainDiv = document.getElementById('main');
+    this.renderInMenu = true;
+    this.displayName = 'HDCP Profile';
+    this.mainDiv = document.getElementById('main');
 
-		this.template = `
+    this.template = `
 		<div class="title grid__col grid__col--8-of-8">
 			HDCP Status
 		</div>
@@ -74,69 +74,69 @@ class HdcpProfile extends Plugin {
 		<div id="current_version" class="text grid__col grid__col--6-of-8">
 			-
 		</div>
-     `;
-	}
+     	`;
+  }
 
-	render() {
-		this.mainDiv.innerHTML = this.template;
-		this.hdcpSupport = document.getElementById('hdcp_support');
-		this.hdcpConnect = document.getElementById('hdcp_connect');
-		this.hdcpCompliant = document.getElementById('hdcp_compliant');
-		this.hdcpEnabled = document.getElementById('hdcp_enabled');
-		this.hdcpVersion = document.getElementById('hdcp_version');
-		this.receiverVersion = document.getElementById('receiver_version');
-		this.currentVersion = document.getElementById('current_version');
-		this.getStbSupport().then(res => {
-			this.hdcpSupport.innerHTML = res.isHDCPSupported;
-		});
-		this.update();
-		this.onDisplayChange = this.api.t.on(this.callsign, 'onDisplayConnectionChanged', notification => {
-			this.updateData(notification.HDCPStatus);
-		});
-	}
+  render() {
+    this.mainDiv.innerHTML = this.template;
+    this.hdcpSupport = document.getElementById('hdcp_support');
+    this.hdcpConnect = document.getElementById('hdcp_connect');
+    this.hdcpCompliant = document.getElementById('hdcp_compliant');
+    this.hdcpEnabled = document.getElementById('hdcp_enabled');
+    this.hdcpVersion = document.getElementById('hdcp_version');
+    this.receiverVersion = document.getElementById('receiver_version');
+    this.currentVersion = document.getElementById('current_version');
+    this.getStbSupport().then(res => {
+      this.hdcpSupport.innerHTML = res.isHDCPSupported;
+    });
+    this.update();
+    this.onDisplayChange = this.api.t.on(this.callsign, 'onDisplayConnectionChanged', notification => {
+      this.updateData(notification.HDCPStatus);
+    });
+  }
 
-	update() {
-		this.getHdcpStatus().then(result => {
-			this.updateData(result.HDCPStatus);
-		});
-	}
+  update() {
+    this.getHdcpStatus().then(result => {
+      this.updateData(result.HDCPStatus);
+    });
+  }
 
-	updateData(status) {
-		this.hdcpConnect.innerHTML = status.isConnected;
-		this.hdcpCompliant.innerHTML = status.isHDCPCompliant;
-		this.hdcpEnabled.innerHTML = status.isHDCPEnabled;
-		this.hdcpVersion.innerHTML = status.supportedHDCPVersion;
-		this.receiverVersion.innerHTML = status.receiverHDCPVersion;
-		this.currentVersion.innerHTML = status.currentHDCPVersion;
-	}
+  updateData(status) {
+    this.hdcpConnect.innerHTML = status.isConnected;
+    this.hdcpCompliant.innerHTML = status.isHDCPCompliant;
+    this.hdcpEnabled.innerHTML = status.isHDCPEnabled;
+    this.hdcpVersion.innerHTML = status.supportedHDCPVersion;
+    this.receiverVersion.innerHTML = status.receiverHDCPVersion;
+    this.currentVersion.innerHTML = status.currentHDCPVersion;
+  }
 
-	getStbSupport() {
-		const _rest = {
-			method: 'GET',
-			path: `${this.callsign}`,
-		};
+  getStbSupport() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`,
+    };
 
-		const _rpc = {
-			plugin: this.callsign,
-			method: 'getSettopHDCPSupport',
-		};
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'getSettopHDCPSupport',
+    };
 
-		return this.api.req(_rest, _rpc);
-	}
+    return this.api.req(_rest, _rpc);
+  }
 
-	getHdcpStatus() {
-		const _rest = {
-			method: 'GET',
-			path: `${this.callsign}`,
-		};
+  getHdcpStatus() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`,
+    };
 
-		const _rpc = {
-			plugin: this.callsign,
-			method: 'getHDCPStatus',
-		};
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'getHDCPStatus',
+    };
 
-		return this.api.req(_rest, _rpc);
-	}
+    return this.api.req(_rest, _rpc);
+  }
 }
 
 export default HdcpProfile;

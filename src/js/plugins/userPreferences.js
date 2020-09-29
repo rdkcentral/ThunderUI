@@ -21,16 +21,16 @@
 import Plugin from '../core/plugin.js';
 
 class UserPreferences extends Plugin {
-    constructor(pluginData, api) {
-        super(pluginData, api);
-        this.renderInMenu = true;
-        this.displayName = 'User Preferences';
-    }
+  constructor(pluginData, api) {
+    super(pluginData, api);
+    this.renderInMenu = true;
+    this.displayName = 'User Preferences';
+  }
 
-    render() {
-        var mainDiv = document.getElementById('main');
+  render() {
+    var mainDiv = document.getElementById('main');
 
-        mainDiv.innerHTML = `
+    mainDiv.innerHTML = `
             <div class="title grid__col grid__col--8-of-8">
                 User Preferences
             </div>
@@ -48,53 +48,53 @@ class UserPreferences extends Plugin {
                 -
             </div>
                     `;
-        this.current_ui_language = document.getElementById('current_ui_language');
-        this.ui_language = document.getElementById('ui_language');
-        this.set_language = document.getElementById('set_language');
-        this.set_language.onclick = this.updateUIlanguage.bind(this);
-        this.update();
-    }
+    this.current_ui_language = document.getElementById('current_ui_language');
+    this.ui_language = document.getElementById('ui_language');
+    this.set_language = document.getElementById('set_language');
+    this.set_language.onclick = this.updateUIlanguage.bind(this);
+    this.update();
+  }
 
-    setUIlanguage(language) {
-        const _rest = {
-          method: 'GET',
-          path: `${this.callsign}`,
-        };
+  setUIlanguage(language) {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`,
+    };
 
-        const _rpc = {
-          plugin: this.callsign,
-          method: 'setUILanguage',
-          params: { language: language },
-        };
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'setUILanguage',
+      params: { language: language },
+    };
 
-        return this.api.req(_rest, _rpc);
-    }
+    return this.api.req(_rest, _rpc);
+  }
 
-    getUILanguage() {
-        const _rest = {
-          method: 'GET',
-          path: `${this.callsign}`,
-        };
+  getUILanguage() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`,
+    };
 
-        const _rpc = {
-          plugin: this.callsign,
-          method: 'getUILanguage',
-        };
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'getUILanguage',
+    };
 
-        return this.api.req(_rest, _rpc);
-    }
+    return this.api.req(_rest, _rpc);
+  }
 
-    updateUIlanguage() {
-        this.setUIlanguage(this.ui_language.value).then(response => {
-          this.update();
-        });
-    }
+  updateUIlanguage() {
+    this.setUIlanguage(this.ui_language.value).then(response => {
+      this.update();
+    });
+  }
 
-    update() {
-        this.getUILanguage().then(response => {
-          this.current_ui_language.innerHTML = response.language;
-        });
-    }
+  update() {
+    this.getUILanguage().then(response => {
+      this.current_ui_language.innerHTML = response.language;
+    });
+  }
 }
 
 export default UserPreferences;
