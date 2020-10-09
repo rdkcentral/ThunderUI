@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/** HDCP profile plugin allowa start,stop,suspend and resume timers. */
+/** Timer plugin allows start,stop,suspend and resume timers. */
 
 import Plugin from '../core/plugin.js';
 
@@ -29,7 +29,7 @@ class Timer extends Plugin {
     this.mainDiv = document.getElementById('main');
     this.show = false;
     this.length = 0;
-    this.onDisplayChange = this.api.t.on(this.callsign, 'timerExpired', notification => {
+    this.onTimerExpired = this.api.t.on(this.callsign, 'timerExpired', notification => {
       if (this.show) {
         this.showAllTimers();
       }
@@ -46,7 +46,7 @@ class Timer extends Plugin {
           Modes
       </div>
       <div class="text grid__col grid__col--6-of-8">
-          <select id="modes">
+          <select id="modes" class="grid__col--5-of-8">
               <option value="GENERIC">GENERIC</option>
               <option value="WAKE">WAKE</option>
               <option value="SLEEP">SLEEP</option>
@@ -255,6 +255,9 @@ class Timer extends Plugin {
           mainDiv.appendChild(this.spacing);
         }
         this.all_timers.innerHTML = 'Hide';
+      } else {
+        this.show = false;
+        alert('No timers to show');
       }
     });
   }
@@ -291,6 +294,10 @@ class Timer extends Plugin {
 
   close() {
     this.hideTimers();
+    if (this.onTimerExpired && typeof this.onTimerExpired.dispose === 'function') {
+      this.onTimerExpired.dispose();
+      this.onTimerExpired = null;
+    }
   }
 }
 
