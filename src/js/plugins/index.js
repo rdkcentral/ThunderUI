@@ -16,14 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ActivityMonitor from './activitymonitor.js'
+import ActivityMonitor from './activitymonitor.js';
 import BluetoothControl from './bluetooth.js';
 import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
 import Controller from './controller.js';
 import DeviceInfo from './deviceinfo.js';
 import DisplayInfo from './displayInfo.js';
-import FrameRate from './framerate.js'
+import FrameRate from './framerate.js';
 import PlayerInfo from './playerInfo.js';
 import DeviceIdentification from './deviceIdentification.js';
 import DialServer from './dialserver.js';
@@ -44,11 +44,12 @@ import Spark from './spark.js';
 import Switchboard from './switchboard.js';
 import TimeSync from './timesync.js';
 import TraceControl from './tracing.js';
-import UserPreferences from './userPreferences'
+import UserPreferences from './userPreferences';
 import VolumeControl from './volumecontrol.js';
 import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
+import Timer from './timer.js';
 
 export default {
     ActivityMonitor,
@@ -84,4 +85,5 @@ export default {
     WebKitBrowser,
     WebShell,
     WifiControl,
-}
+    Timer,
+};
