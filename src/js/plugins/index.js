@@ -49,6 +49,7 @@ import VolumeControl from './volumecontrol.js';
 import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
+import ScreenCapture from './screencapture.js';
 
 export default {
     ActivityMonitor,
@@ -84,4 +85,5 @@ export default {
     WebKitBrowser,
     WebShell,
     WifiControl,
+    ScreenCapture,
 }
