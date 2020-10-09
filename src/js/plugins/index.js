@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import ActivityMonitor from './activitymonitor.js';
+import AVInput from './avInput.js';
 import BluetoothControl from './bluetooth.js';
 import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
@@ -25,6 +26,7 @@ import DeviceInfo from './deviceinfo.js';
 import DisplayInfo from './displayInfo.js';
 import FrameRate from './framerate.js';
 import PlayerInfo from './playerInfo.js';
+import DeviceDiagnostics from './deviceDiagnostics.js';
 import DeviceIdentification from './deviceIdentification.js';
 import DialServer from './dialserver.js';
 import HdcpProfile from './hdcpprofile.js';
@@ -34,14 +36,17 @@ import IOConnector from './ioconnector.js';
 import Messenger from './messenger';
 import Monitor from './monitor.js';
 import Netflix from './netflix.js';
+import Network from './network.js';
 import NetworkControl from './networkcontrol.js';
 import OCDM from './ocdm.js';
 import Power from './power.js';
 import Provisioning from './provisioning.js';
 import RemoteControl from './remotecontrol.js';
+import ScreenCapture from './screencapture';
 import Snapshot from './snapshot.js';
 import Spark from './spark.js';
 import Switchboard from './switchboard.js';
+import Timer from './timer.js';
 import TimeSync from './timesync.js';
 import TraceControl from './tracing.js';
 import UserPreferences from './userPreferences';
@@ -49,11 +54,10 @@ import VolumeControl from './volumecontrol.js';
 import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
-import ScreenCapture from './screencapture.js';
-import Timer from './timer.js';
 
 export default {
     ActivityMonitor,
+    AVInput,
     BluetoothControl,
     Cobalt,
     Compositor,
@@ -61,6 +65,7 @@ export default {
     DeviceInfo,
     DisplayInfo,
     PlayerInfo,
+    DeviceDiagnostics,
     DeviceIdentification,
     DialServer,
     FrameRate,
@@ -71,14 +76,17 @@ export default {
     Messenger,
     Monitor,
     Netflix,
+    Network,
     NetworkControl,
     OCDM,
     Power,
     Provisioning,
     RemoteControl,
+    ScreenCapture,
     Snapshot,
     Spark,
     Switchboard,
+    Timer,
     TimeSync,
     TraceControl,
     UserPreferences,
@@ -86,7 +94,5 @@ export default {
     WebKitBrowser,
     WebShell,
     WifiControl,
-    ScreenCapture,
-    Timer,
 };
 
