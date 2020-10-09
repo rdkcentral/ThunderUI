@@ -421,6 +421,20 @@ select:focus, textarea:focus {
     max-width: 300px;
 }
 
+#tableLarge {
+    border: 1px solid #FFF;
+    width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#tableMedium {
+    border: 1px solid #FFF;
+    width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #keyboard {
     position: absolute;
     left: 0;
