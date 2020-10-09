@@ -49,6 +49,7 @@ import VolumeControl from './volumecontrol.js';
 import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
+import ScreenCapture from './screencapture.js';
 import Timer from './timer.js';
 
 export default {
@@ -85,5 +86,7 @@ export default {
     WebKitBrowser,
     WebShell,
     WifiControl,
+    ScreenCapture,
     Timer,
 };
+
