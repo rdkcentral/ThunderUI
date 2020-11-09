@@ -234,6 +234,13 @@ class Warehouse extends Plugin {
       }
     });
   }
+
+  close() {
+    if (this.onResetDone && typeof this.onResetDone.dispose === 'function') {
+      this.onResetDone.dispose();
+      this.onResetDone = null;
+    }
+  }
 }
 
 export default Warehouse;
