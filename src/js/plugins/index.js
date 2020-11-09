@@ -30,6 +30,7 @@ import DeviceDiagnostics from './deviceDiagnostics.js';
 import DeviceIdentification from './deviceIdentification.js';
 import DialServer from './dialserver.js';
 import HdcpProfile from './hdcpprofile.js';
+import HdmiInput from './hdmiInput.js';
 import LoggingPreferences from './loggingpreferences.js';
 import LocationSync from './locationsync.js';
 import IOConnector from './ioconnector.js';
@@ -41,6 +42,7 @@ import NetworkControl from './networkcontrol.js';
 import OCDM from './ocdm.js';
 import Power from './power.js';
 import Provisioning from './provisioning.js';
+import RDKShell from './rdkShell.js';
 import RemoteControl from './remotecontrol.js';
 import ScreenCapture from './screencapture';
 import Snapshot from './snapshot.js';
@@ -72,6 +74,7 @@ export default {
     LoggingPreferences,
     LocationSync,
     HdcpProfile,
+    HdmiInput,
     IOConnector,
     Messenger,
     Monitor,
@@ -81,6 +84,7 @@ export default {
     OCDM,
     Power,
     Provisioning,
+    RDKShell,
     RemoteControl,
     ScreenCapture,
     Snapshot,
