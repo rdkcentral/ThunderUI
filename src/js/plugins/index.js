@@ -54,6 +54,7 @@ import VolumeControl from './volumecontrol.js';
 import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
+import Warehouse from './warehouse.js';
 
 export default {
     ActivityMonitor,
@@ -94,5 +95,6 @@ export default {
     WebKitBrowser,
     WebShell,
     WifiControl,
+    Warehouse,
 };
 
