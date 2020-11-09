@@ -435,6 +435,18 @@ select:focus, textarea:focus {
     margin-right: auto;
 }
 
+#trLarge{
+    width: 1000px;
+    border-collapse: collapse;
+}
+
+#td{
+    width: 320px;
+    border: 1px solid #FFF;
+    border-collapse: collapse;
+    text-align: center;
+}
+
 #keyboard {
     position: absolute;
     left: 0;
