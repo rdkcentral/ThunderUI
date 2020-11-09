@@ -55,6 +55,7 @@ import VolumeControl from './volumecontrol.js';
 import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
+import Warehouse from './warehouse.js';
 import WifiManager from './wifiManager.js';
 
 export default {
@@ -97,6 +98,7 @@ export default {
     WebKitBrowser,
     WebShell,
     WifiControl,
+    Warehouse,
     WifiManager,
 };
 
