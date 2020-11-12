@@ -49,6 +49,7 @@ import ScreenCapture from './screencapture';
 import Snapshot from './snapshot.js';
 import Spark from './spark.js';
 import Switchboard from './switchboard.js';
+import SystemServices from './systemServices.js';
 import Timer from './timer.js';
 import TimeSync from './timesync.js';
 import TraceControl from './tracing.js';
@@ -59,6 +60,7 @@ import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
 import Warehouse from './warehouse.js';
 import WifiManager from './wifiManager.js';
+import XCast from './xcast.js'
 
 export default {
     ActivityMonitor,
@@ -94,6 +96,7 @@ export default {
     Snapshot,
     Spark,
     Switchboard,
+    SystemServices,
     Timer,
     TimeSync,
     TraceControl,
@@ -104,5 +107,6 @@ export default {
     WifiControl,
     Warehouse,
     WifiManager,
+    XCast,
 };
 
