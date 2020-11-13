@@ -23,6 +23,7 @@ import Bluetooth from './bluetoothManager.js';
 import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
 import Controller from './controller.js';
+import DataCapture from './dataCapture.js';
 import DeviceInfo from './deviceinfo.js';
 import DisplayInfo from './displayInfo.js';
 import FrameRate from './framerate.js';
@@ -68,6 +69,7 @@ export default {
     Cobalt,
     Compositor,
     Controller,
+    DataCapture,
     DeviceInfo,
     DisplayInfo,
     PlayerInfo,
