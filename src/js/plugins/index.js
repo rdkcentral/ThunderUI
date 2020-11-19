@@ -19,7 +19,7 @@
 import ActivityMonitor from './activitymonitor.js';
 import AVInput from './avInput.js';
 import BluetoothControl from './bluetooth.js';
-import Bluetooth from './bluetoothManager.js';
+import Bluetooth from './rdkservices/bluetoothManager.js';
 import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
 import Controller from './controller.js';
@@ -58,7 +58,7 @@ import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
 import Warehouse from './warehouse.js';
-import WifiManager from './wifiManager.js';
+import WifiManager from './rdkservices/wifiManager.js';
 
 export default {
     ActivityMonitor,
