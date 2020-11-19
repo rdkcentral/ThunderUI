@@ -19,6 +19,7 @@
 import ActivityMonitor from './activitymonitor.js';
 import AVInput from './avInput.js';
 import BluetoothControl from './bluetooth.js';
+import Bluetooth from './rdkservices/bluetoothManager.js';
 import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
 import Controller from './controller.js';
@@ -30,6 +31,7 @@ import DeviceDiagnostics from './deviceDiagnostics.js';
 import DeviceIdentification from './deviceIdentification.js';
 import DialServer from './dialserver.js';
 import HdcpProfile from './hdcpprofile.js';
+import HdmiInput from './hdmiInput.js';
 import LoggingPreferences from './loggingpreferences.js';
 import LocationSync from './locationsync.js';
 import IOConnector from './ioconnector.js';
@@ -41,6 +43,7 @@ import NetworkControl from './networkcontrol.js';
 import OCDM from './ocdm.js';
 import Power from './power.js';
 import Provisioning from './provisioning.js';
+import RDKShell from './rdkShell.js';
 import RemoteControl from './remotecontrol.js';
 import ScreenCapture from './screencapture';
 import Snapshot from './snapshot.js';
@@ -54,11 +57,14 @@ import VolumeControl from './volumecontrol.js';
 import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
+import Warehouse from './warehouse.js';
+import WifiManager from './rdkservices/wifiManager.js';
 
 export default {
     ActivityMonitor,
     AVInput,
     BluetoothControl,
+    Bluetooth,
     Cobalt,
     Compositor,
     Controller,
@@ -72,6 +78,7 @@ export default {
     LoggingPreferences,
     LocationSync,
     HdcpProfile,
+    HdmiInput,
     IOConnector,
     Messenger,
     Monitor,
@@ -81,6 +88,7 @@ export default {
     OCDM,
     Power,
     Provisioning,
+    RDKShell,
     RemoteControl,
     ScreenCapture,
     Snapshot,
@@ -94,5 +102,7 @@ export default {
     WebKitBrowser,
     WebShell,
     WifiControl,
+    Warehouse,
+    WifiManager,
 };
 
