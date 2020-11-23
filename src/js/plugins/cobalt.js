@@ -68,11 +68,9 @@ class Cobalt extends WebKitBrowser {
                 <button type="button" id="{{callsign}}VisibilityButton">HIDE</button>
             </div>
 
-            <div style="visibility:hidden;">
-                <div class="label grid__col grid__col--2-of-8">Web Inspector</div>
-                <div class="text grid__col grid__col--6-of-8">
-                    <button type="button" id="{{callsign}}Inspector">INSPECT</button>
-                </div>
+            <div class="label grid__col grid__col--2-of-8">Web Inspector</div>
+            <div class="text grid__col grid__col--6-of-8">
+                <button type="button" id="{{callsign}}Inspector">INSPECT</button>
             </div>
 
         </div>`;
