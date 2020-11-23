@@ -32,7 +32,7 @@ import PlayerInfo from './playerInfo.js';
 import DeviceDiagnostics from './deviceDiagnostics.js';
 import DeviceIdentification from './deviceIdentification.js';
 import DialServer from './dialserver.js';
-import DisplaySettings from './displaySettings';
+import DisplaySettings from './displaySettings.js';
 import HdcpProfile from './hdcpprofile.js';
 import HdmiInput from './hdmiInput.js';
 import LoggingPreferences from './loggingpreferences.js';
