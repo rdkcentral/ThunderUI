@@ -19,7 +19,7 @@
 import ActivityMonitor from './activitymonitor.js';
 import AVInput from './avInput.js';
 import BluetoothControl from './bluetooth.js';
-import Bluetooth from './bluetoothManager.js';
+import Bluetooth from './rdkservices/bluetoothManager.js';
 import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
 import ContinueWatching from './continueWatching.js';
@@ -50,6 +50,7 @@ import ScreenCapture from './screencapture';
 import Snapshot from './snapshot.js';
 import Spark from './spark.js';
 import Switchboard from './switchboard.js';
+import SystemServices from './systemServices.js';
 import Timer from './timer.js';
 import TimeSync from './timesync.js';
 import TraceControl from './tracing.js';
@@ -59,7 +60,8 @@ import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
 import Warehouse from './warehouse.js';
-import WifiManager from './wifiManager.js';
+import XCast from './xcast.js'
+import WifiManager from './rdkservices/wifiManager.js'
 
 export default {
     ActivityMonitor,
@@ -96,6 +98,7 @@ export default {
     Snapshot,
     Spark,
     Switchboard,
+    SystemServices,
     Timer,
     TimeSync,
     TraceControl,
@@ -106,5 +109,6 @@ export default {
     WifiControl,
     Warehouse,
     WifiManager,
+    XCast,
 };
 
