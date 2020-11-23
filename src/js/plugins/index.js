@@ -24,6 +24,7 @@ import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
 import ContinueWatching from './continueWatching.js';
 import Controller from './controller.js';
+import DataCapture from './dataCapture.js';
 import DeviceInfo from './deviceinfo.js';
 import DisplayInfo from './displayInfo.js';
 import FrameRate from './framerate.js';
@@ -72,6 +73,7 @@ export default {
     Compositor,
     ContinueWatching,
     Controller,
+    DataCapture,
     DeviceInfo,
     DisplayInfo,
     PlayerInfo,
