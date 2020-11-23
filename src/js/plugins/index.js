@@ -22,6 +22,7 @@ import BluetoothControl from './bluetooth.js';
 import Bluetooth from './rdkservices/bluetoothManager.js';
 import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
+import ContinueWatching from './continueWatching.js';
 import Controller from './controller.js';
 import DeviceInfo from './deviceinfo.js';
 import DisplayInfo from './displayInfo.js';
@@ -69,6 +70,7 @@ export default {
     Bluetooth,
     Cobalt,
     Compositor,
+    ContinueWatching,
     Controller,
     DeviceInfo,
     DisplayInfo,

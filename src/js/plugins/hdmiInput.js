@@ -35,7 +35,7 @@ class HdmiInput extends Plugin {
         <div class="text grid__col grid__col--8-of-8">
         HDMI Input Devices
         </div>
-        <div class="title grid__col grid__col--8-of-8">
+        <div class="text grid__col grid__col--8-of-8">
         <table class="text grid__col grid__col--8-of-8" id="input_devices"></table>
         </div>
         <div class="text grid__col grid__col--8-of-8">
