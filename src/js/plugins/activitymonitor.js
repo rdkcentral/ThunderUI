@@ -32,7 +32,7 @@ class ActivityMonitor extends Plugin {
 
     mainDiv.innerHTML = `
             <div class="text grid__col grid__col--2-of-8">
-                Memory Usage for all Applications
+                Memory Usage for all Apps
             </div>
             <div class="text grid__col grid__col--6-of-8">
                 <button type="button" id="memory_all" >Show</button>
@@ -41,7 +41,7 @@ class ActivityMonitor extends Plugin {
                 <ul id="memory_usage"></ul>
             </div>
             <div class="text grid__col grid__col--8-of-8">
-                ApplicationMemoryUsage
+                Application Memory Usage
             </div>
             <div class="label grid__col grid__col--2-of-8">
                 PID
@@ -66,7 +66,7 @@ class ActivityMonitor extends Plugin {
                 Monitoring Applications
             </div>
             <div class="label grid__col grid__col--2-of-8">
-                PID
+                PID (needed)
             </div>
             <div class="text grid__col grid__col--6-of-8">
                 <input type="number" id="pid_monitor">
@@ -85,25 +85,27 @@ class ActivityMonitor extends Plugin {
                 <input type="number" id="cpu_Threshold_Percent">
             </div>
             <div class="label grid__col grid__col--2-of-8">
-                CPU Threshold Second
+                CPU Threshold Sec
             </div>
             <div class="text grid__col grid__col--6-of-8">
                 <input type="number" id="cpu_Threshold_Second">
             </div>
             <div class="label grid__col grid__col--2-of-8">
-                Memory Interval Seconds
+                Memory Interval Sec (needed)
             </div>
             <div class="text grid__col grid__col--6-of-8">
                 <input type="number" id="memory_Interval_Seconds">
             </div>
             <div class="label grid__col grid__col--2-of-8">
-                CPU Interval Seconds
+                CPU Interval Sec
             </div>
             <div class="text grid__col grid__col--6-of-8">
                 <input type="number" id="cpu_Interval_Seconds">
             </div>
-            <div class="text grid__col grid__col--8-of-8">
+            <div class="text grid__col grid__col--2-of-8">
                 <button id="enable_monitoring" type="button">Enable Monitoring</button>
+            </div>
+            <div id = "threshold_reached" class="text grid__col grid__col--2-of-8">
             </div>
                 `;
     this.pid_monitor = document.getElementById('pid_monitor');
@@ -122,28 +124,73 @@ class ActivityMonitor extends Plugin {
     this.memory_all = document.getElementById('memory_all');
     this.memory_all.onclick = this.showMemoryUsageAll.bind(this);
     this.memory_usage = document.getElementById('memory_usage');
+    this.threshold_reached = document.getElementById('threshold_reached');
+    this.onMemoryThresholdOccurred = this.api.t.on(
+      this.callsign,
+      'onMemoryThresholdOccurred',
+      this.memoryThresholdReached.bind(this)
+    );
+    this.onCPUThresholdOccurred = this.api.t.on(
+      this.callsign,
+      'onCPUThresholdOccurred',
+      this.cpuThresholdReached.bind(this)
+    );
+  }
+
+  memoryThresholdReached() {
+    this.threshold_reached.innerHTML = 'Reached Memory Threshold';
+    setTimeout(this.removeMessage, 2000);
+  }
+
+  cpuThresholdReached() {
+    this.threshold_reached.innerHTML = 'Reached CPU Threshold';
+    setTimeout(this.removeMessage, 2000);
+  }
+
+  removeMessage() {
+    this.threshold_reached.innerHTML = '';
   }
 
   doMonitoring() {
+    this.enable_monitoring.disabled = true;
     if (this.enable_monitoring.innerHTML == 'Enable Monitoring') {
-      this.enableMonitoring(
-        this.pid_monitor.value,
-        this.memory_Threshold_MB.value,
-        this.cpu_Threshold_Percent.value,
-        this.cpu_Threshold_Second.value,
-        this.memory_Interval_Seconds.value,
-        this.cpu_Interval_Seconds.value
-      ).then(response => {
-        if (response.success) {
-          this.enable_monitoring.innerHTML = 'Disable Monitoring';
-          this.monitored = true;
-        }
-      });
+      if (this.pid_monitor.value != '' && this.memory_Interval_Seconds.value != '') {
+        this.enableMonitoring(
+          this.pid_monitor.value,
+          this.memory_Threshold_MB.value,
+          this.cpu_Threshold_Percent.value,
+          this.cpu_Threshold_Second.value,
+          this.memory_Interval_Seconds.value,
+          this.cpu_Interval_Seconds.value
+        ).then(response => {
+          if (response.success) {
+            this.enable_monitoring.innerHTML = 'Disable Monitoring';
+            this.monitored = true;
+            this.enable_monitoring.disabled = false;
+          } else {
+            alert('Failed to enable monitoring');
+            this.enable_monitoring.disabled = false;
+          }
+        });
+      } else if (this.pid_monitor.value == '' && this.memory_Interval_Seconds.value == '') {
+        alert('Please provide PID and memory interval second to enable monitoring');
+        this.enable_monitoring.disabled = false;
+      } else if (this.pid_monitor.value == '') {
+        alert('Please provide PID value to enable monitoring');
+        this.enable_monitoring.disabled = false;
+      } else if (this.memory_Interval_Seconds.value == '') {
+        alert('Please provide memory interval seconds to enable monitoring');
+        this.enable_monitoring.disabled = false;
+      }
     } else {
       this.disableMonitoring().then(response => {
         if (response.success) {
           this.enable_monitoring.innerHTML = 'Enable Monitoring';
           this.monitored = false;
+          this.enable_monitoring.disabled = false;
+        } else {
+          alert('Failed to disable monitoring');
+          this.enable_monitoring.disabled = false;
         }
       });
     }
@@ -159,8 +206,9 @@ class ActivityMonitor extends Plugin {
   }
 
   showMemoryUsageAll() {
+    this.memory_all.disabled = true;
     if (this.memory_all.innerHTML == 'Show') {
-      this.getAllMemoryUsage(this.pid.value).then(response => {
+      this.getAllMemoryUsage().then(response => {
         if (response != null) {
           this.length = response.applicationMemory.length;
           for (var i = 0; i < response.applicationMemory.length; i++) {
@@ -202,6 +250,9 @@ class ActivityMonitor extends Plugin {
             this.memory_usage.appendChild(this.li);
             this.memory_all.innerHTML = 'Hide';
           }
+          this.memory_all.disabled = false;
+        } else {
+          this.memory_all.disabled = false;
         }
       });
     } else {
@@ -215,6 +266,7 @@ class ActivityMonitor extends Plugin {
         document.getElementById('spacing_' + i).remove();
         this.memory_all.innerHTML = 'Show';
       }
+      this.memory_all.disabled = false;
     }
   }
 
@@ -292,6 +344,14 @@ class ActivityMonitor extends Plugin {
       this.disableMonitoring().then(response => {
         this.monitored = false;
       });
+    }
+    if (this.onMemoryThresholdOccurred && typeof this.onMemoryThresholdOccurred.dispose === 'function') {
+      this.onMemoryThresholdOccurred.dispose();
+      this.onMemoryThresholdOccurred = null;
+    }
+    if (this.onCPUThresholdOccurred && typeof this.onCPUThresholdOccurred.dispose === 'function') {
+      this.onCPUThresholdOccurred.dispose();
+      this.onCPUThresholdOccurred = null;
     }
   }
 }

@@ -57,7 +57,7 @@ class Messenger extends Plugin {
                 RoomId
             </div>
             <div class="text grid__col grid__col--6-of-8">
-                <select id="room_id">
+                <select class="grid__col grid__col--5-of-8" id="room_id">
                 </select>
             </div>
             <div class="text grid__col grid__col--2-of-8">
@@ -72,7 +72,7 @@ class Messenger extends Plugin {
                 RoomId
             </div>
             <div class="text grid__col grid__col--6-of-8">
-                <select id="message_room_id">
+                <select class="grid__col grid__col--5-of-8" id="message_room_id">
                 </select>
             </div>
             <div class="label grid__col grid__col--2-of-8">
@@ -104,20 +104,38 @@ class Messenger extends Plugin {
   }
 
   doJoinRoom() {
-    this.joinRoom(this.user.value, this.room.value).then(response => {
-      if (response != null && response.roomid) {
-        this.joined_text.innerHTML = 'Joined room ' + response.roomid;
-        setTimeout(this.removeJoinText, 2000);
-        var option1 = document.createElement('option');
-        option1.text = response.roomid;
-        option1.value = response.roomid;
-        this.room_id.appendChild(option1);
-        var option2 = document.createElement('option');
-        option2.text = response.roomid;
-        option2.value = response.roomid;
-        this.message_room_id.appendChild(option2);
-      }
-    });
+    if (
+      this.user.value != '' &&
+      this.room.value != '' &&
+      this.user.value.trim().length != 0 &&
+      this.room.value.trim().length != 0
+    ) {
+      this.joinRoom(this.user.value, this.room.value).then(response => {
+        if (response != null && response.roomid != '') {
+          this.joined_text.innerHTML = 'Joined room ' + response.roomid;
+          setTimeout(this.removeJoinText, 2000);
+          var option1 = document.createElement('option');
+          option1.text = response.roomid;
+          option1.value = response.roomid;
+          this.room_id.appendChild(option1);
+          var option2 = document.createElement('option');
+          option2.text = response.roomid;
+          option2.value = response.roomid;
+          this.message_room_id.appendChild(option2);
+        } else {
+          alert('Failed to join room');
+        }
+      });
+    } else if (
+      (this.user.value == '' && this.room.value == '') ||
+      (this.user.value.trim().length == 0 && this.room.value.trim().length == 0)
+    ) {
+      alert('Please provide user and room value to join the room');
+    } else if (this.user.value == '' || this.user.value.trim().length == 0) {
+      alert('Please provide user value to join the room');
+    } else if (this.room.value == '' || this.room.value.trim().length == 0) {
+      alert('Please provide room value to join the room');
+    }
   }
 
   doLeaveRoom() {
@@ -129,20 +147,33 @@ class Messenger extends Plugin {
           setTimeout(this.removeLeftText, 2000);
           this.room_id.remove(this.roomIdValue);
           this.message_room_id.remove(this.roomIdValue);
+          this.user.value = '';
+          this.room.value = '';
+          this.message.value = '';
+        } else if (response.error != '') {
+          alert('Failed to leave from room');
         }
       });
+    } else {
+      alert('No rooms are available to leave');
     }
   }
 
   doSentMessage() {
     this.messageRoomIdValue = this.message_room_id.selectedIndex;
-    if (this.messageRoomIdValue >= 0) {
-      this.sentMessage(this.message_room_id[this.messageRoomIdValue].value, this.message.value).then(response => {
+    if (this.messageRoomIdValue >= 0 && this.message.value != '' && this.message.value.trim().length != 0) {
+      this.sentMessage(this.message_room_id.value, this.message.value).then(response => {
         if (response == null) {
           this.send_text.innerHTML = 'Message sent to ' + this.message_room_id[this.messageRoomIdValue].value;
           setTimeout(this.removeSendText, 2000);
+        } else if (response.error != '') {
+          alert('Failed to send message');
         }
       });
+    } else if (this.message.value == '' || this.message.value.trim().length == 0) {
+      alert('Please provide message value');
+    } else if (this.messageRoomIdValue < 0) {
+      alert('No rooms are available to sent message');
     }
   }
 
@@ -214,7 +245,8 @@ class Messenger extends Plugin {
   close() {
     if (this.room_id) {
       for (var i = 0; i < this.room_id.options.length; i++) {
-        this.leaveRoom(this.room_id.options[i]);
+        this.roomIdValue = this.room_id.selectedIndex;
+        this.leaveRoom(this.room_id.options[i].value);
       }
     }
   }

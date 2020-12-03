@@ -33,7 +33,7 @@ class Network extends Plugin {
     var mainDiv = document.getElementById('main');
     mainDiv.innerHTML = `
         <div class="text grid__col grid__col--2-of-8">
-        Inerfaces and status
+        Interfaces and status
         </div>
         <div id='tableLarge' class="title grid__col grid__col--8-of-8">
         <table class="text grid__col grid__col--8-of-8" id="get_interfaces"></table>
