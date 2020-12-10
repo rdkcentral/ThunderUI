@@ -22,7 +22,9 @@ import BluetoothControl from './bluetooth.js';
 import Bluetooth from './rdkservices/bluetoothManager.js';
 import Cobalt from './cobalt.js';
 import Compositor from './compositor.js';
+import ContinueWatching from './continueWatching.js';
 import Controller from './controller.js';
+import DataCapture from './dataCapture.js';
 import DeviceInfo from './deviceinfo.js';
 import DisplayInfo from './displayInfo.js';
 import FrameRate from './framerate.js';
@@ -30,6 +32,7 @@ import PlayerInfo from './playerInfo.js';
 import DeviceDiagnostics from './deviceDiagnostics.js';
 import DeviceIdentification from './deviceIdentification.js';
 import DialServer from './dialserver.js';
+import DisplaySettings from './displaySettings.js';
 import HdcpProfile from './hdcpprofile.js';
 import HdmiInput from './hdmiInput.js';
 import LoggingPreferences from './loggingpreferences.js';
@@ -49,6 +52,7 @@ import ScreenCapture from './screencapture';
 import Snapshot from './snapshot.js';
 import Spark from './spark.js';
 import Switchboard from './switchboard.js';
+import SystemServices from './systemServices.js';
 import Timer from './timer.js';
 import TimeSync from './timesync.js';
 import TraceControl from './tracing.js';
@@ -58,7 +62,8 @@ import WebKitBrowser from './webkit.js';
 import WebShell from './webshell.js';
 import WifiControl from './wificontrol.js';
 import Warehouse from './warehouse.js';
-import WifiManager from './rdkservices/wifiManager.js';
+import XCast from './xcast.js'
+import WifiManager from './rdkservices/wifiManager.js'
 
 export default {
     ActivityMonitor,
@@ -67,9 +72,12 @@ export default {
     Bluetooth,
     Cobalt,
     Compositor,
+    ContinueWatching,
     Controller,
+    DataCapture,
     DeviceInfo,
     DisplayInfo,
+    DisplaySettings,
     PlayerInfo,
     DeviceDiagnostics,
     DeviceIdentification,
@@ -94,6 +102,7 @@ export default {
     Snapshot,
     Spark,
     Switchboard,
+    SystemServices,
     Timer,
     TimeSync,
     TraceControl,
@@ -104,5 +113,6 @@ export default {
     WifiControl,
     Warehouse,
     WifiManager,
+    XCast,
 };
 
