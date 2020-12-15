@@ -48,16 +48,21 @@ class Monitor extends Plugin {
 
     render() {
         var mainDiv = document.getElementById('main');
-        mainDiv.innerHTML = `<div class="title grid__col grid__col--8-of-8"></div>
-        <table class="title grid__col grid__col--8-of-8">
-        <tr><td><div class="text grid__col grid__col--6-of-8">Observables</div></td>
-        <td><div class="text grid__col grid__col--6-of-8">
-            <select id="observables" style="width: fit-content;"></select>                   </div></td><td rowspan="4">
-        <div id="plugOutput"></div></td></tr><tr><td>
-        <div class="text grid__col grid__col--6-of-8">RestartThreshold</div></td><td><div class="text grid__col grid__col--6-of-8"><select id="restart" style="width: -webkit-fill-available;"> </select>
-        </div> </td></tr><tr><td></td><td>
-        <div class="text grid__col grid__col--6-of-8">
-            <button type="button" id="setRestart" style="width: 100%;"> Set</button></div></td></tr></table>`;
+        mainDiv.innerHTML = `
+        <div class="text grid__col grid__col--2-of-8">Observables</div>
+        <div class="text grid__col grid__col--4-of-8">
+        <select id="observables"></select>
+        </div>
+        <div id="plugOutput"></div>
+        <div class="text grid__col grid__col--2-of-8">RestartThreshold</div>
+        <div class="text grid__col grid__col--4-of-8">
+        <select id="restart"> </select>
+        </div>
+        <div class="title grid__col grid__col--8-of-8">
+        <div class="text grid__col grid__col--2-of-8">
+        <button type="button" id="setRestart"> Set</button>
+        <div>
+        </div>`;
 
         this.getObservableList();
 
