@@ -208,14 +208,14 @@ class DeviceInfo extends Plugin {
             method : 'systeminfo'
         };
 
-        return this.displayInfo().then((info) => {
+      //  return this.displayInfo().then((info) => {
             return new Promise((resolve, reject) => {
                 this.deviceInfo()
                     .then((deviceInfo) => {
-                        resolve({...info, ...deviceInfo});
+                        resolve({ ...deviceInfo});
                     })
             });
-        })
+      //  })
     }
 
     deviceInfo() {
@@ -233,17 +233,17 @@ class DeviceInfo extends Plugin {
     }
 
     displayInfo() {
-        const _rest = {
-            method  : 'GET',
-            path    : 'DisplayInfo'
-        };
+        // const _rest = {
+        //     method  : 'GET',
+        //     path    : 'DisplayInfo'
+        // };
 
-        const _rpc = {
-            plugin : 'DisplayInfo',
-            method : 'displayinfo'
-        };
+        // const _rpc = {
+        //     plugin : 'DisplayInfo',
+        //     method : 'displayinfo'
+        // };
 
-        return this.api.req(_rest, _rpc);
+        // return this.api.req(_rest, _rpc);
     }
 
 
@@ -314,11 +314,11 @@ class DeviceInfo extends Plugin {
 
         });
 
-        this.displayInfo().then((systeminfo) => {
-            this.totalGpuRamEl.innerHTML        = this.bytesToMbString(systeminfo.totalgpuram);
-            this.freeGpuRamEl.innerHTML         = this.bytesToMbString(systeminfo.freegpuram);
-            this.usedGpuRamEl.innerHTML         = this.bytesToMbString(systeminfo.totalgpuram - systeminfo.freegpuram);
-        });
+        // this.displayInfo().then((systeminfo) => {
+        //     this.totalGpuRamEl.innerHTML        = this.bytesToMbString(systeminfo.totalgpuram);
+        //     this.freeGpuRamEl.innerHTML         = this.bytesToMbString(systeminfo.freegpuram);
+        //     this.usedGpuRamEl.innerHTML         = this.bytesToMbString(systeminfo.totalgpuram - systeminfo.freegpuram);
+        // });
         var provisionButton = document.getElementById('startGraphs');
         provisionButton.onclick = this.startRealtimeGraphs.bind(this);
 
@@ -417,17 +417,17 @@ class DeviceInfo extends Plugin {
             }
         });
 
-        this.displayInfo().then((info) => {
-            if (self.gpuChart) {
-                self.gpuChart.config.data.labels.push(xLabel);
-                self.gpuChart.config.data.datasets[0].data.push((info.totalgpuram - info.freegpuram)  / 1024 / 1024)
-                if (self.gpuChart.config.data.labels.length > self.chartOptions.maxElements) {
-                    self.gpuChart.config.data.labels.shift();
-                    self.gpuChart.config.data.datasets[0].data.shift();
-                }
-                self.gpuChart.update();
-            }
-        })
+        // this.displayInfo().then((info) => {
+        //     if (self.gpuChart) {
+        //         self.gpuChart.config.data.labels.push(xLabel);
+        //         self.gpuChart.config.data.datasets[0].data.push((info.totalgpuram - info.freegpuram)  / 1024 / 1024)
+        //         if (self.gpuChart.config.data.labels.length > self.chartOptions.maxElements) {
+        //             self.gpuChart.config.data.labels.shift();
+        //             self.gpuChart.config.data.datasets[0].data.shift();
+        //         }
+        //         self.gpuChart.update();
+        //     }
+        // })
 
     }
 

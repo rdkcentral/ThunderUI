@@ -99,30 +99,30 @@ class DisplayInfo extends Plugin {
   }
 
   displayInfo() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`
-    };
+    // const _rest = {
+    //   method: 'GET',
+    //   path: `${this.callsign}`
+    // };
 
-    const _rpc = {
-      plugin: this.callsign,
-      method: 'displayinfo'
-    };
+    // const _rpc = {
+    //   plugin: this.callsign,
+    //   method: 'displayinfo'
+    // };
 
-    return this.api.req(_rest, _rpc);
+    // return this.api.req(_rest, _rpc);
   }
 
   update() {
-    this.displayInfo().then(response => {
-      this.total_gpu.innerHTML = response.totalgpuram;
-      this.free_gpu.innerHTML = response.freegpuram;
-      this.audio_pass_through.innerHTML = response.audiopassthrough;
-      this.hdmi_display.innerHTML = response.connected;
-      this.width.innerHTML = response.width;
-      this.height.innerHTML = response.height;
-      this.hdcp_protection.innerHTML = response.hdcpprotection;
-      this.hdr_type.innerHTML = response.hdrtype;
-    });
+    // this.displayInfo().then(response => {
+    //   this.total_gpu.innerHTML = response.totalgpuram;
+    //   this.free_gpu.innerHTML = response.freegpuram;
+    //   this.audio_pass_through.innerHTML = response.audiopassthrough;
+    //   this.hdmi_display.innerHTML = response.connected;
+    //   this.width.innerHTML = response.width;
+    //   this.height.innerHTML = response.height;
+    //   this.hdcp_protection.innerHTML = response.hdcpprotection;
+    //   this.hdr_type.innerHTML = response.hdrtype;
+    // });
   }
 
 }

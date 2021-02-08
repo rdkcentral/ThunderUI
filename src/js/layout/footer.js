@@ -114,8 +114,8 @@ class Footer {
         this.uptimeSpan.innerHTML       = deviceInfo.uptime;
         this.totalRamSpan.innerHTML     = this.bytesToMbString(deviceInfo.totalram);
         this.usedRamSpan.innerHTML      = this.bytesToMbString(deviceInfo.totalram - deviceInfo.freeram);
-        this.gpuTotalRamSpan.innerHTML  = this.bytesToMbString(deviceInfo.totalgpuram);
-        this.gpuUsedRamSpan.innerHTML   = this.bytesToMbString(deviceInfo.totalgpuram - deviceInfo.freegpuram);
+        //this.gpuTotalRamSpan.innerHTML  = this.bytesToMbString(deviceInfo.totalgpuram);
+        //this.gpuUsedRamSpan.innerHTML   = this.bytesToMbString(deviceInfo.totalgpuram - deviceInfo.freegpuram);
         this.cpuLoadSpan.innerHTML      = parseFloat(deviceInfo.cpuload).toFixed(1) + " %";
     }
 
