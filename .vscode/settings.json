@@ -1,0 +1,6 @@
+{
+    "cmake.configureSettings": {
+        "AUDIT_AND_FIX":"ON"
+    },
+    "cmake.configureOnOpen": true
+}
