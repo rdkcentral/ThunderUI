@@ -48,24 +48,49 @@ class Monitor extends Plugin {
 
     render() {
         var mainDiv = document.getElementById('main');
-        mainDiv.innerHTML = `<div class="title grid__col grid__col--8-of-8"></div>
-        <table class="title grid__col grid__col--8-of-8">
-        <tr><td><div class="text grid__col grid__col--6-of-8">Observables</div></td>
-        <td><div class="text grid__col grid__col--6-of-8">
-            <select id="observables" style="width: fit-content;"></select>                   </div></td><td rowspan="4">
-        <div id="plugOutput"></div></td></tr><tr><td>
-        <div class="text grid__col grid__col--6-of-8">RestartThreshold</div></td><td><div class="text grid__col grid__col--6-of-8"><select id="restart" style="width: -webkit-fill-available;"> </select>
-        </div> </td></tr><tr><td></td><td>
-        <div class="text grid__col grid__col--6-of-8">
-            <button type="button" id="setRestart" style="width: 100%;"> Set</button></div></td></tr></table>`;
-
+        mainDiv.innerHTML = `
+        <div class="title grid__col grid__col--8-of-8">
+        Set Restart Limit
+        </div>
+        <div class="text grid__col grid__col--2-of-8">Observables</div>
+        <div class="text grid__col grid__col--4-of-8">
+        <select id="observables"></select>
+        </div>
+        <div id="plugOutput"></div>
+        <div class="text grid__col grid__col--2-of-8">RestartThreshold</div>
+        <div class="text grid__col grid__col--4-of-8">
+        <select id="restart"> </select>
+        </div>
+        <div class="text grid__col grid__col--2-of-8">
+        <button type="button" id="setRestart"> Set</button>
+        </div>
+        <div class="title grid__col grid__col--8-of-8">
+        Get Restart Limit
+        </div>
+        <div class="text grid__col grid__col--2-of-8">Observables</div>
+        <div class="text grid__col grid__col--4-of-8">
+        <select id="getObservables"></select>
+        </div>
+        <div class="text grid__col grid__col--2-of-8">
+        <button type="button" id="getRestart"> Get</button>
+        </div>
+        <div class="text grid__col grid__col--2-of-8">Limit</div>
+        <div class="text grid__col grid__col--6-of-8" id="limit">-</div>
+        <div class="text grid__col grid__col--2-of-8">Window</div>
+        <div class="text grid__col grid__col--6-of-8" id="window">-</div>
+        `
         this.getObservableList();
 
         this.observableListEl              = document.getElementById('observables');
+        this.getObservableListE1           = document.getElementById('getObservables');
         this.restartListEl                 = document.getElementById('restart');
 
         this.bt_setRestart                 = document.getElementById('setRestart');
         this.bt_setRestart.onclick         = this.setRestartThreshold.bind(this);
+        this.bt_getRestart                 = document.getElementById('getRestart');
+        this.bt_getRestart.onclick         = this.getRestartThreshold.bind(this);
+        this.limit                         = document.getElementById('limit')
+        this.window                        = document.getElementById('window')
     }
 
     getObservableList() {
@@ -82,6 +107,8 @@ class Monitor extends Plugin {
          this.observableListEl.innerHTML = '';
          for (var i=0; i<this.observablesList.length; i++){
             var newChild = this.observableListEl.appendChild(document.createElement("option"));
+            var getObservableChildE1 = this.getObservableListE1.appendChild(document.createElement("option"))
+            getObservableChildE1.innerHTML = `${this.observablesList[i]}`
             newChild.innerHTML = `${this.observablesList[i]}`;
          }
          var restartLimit= [];
@@ -120,6 +147,34 @@ class Monitor extends Plugin {
         };
 
         this.api.req(_rest, _rpc);
+    }
+
+    getRestartThreshold(){
+        const i = this.getObservableListE1.selectedIndex;
+        const restbody = `{"callsign":${this.getObservableListE1.options[i].text}}`;
+
+        const _rest = {
+            method  : 'POST',
+            path    : `${this.callsign}`,
+            body    : restbody
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'resetstats',
+            params : {
+                callsign: this.getObservableListE1.options[i].text,
+            }
+        };
+
+        this.api.req(_rest, _rpc).then(result=>{
+            console.log(result)
+            if(result.restart){
+                this.limit.innerHTML  = result.restart.limit
+                this.window.innerHTML = result.restart.window
+            }
+
+        });
     }
 
     getMonitorDataAndDiv(plugin, callback) {
