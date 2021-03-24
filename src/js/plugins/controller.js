@@ -178,8 +178,8 @@ class Controller extends Plugin {
             this.suspend(callsign).then( resp => {
                 this.updateSuspendLabel(callsign, 'resume');
 
-                if (plugins[ callsign ] !== undefined)
-                    plugins[ callsign ].state = 'resumed';
+                if (this.plugins[ callsign ] !== undefined)
+                    this.plugins[ callsign ].state = 'resumed';
 
                 document.getElementById(callsign + 'suspend').checked = true;
                 plugin.state = 'suspended';
@@ -189,8 +189,8 @@ class Controller extends Plugin {
             this.resume(callsign).then( resp => {
                 this.updateSuspendLabel(callsign, 'suspend');
 
-                if (plugins[ callsign ] !== undefined)
-                    plugins[ callsign ].state = 'suspended';
+                if (this.plugins[ callsign ] !== undefined)
+                    this.plugins[ callsign ].state = 'suspended';
 
                 document.getElementById(callsign + 'suspend').checked = false;
                 plugin.state = 'resumed';
