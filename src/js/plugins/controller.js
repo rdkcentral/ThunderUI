@@ -160,8 +160,8 @@ class Controller extends Plugin {
         if (plugin.state === 'deactivated') {
             console.debug('Activating ' + callsign);
             this.activate(callsign).then( resp => {
-                if (plugins[ callsign ] !== undefined)
-                    plugins[ callsign ].state = 'activated';
+                if (this.plugins[ callsign ] !== undefined)
+                    this.plugins[ callsign ].state = 'activated';
 
                 // we have to rerender at this stage, we're going to be out of sync
                 if (document.getElementById(callsign + 'suspend').checked === false)
