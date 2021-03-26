@@ -180,6 +180,7 @@ export default class WpeApi {
             var callsign = '';
             try {
                 data = JSON.parse(e.data);
+
                 if (data.callsign === undefined)
                     return
 
