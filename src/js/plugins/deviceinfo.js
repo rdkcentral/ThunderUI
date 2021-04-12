@@ -233,17 +233,44 @@ class DeviceInfo extends Plugin {
     }
 
     displayInfo() {
-        const _rest = {
-            method  : 'GET',
-            path    : 'DisplayInfo'
-        };
+      return new Promise((resolve, reject) => {
+        var info = {};
+        this.totalGPURam().then(response => {
+          info.totalgpuram = response;
+          this.freeGPURam().then(response => {
+            info.freegpuram = response;
+            resolve(info);
+          });
+        });
+      });
+    }
 
-        const _rpc = {
-            plugin : 'DisplayInfo',
-            method : 'displayinfo'
-        };
+    totalGPURam() {
+      const _rest = {
+        method: 'GET',
+        path: 'DisplayInfo',
+      };
 
-        return this.api.req(_rest, _rpc);
+      const _rpc = {
+        plugin: 'DisplayInfo',
+        method: 'totalgpuram',
+      };
+
+      return this.api.req(_rest, _rpc);
+    }
+
+    freeGPURam() {
+      const _rest = {
+        method: 'GET',
+        path: 'DisplayInfo',
+      };
+
+      const _rpc = {
+        plugin: 'DisplayInfo',
+        method: 'freegpuram',
+      };
+
+      return this.api.req(_rest, _rpc);
     }
 
 

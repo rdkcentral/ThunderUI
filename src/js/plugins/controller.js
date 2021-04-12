@@ -126,8 +126,8 @@ class Controller extends Plugin {
         if (plugin.state === 'deactivated') {
             console.debug('Activating ' + callsign);
             this.activate(callsign).then( (resp) => {
-                if (plugins[ callsign ] !== undefined)
-                    plugins[ callsign ].state = 'activated';
+                if (this.plugins[ callsign ] !== undefined)
+                    this.plugins[ callsign ].state = 'activated';
 
                 plugin.state = 'activated';
             }).catch( e => {
@@ -136,8 +136,8 @@ class Controller extends Plugin {
         } else {
             console.debug('Deactivating ' + callsign);
             this.deactivate(callsign).then( (resp) => {
-                if (plugins[ callsign ] !== undefined)
-                    plugins[ callsign ].state = 'deactivated';
+                if (this.plugins[ callsign ] !== undefined)
+                    this.plugins[ callsign ].state = 'deactivated';
 
                 plugin.state = 'deactivated';
             }).catch(e => {
@@ -160,8 +160,8 @@ class Controller extends Plugin {
         if (plugin.state === 'deactivated') {
             console.debug('Activating ' + callsign);
             this.activate(callsign).then( resp => {
-                if (plugins[ callsign ] !== undefined)
-                    plugins[ callsign ].state = 'activated';
+                if (this.plugins[ callsign ] !== undefined)
+                    this.plugins[ callsign ].state = 'activated';
 
                 // we have to rerender at this stage, we're going to be out of sync
                 if (document.getElementById(callsign + 'suspend').checked === false)
@@ -178,8 +178,8 @@ class Controller extends Plugin {
             this.suspend(callsign).then( resp => {
                 this.updateSuspendLabel(callsign, 'resume');
 
-                if (plugins[ callsign ] !== undefined)
-                    plugins[ callsign ].state = 'resumed';
+                if (this.plugins[ callsign ] !== undefined)
+                    this.plugins[ callsign ].state = 'resumed';
 
                 document.getElementById(callsign + 'suspend').checked = true;
                 plugin.state = 'suspended';
@@ -189,8 +189,8 @@ class Controller extends Plugin {
             this.resume(callsign).then( resp => {
                 this.updateSuspendLabel(callsign, 'suspend');
 
-                if (plugins[ callsign ] !== undefined)
-                    plugins[ callsign ].state = 'suspended';
+                if (this.plugins[ callsign ] !== undefined)
+                    this.plugins[ callsign ].state = 'suspended';
 
                 document.getElementById(callsign + 'suspend').checked = false;
                 plugin.state = 'resumed';

@@ -44,6 +44,7 @@ import Netflix from './netflix.js';
 import Network from './network.js';
 import NetworkControl from './networkcontrol.js';
 import OCDM from './ocdm.js';
+import PersistentStore from './persistentStore.js'
 import Power from './power.js';
 import Provisioning from './provisioning.js';
 import RDKShell from './rdkShell.js';
@@ -94,6 +95,7 @@ export default {
     Network,
     NetworkControl,
     OCDM,
+    PersistentStore,
     Power,
     Provisioning,
     RDKShell,

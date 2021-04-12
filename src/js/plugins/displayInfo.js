@@ -98,7 +98,7 @@ class DisplayInfo extends Plugin {
     this.update();
   }
 
-  displayInfo() {
+  totalGPURam() {
     const _rest = {
       method: 'GET',
       path: `${this.callsign}`
@@ -106,22 +106,136 @@ class DisplayInfo extends Plugin {
 
     const _rpc = {
       plugin: this.callsign,
-      method: 'displayinfo'
+      method: 'totalgpuram'
+    };
+
+    return this.api.req(_rest, _rpc);
+  }
+
+  freeGPURam() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`
+    };
+
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'freegpuram'
+    };
+
+    return this.api.req(_rest, _rpc);
+  }
+
+  isAudioPassThrough() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`
+    };
+
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'isaudiopassthrough'
+    };
+
+    return this.api.req(_rest, _rpc);
+  }
+
+
+  isConnected() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`
+    };
+
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'connected'
+    };
+
+    return this.api.req(_rest, _rpc);
+  }
+
+  getWidth() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`
+    };
+
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'width'
+    };
+
+    return this.api.req(_rest, _rpc);
+  }
+
+  getHeight() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`
+    };
+
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'height'
+    };
+
+    return this.api.req(_rest, _rpc);
+  }
+
+  hdcpProtection() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`
+    };
+
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'hdcpprotection'
+    };
+
+    return this.api.req(_rest, _rpc);
+  }
+
+  hdrType() {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`
+    };
+
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'hdrsetting'
     };
 
     return this.api.req(_rest, _rpc);
   }
 
   update() {
-    this.displayInfo().then(response => {
-      this.total_gpu.innerHTML = response.totalgpuram;
-      this.free_gpu.innerHTML = response.freegpuram;
-      this.audio_pass_through.innerHTML = response.audiopassthrough;
-      this.hdmi_display.innerHTML = response.connected;
-      this.width.innerHTML = response.width;
-      this.height.innerHTML = response.height;
-      this.hdcp_protection.innerHTML = response.hdcpprotection;
-      this.hdr_type.innerHTML = response.hdrtype;
+
+    this.totalGPURam().then(response => {
+      this.total_gpu.innerHTML = response;
+    });
+    this.freeGPURam().then(response => {
+      this.free_gpu.innerHTML = response;
+    });
+    this.isAudioPassThrough().then(response => {
+      this.audio_pass_through.innerHTML = response;
+    });
+    this.isConnected().then(response => {
+      this.hdmi_display.innerHTML = response;
+    });
+    this.getWidth().then(response => {
+      this.width.innerHTML = response;
+    });
+    this.getHeight().then(response => {
+      this.height.innerHTML = response;
+    });
+    this.hdcpProtection().then(response => {
+      this.hdcp_protection.innerHTML = response;
+    });
+    this.hdrType().then(response => {
+      this.hdr_type.innerHTML = response;
     });
   }
 
