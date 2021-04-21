@@ -120,6 +120,7 @@ class RDKShell extends Plugin {
         <button id="set_suspend" type="button">Suspend</button>
         <button id="set_destroy" type="button">Destroy</button>
         <button id="set_kill" type="button">Kill</button>
+        <button id="set_resume" type="button">Resume</button>
         </div>
         <div class="text grid__col grid__col--8-of-8">
         Visibility
@@ -399,6 +400,8 @@ class RDKShell extends Plugin {
     this.set_destroy.onclick = this.doSetDestroy.bind(this);
     this.set_kill = document.getElementById('set_kill');
     this.set_kill.onclick = this.doKill.bind(this);
+    this.set_resume = document.getElementById('set_resume');
+    this.set_resume.onclick = this.doResume.bind(this);
     this.width_resolution = document.getElementById('width_resolution');
     this.height_resolution = document.getElementById('height_resolution');
     this.width = document.getElementById('width');
@@ -588,6 +591,23 @@ class RDKShell extends Plugin {
             this.update();
           } else {
             alert('Failed to kill ' + this.client_manage.value);
+          }
+        });
+      } catch {
+        alert('Error in getting response');
+      }
+    } else {
+      alert('Please provide client app name');
+    }
+  }
+  doResume() {
+    if (this.client_manage.value) {
+      try {
+        this.resume(this.client_manage.value).then(response => {
+          if (response && response.success) {
+            this.update();
+          } else {
+            alert('Failed to resume ' + this.client_manage.value);
           }
         });
       } catch {
@@ -1039,7 +1059,7 @@ class RDKShell extends Plugin {
     const _rpc = {
       plugin: this.callsign,
       method: 'suspend',
-      params: { client: client },
+      params: { callsign: client },
     };
 
     return this.api.req(_rest, _rpc);
@@ -1054,7 +1074,7 @@ class RDKShell extends Plugin {
     const _rpc = {
       plugin: this.callsign,
       method: 'destroy',
-      params: { client: client },
+      params: { callsign: client },
     };
 
     return this.api.req(_rest, _rpc);
@@ -1070,6 +1090,21 @@ class RDKShell extends Plugin {
       plugin: this.callsign,
       method: 'kill',
       params: { client: client },
+    };
+
+    return this.api.req(_rest, _rpc);
+  }
+
+  resume(client) {
+    const _rest = {
+      method: 'GET',
+      path: `${this.callsign}`,
+    };
+
+    const _rpc = {
+      plugin: this.callsign,
+      method: 'launch',
+      params: { callsign: client },
     };
 
     return this.api.req(_rest, _rpc);
@@ -1337,7 +1372,11 @@ class RDKShell extends Plugin {
       this.client_manage.options[i] = null;
     }
     try {
-      this.getClients().then(response => {
+      this.getState().then(result => {
+        let response ={clients:[]}
+        result.state.map(obj=>{
+          response.clients.push(obj.callsign)
+        })
         if (response.clients) {
           this.client_apps.innerHTML = response.clients;
           this.length = response.clients.length;
@@ -1432,7 +1471,7 @@ class RDKShell extends Plugin {
     }
     try {
       this.getState().then(responseStatus => {
-        if (responseStatus != null && responseStatus.runtimes) {
+        if (responseStatus != null && responseStatus.state && responseStatus.state.length > 0) {
           this.status_application.innerHTML = '';
           this.tr1 = document.createElement('tr');
           this.tr1.id = 'trLarge';
@@ -1459,7 +1498,7 @@ class RDKShell extends Plugin {
           this.tr1.appendChild(this.td2);
           this.tr1.appendChild(this.td3);
           this.status_application.appendChild(this.tr1);
-          for (var i = 0; i < responseStatus.runtimes.length; i++) {
+          for (var i = 0; i < responseStatus.state.length; i++) {
             this.status = document.createElement('tr');
             this.status.id = 'trLarge';
             this.status.className = 'label grid__col grid__col--8-of-8';
@@ -1467,17 +1506,17 @@ class RDKShell extends Plugin {
             this.callsign_state.id = 'td';
             this.callsign_state.className = 'label grid__col grid__col--2-of-8';
             this.callsign_div = document.createElement('div');
-            this.callsign_div.innerHTML = responseStatus.runtimes[i].callsign;
+            this.callsign_div.innerHTML = responseStatus.state[i].callsign;
             this.state = document.createElement('td');
             this.state.id = 'td';
             this.state_div = document.createElement('div');
             this.state.className = 'label grid__col grid__col--2-of-8';
-            this.state_div.innerHTML = responseStatus.runtimes[i].state;
+            this.state_div.innerHTML = responseStatus.state[i].state;
             this.uri = document.createElement('td');
             this.uri.id = 'td';
             this.uri_div = document.createElement('div');
             this.uri.className = 'label grid__col grid__col--2-of-8';
-            this.uri_div.innerHTML = responseStatus.runtimes[i].uri;
+            this.uri_div.innerHTML = responseStatus.state[i].uri;
             this.callsign_state.appendChild(this.callsign_div);
             this.state.appendChild(this.state_div);
             this.uri.appendChild(this.uri_div);
@@ -1505,7 +1544,7 @@ class RDKShell extends Plugin {
     try {
       this.getSystemResourceInfo().then(responseResource => {
         this.system_resource.innerHTML = '';
-        if (responseResource != null && responseResource.runtimes) {
+        if (responseResource != null && responseResource.types && responseResource.types.length > 0) {
           this.system_resource.innerHTML = '';
           this.tr2 = document.createElement('tr');
           this.tr2.id = 'trLarge';
@@ -1532,7 +1571,7 @@ class RDKShell extends Plugin {
           this.tr2.appendChild(this.td5);
           this.tr2.appendChild(this.td6);
           this.system_resource.appendChild(this.tr2);
-          for (var i = 0; i < responseResource.runtimes.length; i++) {
+          for (var i = 0; i < responseResource.types.length; i++) {
             this.resourceInfo = document.createElement('tr');
             this.resourceInfo.id = 'trLarge';
             this.resourceInfo.className = 'label grid__col grid__col--8-of-8';
@@ -1540,17 +1579,17 @@ class RDKShell extends Plugin {
             this.callsign_resource.id = 'td';
             this.callsign_resource.className = 'label grid__col grid__col--2-of-8';
             this.callsign_div = document.createElement('div');
-            this.callsign_div.innerHTML = responseResource.runtimes[i].callsign;
+            this.callsign_div.innerHTML = responseResource.types[i].callsign;
             this.ram = document.createElement('td');
             this.ram.id = 'td';
             this.ram_div = document.createElement('div');
             this.ram.className = 'label grid__col grid__col--2-of-8';
-            this.ram_div.innerHTML = responseResource.runtimes[i].ram;
+            this.ram_div.innerHTML = responseResource.types[i].ram;
             this.vram = document.createElement('td');
             this.vram.id = 'td';
             this.vram_div = document.createElement('div');
             this.vram.className = 'label grid__col grid__col--2-of-8';
-            this.vram_div.innerHTML = responseResource.runtimes[i].vram;
+            this.vram_div.innerHTML = responseResource.types[i].vram;
             this.callsign_resource.appendChild(this.callsign_div);
             this.ram.appendChild(this.ram_div);
             this.vram.appendChild(this.vram_div);
