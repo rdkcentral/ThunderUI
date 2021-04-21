@@ -27,6 +27,7 @@ import Controller from './controller.js';
 import DataCapture from './dataCapture.js';
 import DeviceInfo from './deviceinfo.js';
 import DisplayInfo from './displayInfo.js';
+import FirmwareControl from './firmwareManager.js';
 import FrameRate from './framerate.js';
 import PlayerInfo from './playerInfo.js';
 import DeviceDiagnostics from './deviceDiagnostics.js';
@@ -83,6 +84,7 @@ export default {
     DeviceDiagnostics,
     DeviceIdentification,
     DialServer,
+    FirmwareControl,
     FrameRate,
     LoggingPreferences,
     LocationSync,
