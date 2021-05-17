@@ -81,8 +81,10 @@ class ScreenCapture extends Plugin {
     var callGUID = this.callGUID.value;
     console.log(uploadUrl);
     console.log(callGUID);
-    this.uploadScreenshot(url, callGUID).then(result => {
-      if (!result.success) {
+    this.uploadScreenshot(uploadUrl, callGUID).then(result => {
+      if (!result) {
+        alert("Screen caputer not successful");
+      } else if (!result.success) {
         alert(result.message);
       }
     });
