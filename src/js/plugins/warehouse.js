@@ -198,15 +198,15 @@ class Warehouse extends Plugin {
 
     return this.api.req(_rest, _rpc).then(result => {
       if (result.success) {
-        this.btMac.innerHTML = result.deviceInfo.bluetooth_mac;
-        this.boxIP.innerHTML = result.deviceInfo.boxIP;
-        this.buildType.innerHTML = result.deviceInfo.build_type;
-        this.estbMac.innerHTML = result.deviceInfo.estb_mac;
-        this.ethMac.innerHTML = result.deviceInfo.eth_mac;
-        this.imgVersion.innerHTML = result.deviceInfo.imageVersion;
-        this.modelNumber.innerHTML = result.deviceInfo.model_number;
-        this.rfMac.innerHTML = result.deviceInfo.rf4ce_mac;
-        this.wifiMac.innerHTML = result.deviceInfo.wifi_mac;
+        this.btMac.innerHTML = result.bluetooth_mac;
+        this.boxIP.innerHTML = result.boxIP;
+        this.buildType.innerHTML = result.build_type;
+        this.estbMac.innerHTML = result.estb_mac;
+        this.ethMac.innerHTML = result.eth_mac;
+        this.imgVersion.innerHTML = result.imageVersion;
+        this.modelNumber.innerHTML = result.model_number;
+        this.rfMac.innerHTML = result.rf4ce_mac;
+        this.wifiMac.innerHTML = result.wifi_mac;
       }
     });
   }
