@@ -30,6 +30,14 @@ class TraceControl extends Plugin {
         this.selectedTraceModule    = undefined;
         this.traceModules           = undefined;
         this.uniqueTraceModules     = undefined;
+        this.socketUrl              = `ws://${api.host[0]}:${api.host[1]}/Service/TraceControl`;
+        this.traceSocket            = undefined;
+    }
+
+
+    close(){
+        this._closeSocket();
+        super.close()
     }
 
     toggleTracing(module, id, state) {
@@ -53,7 +61,9 @@ class TraceControl extends Plugin {
         return this.api.req(_rest, _rpc);
     }
 
-    render()        {
+    render() {
+        this._openSocket();
+
         var self = this;
         var mainDiv = document.getElementById('main');
 
@@ -69,7 +79,24 @@ class TraceControl extends Plugin {
             <select id="tracingModules"></select>
         </div>
 
-        <div id="tracing_div"></div>`;
+        <div id="tracing_div"></div>
+
+
+        <div class="grid__col grid__col--7-of-8" id="traceTableContainer">
+        <table id="traceTable" CELLSPACING=0>
+            <thead id="traceDataHeader">
+                <tr>
+                    <td>time</td>
+                    <td>file + line</td>
+                    <td>category</td>
+                    <td>message</td>
+                </tr>            
+            </div>
+            <tbody id="traceData">
+            </tbody>
+        </table>
+        </div>
+        </div>`;
 
         document.getElementById('tracingModules').onchange = this.getSelectedModuleAndShowCategories.bind(this);
 
@@ -158,6 +185,47 @@ class TraceControl extends Plugin {
     toggleTrace(m) {
         this.toggleTracing(m.module, m.category, (m.state === 'enabled' ? 'off' : 'on'));
         m.state = (m.state === 'enabled' ? 'disabled' : 'enabled');
+    }
+
+    _socketMessage(data) {
+        const msg = JSON.parse(data.data);
+
+        const date = new Date(msg.time);
+
+        const tr = document.createElement('tr');
+        const time = document.createElement('td');
+        time.innerHTML = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+        tr.appendChild(time);
+
+        const file = document.createElement('td');
+        file.innerHTML = `${msg.filename}:${msg.linenumber}`;
+        tr.appendChild(file);
+
+        const category = document.createElement('td');
+        category.innerHTML = msg.category;
+        tr.appendChild(category);
+
+        const incomingMsg = document.createElement('td');
+        incomingMsg.innerHTML = msg.message;
+        tr.appendChild(incomingMsg);
+
+
+        document.getElementById('traceData').appendChild(tr);
+        const objDiv = document.getElementById("traceTableContainer");
+        objDiv.scrollTop = objDiv.scrollHeight;
+    }
+
+    _openSocket() {
+        this._closeSocket();
+        this.traceSocket = new WebSocket(this.socketUrl, 'json');
+        this.traceSocket.onmessage = this._socketMessage.bind(this);
+    }
+
+    _closeSocket() {
+        if (this.traceSocket) {
+            this.traceSocket.close();
+            this.traceSocket = undefined;
+        }
     }
 
 }
