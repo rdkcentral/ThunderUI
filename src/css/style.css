@@ -725,6 +725,40 @@ div#hide-notifications:hover {
     padding: 10px 0 0 0;
 }
 
+#traceTableContainer {
+    overflow: auto;
+    min-height: 500px;
+    max-height: 500px;
+    background-color: #0b0c12;
+    margin: 0 20px;
+    padding: 0px 0 0 0;
+    color: white;
+}
+
+#traceDataHeader{
+    color: black;
+    background: white;
+}
+
+#traceDataHeader td{
+    padding: 5px;
+}
+
+#traceTable {
+    min-width: 100%;
+    width: max-content;
+}
+#traceTable tr{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#traceTable td {
+    padding-left: 5px;
+    padding-right: 5px;
+
+}
+
 #webShellData {
     font-size: 13px;
     line-height: normal;
@@ -762,7 +796,7 @@ div#hide-notifications:hover {
     }
 }
 
-::-webkit-scrollbar {
+#notifications-block ::-webkit-scrollbar, #menu ::-webkit-scrollbar {
     display: none;
 }
 
