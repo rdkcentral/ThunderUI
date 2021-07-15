@@ -26,18 +26,18 @@ option(AUDIT_AND_FIX "Automatic fix vulnerabilities where possible" OFF)
 message(STATUS "NPN: ${NPM}")
 
 add_custom_target (npm-target-install ALL
-  COMMAND ${NPM} install
+  COMMAND ${NPM} install --prefix ${CMAKE_SOURCE_DIR}
 )
 
 add_custom_target (run-build ALL
   DEPENDS npm-target-install
-  COMMAND ${NPM} run build
+  COMMAND ${NPM} run build --prefix ${CMAKE_SOURCE_DIR}
 )
 
 if(AUDIT_AND_FIX)
   add_custom_target (audit-fix ALL
     DEPENDS npm-target-install
-    COMMAND ${NPM} audit fix 
+    COMMAND ${NPM} audit fix --prefix ${CMAKE_SOURCE_DIR}
   )
   
   add_dependencies(run-build audit-fix)
