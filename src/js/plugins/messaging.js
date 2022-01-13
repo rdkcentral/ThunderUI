@@ -21,16 +21,16 @@
 
 import Plugin from '../core/plugin.js';
 
-class TraceControl extends Plugin {
+class MessageControl extends Plugin {
 
     constructor(pluginData, api) {
         super(pluginData, api);
-        this.displayName = 'Tracing';
+        this.displayName = 'Messaging';
 
         this.selectedTraceModule    = undefined;
         this.traceModules           = undefined;
         this.uniqueTraceModules     = undefined;
-        this.socketUrl              = `ws://${api.host[0]}:${api.host[1]}/Service/TraceControl`;
+        this.socketUrl              = `ws://${api.host[0]}:${api.host[1]}/Service/MessageControl`;
         this.traceSocket            = undefined;
     }
 
@@ -42,23 +42,19 @@ class TraceControl extends Plugin {
 
     toggleTracing(module, id, state) {
        var body = {
+            "type": "Tracing",
             "module": module,
             "category": id,
             "state": state === 'on' ? 'enabled' : 'disabled'
         };
 
-        const _rest = {
-            method  : 'PUT',
-            path    : 'TraceControl' +  '/' + module + '/' + id + '/' + state
-        };
-
         const _rpc = {
-            plugin : 'TraceControl',
+            plugin : 'MessageControl',
             method : 'set',
             params : body
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     render() {
@@ -104,29 +100,32 @@ class TraceControl extends Plugin {
             self.traceModules = response.settings ? response.settings : [];
             self.uniqueTraceModules = [];
             var traceModulesSelectElement = document.getElementById('tracingModules');
-            var traceOptions = traceModulesSelectElement.getElementsByTagName('options');
 
             // clear out the select element
             traceModulesSelectElement.options.length = 0;
 
             if (self.traceModules !== undefined) {
-                for (var i=0; i<self.traceModules.length; i++) {
-                    // check if tracemodule is in mapping object, if not add it
-                    if (self.uniqueTraceModules.indexOf(self.traceModules[i].module) === -1) {
-                        self.uniqueTraceModules.push(self.traceModules[i].module);
-                        var newOptionElement = document.createElement("option");
-                        newOptionElement.innerHTML = self.traceModules[i].module;
+              for (var i = 0; i < self.traceModules.length; i++) {
+                if (self.traceModules[i].type == 'Tracing') {
+                  // check if tracemodule is in mapping object, if not add it
+                  if (self.uniqueTraceModules.indexOf(
+                          self.traceModules[i].module) === -1) {
+                    self.uniqueTraceModules.push(self.traceModules[i].module);
+                    var newOptionElement = document.createElement('option');
+                    newOptionElement.innerHTML = self.traceModules[i].module;
 
-                        if (self.traceModules[i].module === self.selectedTraceModule)
-                            newOptionElement.selected = true;
+                    if (self.traceModules[i].module ===
+                        self.selectedTraceModule)
+                      newOptionElement.selected = true;
 
-                        traceModulesSelectElement.appendChild(newOptionElement);
-                    }
+                    traceModulesSelectElement.appendChild(newOptionElement);
+                  }
                 }
+              }
 
-                if (self.selectedTraceModule === undefined)
-                    self.selectedTraceModule = self.traceModules[0].module;
-                self.showTraceCategories(self.selectedTraceModule);
+              if (self.selectedTraceModule === undefined)
+                self.selectedTraceModule = self.traceModules[0].module;
+              self.showTraceCategories(self.selectedTraceModule);
             }
         });
     }
@@ -230,4 +229,4 @@ class TraceControl extends Plugin {
 
 }
 
-export default TraceControl;
+export default MessageControl;

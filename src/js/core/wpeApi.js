@@ -53,7 +53,7 @@ export default class WpeApi {
             'TestController',
             'TestUtility',
             'TimeSync',
-            'TraceControl',
+            'MessageControl',
             'WebKitBrowser',
             'WifiControl'
         ];

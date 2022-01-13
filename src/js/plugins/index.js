@@ -57,7 +57,7 @@ import Switchboard from './switchboard.js';
 import SystemServices from './systemServices.js';
 import Timer from './timer.js';
 import TimeSync from './timesync.js';
-import TraceControl from './tracing.js';
+import MessageControl from './messaging.js';
 import UserPreferences from './userPreferences';
 import VolumeControl from './volumecontrol.js';
 import WebKitBrowser from './webkit.js';
@@ -109,7 +109,7 @@ export default {
     SystemServices,
     Timer,
     TimeSync,
-    TraceControl,
+    MessageControl,
     UserPreferences,
     VolumeControl,
     WebKitBrowser,
