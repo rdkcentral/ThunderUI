@@ -84,6 +84,7 @@ class MessageControl extends Plugin {
                 <tr>
                     <td>time</td>
                     <td>file + line</td>
+                    <td>module</td>
                     <td>category</td>
                     <td>message</td>
                 </tr>            
@@ -199,6 +200,10 @@ class MessageControl extends Plugin {
         const file = document.createElement('td');
         file.innerHTML = `${msg.filename}:${msg.linenumber}`;
         tr.appendChild(file);
+
+        const module = document.createElement('td');
+        module.innerHTML = msg.module;
+        tr.appendChild(module);
 
         const category = document.createElement('td');
         category.innerHTML = msg.category;
