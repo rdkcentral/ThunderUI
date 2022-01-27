@@ -107,7 +107,7 @@ class MessageControl extends Plugin {
 
             if (self.traceModules !== undefined) {
               for (var i = 0; i < self.traceModules.length; i++) {
-                if (self.traceModules[i].type == 'Tracing') {
+                if (self.traceModules[i].type == 'Tracing' || self.traceModules[i].type == 'Logging') {
                   // check if tracemodule is in mapping object, if not add it
                   if (self.uniqueTraceModules.indexOf(
                           self.traceModules[i].module) === -1) {
