@@ -42,7 +42,7 @@ class MessageControl extends Plugin {
 
     toggleTracing(module, id, state) {
        var body = {
-            "type": "Tracing",
+            "type": module === 'SysLog' ? 'Logging' : 'Tracing',
             "module": module,
             "category": id,
             "state": state === 'on' ? 'enabled' : 'disabled'
@@ -97,7 +97,7 @@ class MessageControl extends Plugin {
         document.getElementById('tracingModules').onchange = this.getSelectedModuleAndShowCategories.bind(this);
 
         this.status().then( response => {
-            self.traceModules = response.settings ? response.settings : [];
+            self.traceModules = response.messages ? response.messages : [];
             self.uniqueTraceModules = [];
             var traceModulesSelectElement = document.getElementById('tracingModules');
 
