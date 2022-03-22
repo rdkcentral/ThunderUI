@@ -42,6 +42,7 @@ export default class WpeApi {
             'DHCPServer',
             'DIALServer',
             'LocationSync',
+            'MessageControl',
             'Messenger',
             'Monitor',
             'NetworkControl',

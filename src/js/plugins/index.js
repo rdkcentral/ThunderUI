@@ -38,6 +38,7 @@ import HdcpProfile from './hdcpprofile.js';
 import HdmiInput from './hdmiInput.js';
 import LoggingPreferences from './loggingpreferences.js';
 import LocationSync from './locationsync.js';
+import MessageControl from './messaging.js';
 import IOConnector from './ioconnector.js';
 import Messenger from './messenger';
 import Monitor from './monitor.js';
@@ -88,6 +89,7 @@ export default {
     FrameRate,
     LoggingPreferences,
     LocationSync,
+    MessageControl,
     HdcpProfile,
     HdmiInput,
     IOConnector,
