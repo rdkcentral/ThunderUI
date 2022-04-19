@@ -56,7 +56,8 @@ export default class WpeApi {
             'TimeSync',
             'TraceControl',
             'WebKitBrowser',
-            'WifiControl'
+            'WifiControl',
+            'LinearPlaybackControl'
         ];
     };
 
