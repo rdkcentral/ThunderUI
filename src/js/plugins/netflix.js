@@ -19,6 +19,7 @@
 /** The Netflix plugin provides details on the netflix instance
  */
 
+import { conf } from '../core/application.js';
 import Plugin from '../core/plugin.js';
 import Monitor from './monitor.js';
 
