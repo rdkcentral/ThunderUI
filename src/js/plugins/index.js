@@ -67,6 +67,7 @@ import WifiControl from './wificontrol.js';
 import Warehouse from './warehouse.js';
 import XCast from './xcast.js'
 import WifiManager from './rdkservices/wifiManager.js'
+import LinearPlaybackControl from './linearplaybackcontrol.js';
 
 export default {
     ActivityMonitor,
@@ -120,5 +121,6 @@ export default {
     Warehouse,
     WifiManager,
     XCast,
+    LinearPlaybackControl
 };
 
