@@ -40,18 +40,27 @@ class MessageControl extends Plugin {
         super.close()
     }
 
-    toggleTracing(module, id, state) {
+    toggleTracing(module, id, enabled) {
        var body = {
             "type": module === 'SysLog' ? 'Logging' : 'Tracing',
             "module": module,
             "category": id,
-            "state": state === 'on' ? 'enabled' : 'disabled'
+            "enabled": enabled
         };
 
         const _rpc = {
             plugin : 'MessageControl',
-            method : 'set',
+            method : 'enable',
             params : body
+        };
+
+        return this.api.req(null, _rpc);
+    }
+
+    retrieveControls() {
+        const _rpc = {
+            plugin : 'MessageControl',
+            method : 'controls'
         };
 
         return this.api.req(null, _rpc);
@@ -87,7 +96,7 @@ class MessageControl extends Plugin {
                     <td>module</td>
                     <td>category</td>
                     <td>message</td>
-                </tr>            
+                </tr>
             </div>
             <tbody id="traceData">
             </tbody>
@@ -97,8 +106,8 @@ class MessageControl extends Plugin {
 
         document.getElementById('tracingModules').onchange = this.getSelectedModuleAndShowCategories.bind(this);
 
-        this.status().then( response => {
-            self.traceModules = response.messages ? response.messages : [];
+        this.retrieveControls().then( response => {
+            self.traceModules = response;
             self.uniqueTraceModules = [];
             var traceModulesSelectElement = document.getElementById('tracingModules');
 
@@ -172,7 +181,7 @@ class MessageControl extends Plugin {
             var checkbox = document.createElement("input");
             checkbox.type = "checkbox";
             checkbox.id = m.category;
-            checkbox.checked = (m.state !== undefined) && (m.state === "enabled");
+            checkbox.checked = (m.enabled !== undefined) && m.enabled;
             checkbox.onclick = this.toggleTrace.bind(this, m);
             checkboxDiv.appendChild(checkbox);
 
@@ -183,8 +192,8 @@ class MessageControl extends Plugin {
     }
 
     toggleTrace(m) {
-        this.toggleTracing(m.module, m.category, (m.state === 'enabled' ? 'off' : 'on'));
-        m.state = (m.state === 'enabled' ? 'disabled' : 'enabled');
+        m.enabled = !m.enabled;
+        this.toggleTracing(m.module, m.category, m.enabled);
     }
 
     _socketMessage(data) {
