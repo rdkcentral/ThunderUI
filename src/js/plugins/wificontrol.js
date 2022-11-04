@@ -29,6 +29,7 @@ class WifiControl extends Plugin {
 
         this.configs = [];
         this.networks = [];
+        this.configinfo = [];
         this.connecting = false;
         this.connected = undefined;
         this.scanning = false;
@@ -116,7 +117,7 @@ class WifiControl extends Plugin {
             Method
         </div>
         <div class="text grid__col grid__col--6-of-8">
-            <input id="Wifi_Method" type="text" name="method"/>
+            <select id="Wifi_Method"/>
         </div>
         <div id="Wifi_Password_Label" class="label grid__col grid__col--2-of-8">
             Password
@@ -128,7 +129,6 @@ class WifiControl extends Plugin {
         <div class="text grid__col grid__col--6-of-8">
             <button type="button" id="Wifi_saveButton">Save</button>
             <button type="button" id="Wifi_deleteButton">Remove</button>
-            <button type="button" id="Wifi_storeButton">Store</button>
         </div>
         <div class="label grid__col grid__col--2-of-8 toggleButtonLabel2"></div>
         <div class="text grid__col grid__col--6-of-8">
@@ -146,7 +146,6 @@ class WifiControl extends Plugin {
         this.scanButton                 = document.getElementById('Wifi_scanForNetworksButton');
         this.saveButton                 = document.getElementById('Wifi_saveButton');
         this.deleteButton               = document.getElementById('Wifi_deleteButton');
-        this.storeButton                = document.getElementById('Wifi_storeButton');
         this.connectButton              = document.getElementById('Wifi_connectButton');
         this.disconnectButton           = document.getElementById('Wifi_disconnectButton');
         //this.modeButton                 = document.getElementById('Wifi_ToggleModeButton');
@@ -155,7 +154,6 @@ class WifiControl extends Plugin {
         this.scanButton.onclick         = this.scanForNetworks.bind(this);
         this.deleteButton.onclick       = this.deleteConfig.bind(this);
         this.saveButton.onclick         = this.saveConfig.bind(this);
-        this.storeButton.onclick        = this.storeConfig.bind(this);
         this.disconnectButton.onclick   = this.disconnect.bind(this);
         this.connectButton.onclick      = this.connect.bind(this);
         //this.modeButton.onclick         = this.toggleMode.bind(this);
@@ -194,10 +192,10 @@ class WifiControl extends Plugin {
             if (resp === undefined)
                 return;
 
-            this.connected = resp.connected;
+            this.connected = resp.connectedssid;
 
-            if (typeof resp.scanning === 'boolean')
-                this.scanning = resp.scanning;
+            if (typeof resp.isscanning === 'boolean')
+                this.scanning = resp.isscanning;
 
             this.renderStatus();
         });
@@ -220,6 +218,34 @@ class WifiControl extends Plugin {
             this.update();
             // get the results
             setTimeout(this.getNetworks.bind(this), 5000);
+        });
+    }
+
+    getConfig(ssid) {
+        this.update();
+
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/Config/` + ssid,
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'config@' + ssid,
+        };
+
+        this.api.req(_rest, _rpc).then( resp => {
+            if (resp === undefined)
+                return;
+
+            // backwards compatibility with REST
+            let config = resp.config ? resp.config : resp;
+
+            if (config === undefined)
+                return;
+
+            this.configinfo.push(config)
+            this.renderConfigDetails();
         });
     }
 
@@ -247,14 +273,15 @@ class WifiControl extends Plugin {
                 return;
 
             this.configs = _configs;
+            this.configinfo = [];
             this.configListEl.innerHTML = '';
+
 
             for (var i=0; i<_configs.length; i++) {
                 var newChild = this.configListEl.appendChild(document.createElement("option"));
-                newChild.innerHTML = `${_configs[i].ssid}`;
+                newChild.innerHTML = `${_configs[i]}`;
+                this.getConfig(`${_configs[i]}`);
             }
-
-            this.renderConfigDetails();
         });
     }
 
@@ -363,13 +390,18 @@ class WifiControl extends Plugin {
         var idx = this.networkListEl.selectedIndex;
 
         this.ssidEl.value = ''
-        this.methodEl.value = ''
+        this.methodEl.innerHTML = '';
+        this.passwordEl.value = '';
 
         if (idx < 0 || this.networks.length <= 0)
             return;
 
         this.ssidEl.value = this.networks[idx].ssid;
-        this.methodEl.value = this.networks[idx].pairs[0].method;
+        
+        for (var i=0; i<this.networks[idx].security.length; i++) {
+            var newChild = this.methodEl.appendChild(document.createElement("option"));
+            newChild.innerHTML = this.networks[idx].security[i];
+        }
     }
 
     renderConfigDetails() {
@@ -378,21 +410,26 @@ class WifiControl extends Plugin {
         this.ssidEl.value = '';
         this.accesspointEl.innerHTML = '';
         this.hiddenEl.innerHTML = '';
-        this.methodEl.value = '';
+        this.methodEl.innerHTML = '';
         this.passwordEl.value = '';
 
         if (idx < 0 || this.configs.length === 0) {
             return;
         }
 
-        this.ssidEl.value = this.configs[idx].ssid;
-        this.accesspointEl.innerHTML = this.configs[idx].accesspoint === true ? 'Access Point' : 'Client';
-        this.hiddenEl.innerHTML = this.configs[idx].hidden === true ? 'True' : 'False';
-        this.methodEl.value = this.configs[idx].type;
-        this.passwordEl.value = this.configs[idx].psk !== undefined ? this.configs[idx].psk : '';
+        for (var i=0; i<this.configinfo.length; i++) {
+            if (this.configs[idx] == this.configinfo[i].ssid) {
 
+                this.ssidEl.value = this.configs[idx];
+                this.accesspointEl.innerHTML = this.configinfo[i].accesspoint === true ? 'Access Point' : 'Client';
+                this.hiddenEl.innerHTML = this.configinfo[i].hidden === true ? 'True' : 'False';
+                var newChild = this.methodEl.appendChild(document.createElement("option"));
+                newChild.innerHTML = this.configinfo[i].method;
+
+                this.passwordEl.value = this.configinfo[i].secret !== undefined ? this.configinfo[i].secret : '';
+            }
+        }
     }
-
 
     /* ----------------------------- BUTTONS ------------------------------*/
     toggleConnectDisconnect() {
@@ -404,28 +441,28 @@ class WifiControl extends Plugin {
 
     saveConfig() {
         var self = this;
-        var idx = this.configListEl.selectedIndex;
+        var idx = this.networkListEl.selectedIndex;
 
         var config = {
             ssid : this.ssidEl.value,
-            accesspoint : false
+            accesspoint : false,
         };
 
         if (this.passwordEl.value !== '')
-            config.psk = this.passwordEl.value;
+            config.secret= this.passwordEl.value;
 
-        config.type = this.methodEl.value;
+        config.method = this.methodEl.value;
 
         const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/Config`,
-            config  : config
+            method  : 'POST',
+            path    : `${this.callsign}/Config/${this.ssidEl.value}`,
+            body    : config
         };
 
         const _rpc = {
             plugin : this.callsign,
-            method : `config@${config.ssid}`,
-            params : config
+            method : 'config@' + `${this.ssidEl.value}`,
+            params : { 'value': config }
         };
 
         this.api.req(_rest, _rpc).then( resp => {
@@ -436,28 +473,30 @@ class WifiControl extends Plugin {
     }
 
     deleteConfig() {
+        var self = this;
         var idx = this.configListEl.selectedIndex;
-
         this.statusMessage(`Deleting config ${this.configs[idx].ssid}`);
+        var config = {
+            ssid : "",
+            accesspoint : false,
+        };
 
         const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/Delete/${this.configs[idx].ssid}`
+            method  : 'POST',
+            path    : `${this.callsign}/Config/${this.configs[idx]}`,
+            body    : config
         };
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'delete',
-            params : {
-                ssid: this.configs[idx].ssid
-            }
+            method : 'config@' + `${this.configs[idx]}`,
+            params : { 'value': config }
         };
 
-        this.api.req(_rest, _rpc).then( () => {
+        this.api.req(_rest, _rpc).then( resp => {
             this.connecting = true;
-            this.getConfigs();
+            self.getConfigs();
         });
-
     }
 
     requestDHCP() {
@@ -465,7 +504,7 @@ class WifiControl extends Plugin {
 
         const _rest = {
             method  : 'PUT',
-            path    : `NetworkControl/${this.wlanInterface}/Request`
+            path    : `NetworkControl/${this.wlanInterface}/Flush`
         };
 
         const _rpc = {
@@ -479,37 +518,21 @@ class WifiControl extends Plugin {
         this.api.req(_rest, _rpc);
     }
 
-    storeConfig() {
-        this.statusMessage('Storing WiFi configuration');
-
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/${this.wlanInterface}/Store`
-        };
-
-        const _rpc = {
-            plugin : this.callsign,
-            method : 'store'
-        };
-
-        this.api.req(_rest, _rpc);
-    }
-
     connect() {
         var idx = this.configListEl.selectedIndex;
 
-        this.statusMessage(`Connecting to ${this.configs[idx].ssid}`);
+        this.statusMessage(`Connecting to ${this.configs[idx]}`);
 
         const _rest = {
             method  : 'PUT',
-            path    : `${this.callsign}/Connect/${this.configs[idx].ssid}`
+            path    : `${this.callsign}/Connect/${this.configs[idx]}`
         };
 
         const _rpc = {
             plugin : this.callsign,
             method : 'connect',
             params : {
-                ssid: this.configs[idx].ssid
+                configssid: this.configs[idx]
             }
         };
 
@@ -524,15 +547,15 @@ class WifiControl extends Plugin {
             return;
 
         const _rest = {
-            method  : 'DELETE',
-            path    : `${this.callsign}/Connect/${this.connected}`
+            method  : 'PUT',
+            path    : `${this.callsign}/Disconnect/${this.connected}`
         };
 
         const _rpc = {
             plugin : this.callsign,
             method : 'disconnect',
             params : {
-                ssid: this.connected
+                configssid: this.connected
             }
         };
 
