@@ -28,8 +28,11 @@ class NetworkControl extends Plugin {
 
         this.renderInMenu = true;
         this.displayName = 'Network';
-        this.selectedNetworkInterface = 0;
+        this.isUp = false;
+        this.dns = [];
         this.networks = [];
+        this.interfaces = [];
+        this.modeList = ["Dynamic", "Static"];
     }
 
     render()        {
@@ -47,71 +50,73 @@ class NetworkControl extends Plugin {
             </select>
           </div>
           <div class="label grid__col grid__col--2-of-8">
-            mode
+            status
           </div>
-          <div id="mode" class="text grid__col grid__col--6-of-8">
+          <div id="statusType" class="text grid__col grid__col--6-of-8">
             -
           </div>
           <div id="ipSettings" style="display: none">
             <div class="label grid__col grid__col--2-of-8">
-              IP Address
+              mode
             </div>
-            <div id="ip" class="text grid__col grid__col--6-of-8">
-              -
+            <div class="text grid__col grid__col--6-of-8">
+              <select id="mode" type="text" name="interfacemode"/>
+              </select>
             </div>
             <div class="label grid__col grid__col--2-of-8">
-              Broadcast
+              IP Address
             </div>
-            <div id="broadcast" class="text grid__col grid__col--6-of-8">
-              -
+            <div class="text grid__col grid__col--6-of-8">
+            <input id="ip" type="text" name="ip"/>
             </div>
             <div class="label grid__col grid__col--2-of-8">
               Gateway
             </div>
-            <div id="gateway" class="text grid__col grid__col--6-of-8">
-              -
+            <div class="text grid__col grid__col--6-of-8">
+            <input id="gateway" type="text" name="gateway"/>
             </div>
             <div class="label grid__col grid__col--2-of-8">
               mask
             </div>
-            <div id="mask" class="text grid__col grid__col--6-of-8">
-              -
+            <div class="text grid__col grid__col--6-of-8">
+            <input id="mask" type="text" name="mask"/>
             </div>
           </div>
-
-          <div id="syncLabel" class="label grid__col grid__col--2-of-8">
-            Control
+          <div class="label grid__col grid__col--2-of-8">
+            DNS
           </div>
           <div class="text grid__col grid__col--6-of-8">
-            <button type="button" id="reload" onclick="">Reload</button>
-            <button type="button" id="request" onclick="">Request</button>
-            <!-- <button type="button" id="assign" onclick="">Assign</button> -->
+          <input id="dnslist" type="text" name="dns"/>
+          </div>
+        <div id="syncLabel" class="label grid__col grid__col--2-of-8">
+          Control
+        </div>
+        <div class="text grid__col grid__col--6-of-8">
+            <button type="button" id="save" onclick="">Save</button>
+            <button type="button" id="toggleUp" onclick=""</button>
             <button type="button" id="flush" onclick="">Flush</button>
-          </div>`;
+        </div>`;
 
       this.interfacesOptsEl   = document.getElementById("NetworkInterface");
       this.interfacesOptsEl.onchange = this.updateNetworkInterface.bind(this);
 
-      let reloadButton = document.getElementById('reload');
-      reloadButton.onclick = this.reload.bind(this);
-
-      let requestButton = document.getElementById('request');
-      request.onclick = this.request.bind(this);
-
-      //let assignButton = document.getElementById('assign');
-      //assignButton.onclick = this.assign.bind(this);
-
+      let saveButton = document.getElementById('save');
+      saveButton.onclick = this.save.bind(this);
+      let toggleButton = document.getElementById('toggleUp');
+      toggleButton.innerHTML = (this.isUp ? "Down": "Up");
+      toggleButton.onclick = this.toggleUp.bind(this);
       let flushButton = document.getElementById('flush');
       flushButton.onclick = this.flush.bind(this);
 
+      this.dnsEl          = document.getElementById('dnslist');
       this.ipEl           = document.getElementById('ip');
-      this.broadcastEl    = document.getElementById('broadcast');
       this.gatewayEl      = document.getElementById('gateway');
       this.maskEl         = document.getElementById('mask');
       this.modeEl         = document.getElementById('mode');
+      this.statusTypeEl   = document.getElementById('statusType');
 
       // FIXME not documented, guessing
-      this.networkListener = this.api.t.on('NetworkControl', 'networkupdate', (data) => {
+      this.networkListener = this.api.t.on('NetworkControl', 'update', (data) => {
           console.log('NETWORK NOT', data);
           this.update();
       });
@@ -119,90 +124,240 @@ class NetworkControl extends Plugin {
       this.update();
     }
 
-    network() {
+    getInterfaceIsUp(iface) {
         const _rest = {
             method  : 'GET',
-            path    : `${this.callsign}`
+            path    : `${this.callsign}/Up/` + iface
         };
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'network'
+            method : 'up@' + iface
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(_rest, _rpc).then( resp => {
+            if (resp === undefined)
+                return;
+
+            // backwards compatibility with REST
+            let isUp = resp.value ? resp.value : resp
+
+            this.isUp = isUp;
+            //this.toggleButton.innerHTML = (isUp ? "Down": "Up");
+            var toggleButton = document.getElementById('toggleUp');
+            toggleButton.innerHTML = (this.isUp ? "Down": "Up");
+        });
     }
 
-    reload() {
-        let device = this._addresses[ this.interfacesOptsEl.selectedIndex ].interface;
+    getStatus(iface) {
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/Status/` + iface
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'status@' + iface
+        };
+
+        return this.api.req(_rest, _rpc).then( resp => {
+            if (resp === undefined)
+                return;
+
+            // backwards compatibility with REST
+            let statustype = resp.statustype ? resp.statustype : resp;
+
+            if (statustype === undefined)
+                return;
+
+            this.statustype = statustype;
+            this.statusTypeEl.innerHTML = statustype;
+            this.getNetwork(iface);
+        });
+    }
+
+    getNetwork(iface) {
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/Network/` + iface
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'network@' + iface
+        };
+
+        return this.api.req(_rest, _rpc).then( resp => {
+            if (resp === undefined)
+                return;
+
+            // backwards compatibility with REST
+            let network = resp.network ? resp.network : resp;
+
+            if (network === undefined)
+                return;
+
+            this.networks = network;
+            this.renderNetworkDetails();
+        });
+    }
+
+    getDNS() {
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/DNS`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'dns'
+        };
+
+        return this.api.req(_rest, _rpc).then( resp => {
+            if (resp === undefined)
+                return;
+
+            // backwards compatibility with REST
+            let dns = resp.dns ? resp.dns : resp;
+
+            if (dns === undefined)
+                return;
+
+            this.dns = [];
+            this.dnsEl.value = "";
+            if (dns.length) {
+                for (var i=0; i< dns.length; i++) {
+                    this.dns.push(dns[i]);
+                }
+                this.dnsEl.value = this.dns;
+            }
+        });
+    }
+    getInterfaces() {
+        const _rest = {
+            method  : 'GET',
+            path    : `${this.callsign}/Interfaces`
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'interfaces'
+        };
+
+        return this.api.req(_rest, _rpc).then( resp => {
+            if (resp === undefined)
+                return;
+
+            // backwards compatibility with REST
+            let interfaces = resp.interfaces ? resp.interfaces : resp;
+
+            if (interfaces === undefined)
+                return;
+
+            let selectedIndex = this.interfacesOptsEl.selectedIndex;
+            this.networks = [];
+            this.interfaces = interfaces;
+            this.interfacesOptsEl.innerHTML = '';
+            for (var i=0; i< interfaces.length; i++) {
+                var newChild = this.interfacesOptsEl.appendChild(document.createElement("option"));
+                newChild.innerHTML = interfaces[i];
+            }
+            this.modeEl.innerHTML = '';
+            for (var i=0; i<this.modeList.length; i++) {
+                var modeChild = this.modeEl.appendChild(document.createElement("option"));
+                modeChild.innerHTML = this.modeList[i];
+            }
+
+            this.interfacesOptsEl.selectedIndex = ((selectedIndex < 0) ? 0 : selectedIndex);
+            this.getStatus(interfaces[this.interfacesOptsEl.selectedIndex]);
+            this.getInterfaceIsUp(interfaces[this.interfacesOptsEl.selectedIndex]);
+        });
+    }
+
+    toggleUp() {
+        let iface = this.interfaces[ this.interfacesOptsEl.selectedIndex ];
+        let toggledStatus = (this.isUp ? "Down" : "Up");
 
         const _rest = {
             method  : 'PUT',
-            path    : `${this.callsign}/${device}/Reload`
+            path    : `${this.callsign}/${toggledStatus}/${iface}`
         };
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'reload',
+            method : 'up@' + iface,
             params : {
-              'device' : device
+              'value' : !this.isUp
             }
         };
 
-        return this.api.req(_rest, _rpc);
-    }
-
-    request() {
-        let device = this._addresses[ this.interfacesOptsEl.selectedIndex ].interface;
-
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/${device}/Request`
-        };
-
-        const _rpc = {
-            plugin : this.callsign,
-            method : 'request',
-            params : {
-              'device' : device
-            }
-        };
-
-        return this.api.req(_rest, _rpc);
-    }
-
-    assign() {
-        let device = this._addresses[ this.interfacesOptsEl.selectedIndex ].interface;
-
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/${device}/Assign`
-        };
-
-        const _rpc = {
-            plugin : this.callsign,
-            method : 'assign',
-            params : {
-              'device' : device
-            }
-        };
-
-        return this.api.req(_rest, _rpc);
+        return this.api.req(_rest, _rpc).then ( () => {
+            this.getInterfaceIsUp(iface);
+        });
     }
 
     flush() {
-        let device = this._addresses[ this.interfacesOptsEl.selectedIndex ].interface;
+        let iface = this.interfaces[ this.interfacesOptsEl.selectedIndex ];
 
         const _rest = {
             method  : 'PUT',
-            path    : `${this.callsign}/${device}/Flush`
+            path    : `${this.callsign}/Flush/${iface}`
         };
 
         const _rpc = {
             plugin : this.callsign,
             method : 'flush',
             params : {
-              'device' : device
+              'interface' : iface
+            }
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    save() {
+        this.setNetwork();
+        this.setDNS();
+    }
+
+    setNetwork() {
+        let iface = this.interfaces[ this.interfacesOptsEl.selectedIndex ];
+
+        this.networks[0].mode = this.modeEl.value;
+        this.networks[0].address = this.ipEl.value;
+        this.networks[0].defaultgateway = this.gatewayEl.value;
+        this.networks[0].mask = this.maskEl.value;
+
+        const _rest = {
+            method  : 'POST',
+            path    : `${this.callsign}/Network/` + iface,
+            body    : JSON.stringify(this.networks)
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'network@' + iface,
+            params : {
+              'value' : this.networks
+            }
+        };
+
+        return this.api.req(_rest, _rpc);
+    }
+
+    setDNS() {
+        this.dns = [this.dnsEl.value];
+        const _rest = {
+            method  : 'POST',
+            path    : `${this.callsign}/DNS`,
+            body    : this.dns.toString().split(',')
+        };
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'dns',
+            params : {
+              'value' : this.dns.toString().split(',')
             }
         };
 
@@ -210,36 +365,25 @@ class NetworkControl extends Plugin {
     }
 
     update() {
-        this.network().then( data => {
-            let addresses = data.addresses ? data.addresses : data;
+        this.getDNS();
+        this.getInterfaces();
+    }
 
-            this._addresses = addresses;
+    renderNetworkDetails() {
+        let network = this.networks[0];
 
-            this.interfacesOptsEl.innerHTML = '';
-            for (var i=0; i<addresses.length; i++) {
-                var newChild = this.interfacesOptsEl.appendChild(document.createElement("option"));
-                newChild.innerHTML = addresses[i].interface;
-            }
-
-            this.interfacesOptsEl.selectedIndex = this.selectedNetworkInterface;
-            let _selected = this._addresses[this.selectedNetworkInterface];
-
-            this.modeEl.innerHTML       = _selected.mode;
-
-            if (_selected.mode !== 'Dynamic') {
-              document.getElementById('ipSettings').style.display = 'block'
-              this.ipEl.innerHTML         = _selected.address;
-              this.broadcastEl.innerHTML  = _selected.broadcast;
-              this.gatewayEl.innerHTML    = _selected.gateway;
-              this.maskEl.innerHTML       = _selected.mask;
-            } else {
-              document.getElementById('ipSettings').style.display = 'none'
-            }
-        });
+        if (this.statustype == 'Available') {
+            document.getElementById('ipSettings').style.display = 'block'
+            this.modeEl.value       = network.mode;
+            this.ipEl.value         = network.address;
+            this.gatewayEl.value    = network.defaultgateway;
+            this.maskEl.value       = network.mask;
+        } else {
+            document.getElementById('ipSettings').style.display = 'none'
+        }
     }
 
     updateNetworkInterface(deviceInfo) {
-        this.selectedNetworkInterface = this.interfacesOptsEl.selectedIndex;
         this.update();
     }
 
