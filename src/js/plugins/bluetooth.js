@@ -27,7 +27,8 @@ class BluetoothControl extends Plugin {
         super(pluginData, api);
 
         this._devices = [];
-        this.scanning = false;
+        this.scanning = new Set();
+        this.discoverable = new Set();
         this.displayName = 'BluetoothControl';
     }
 
@@ -40,20 +41,24 @@ class BluetoothControl extends Plugin {
         </div>
 
         <div class="label grid__col grid__col--2-of-8">
-            Devices
-        </div>
-        <div class="text grid__col grid__col--6-of-8">
-            <select id="BT_Devices"></select>
-        </div>
-        <div class="label grid__col grid__col--2-of-8">
             Scanning
         </div>
         <div id="BT_Scanning" class="text grid__col grid__col--6-of-8">
-            OFF
+        </div>
+        <div class="label grid__col grid__col--2-of-8">
+            Discoverable
+        </div>
+        <div id="BT_Discoverable" class="text grid__col grid__col--6-of-8">
         </div>
 
         <div class="title grid__col grid__col--8-of-8">
             Device
+        </div>
+        <div class="label grid__col grid__col--2-of-8">
+            Select device
+        </div>
+        <div class="text grid__col grid__col--6-of-8">
+            <select id="BT_Devices"></select>
         </div>
         <div class="label grid__col grid__col--2-of-8">
             Name
@@ -86,33 +91,42 @@ class BluetoothControl extends Plugin {
             <button type="button" id="BT_Disconnect">Disconnect</button>
             <button type="button" id="BT_Pair">Pair</button>
             <button type="button" id="BT_Unpair">Unpair</button>
+            <button type="button" id="BT_AbortPairing">Abort Pariring</button>
+            <button type="button" id="BT_Forget">Forget</button>
         </div>
 
-        <div class="label grid__col grid__col--2-of-8">Remote</div>
+        <div class="label grid__col grid__col--2-of-8">BLE Remote Control Unit</div>
         <div class="text grid__col grid__col--6-of-8">
-            <button type="button" id="BT_Assign">Assign</button>
-            <button type="button" id="BT_Revoke">Revoke</button>
+            <button type="button" id="BT_AssignRemote">Assign</button>
+            <button type="button" id="BT_RevokeRemote">Revoke</button>
+        </div>
+
+        <div class="label grid__col grid__col--2-of-8">BR/EDR Audio Sink</div>
+        <div class="text grid__col grid__col--6-of-8">
+            <button type="button" id="BT_AssignAudioSink">Assign</button>
+            <button type="button" id="BT_RevokeAudioSink">Revoke</button>
         </div>
 
         <div class="title grid__col grid__col--8-of-8">
             Discovery
         </div>
-        <div class="label grid__col grid__col--2-of-8">
-            <label for="autofwd">Scan</label>
-        </div>
-        <div class="grid__col grid__col--6-of-8">
-            <button type="button" id="BT_ScanForDevices">Scan</button>
-        </div>
-        <div class="label grid__col grid__col--2-of-8">
-            BlueTooth Low Energy
-        </div>
+        <div class="label grid__col grid__col--2-of-8">Bluetooth LowEnergy</div>
         <div class="grid__col grid__col--6-of-8">
             <div class="checkbox">
                 <input type="checkbox" id="BT_LE" checked></input>
                 <label for="BT_LE"></label>
             </div>
         </div>
-
+        <div class="label grid__col grid__col--2-of-8">Scan</div>
+        <div class="text grid__col grid__col--6-of-8">
+            <button type="button" id="BT_StartScan">Scan</button>
+            <button type="button" id="BT_StopScan">Stop</button>
+        </div>
+        <div class="label grid__col grid__col--2-of-8">Visibility</div>
+        <div class="text grid__col grid__col--6-of-8">
+            <button type="button" id="BT_SetDiscoverable">Discoverable</button>
+            <button type="button" id="BT_StopDiscoverable">Stop</button>
+        </div>
         <br>
 
         <div id="statusMessages" class="text grid__col grid__col--8-of-8"></div>
@@ -121,27 +135,41 @@ class BluetoothControl extends Plugin {
         // bind elements
 
         // ---- button ----
-        this.scanButton                 = document.getElementById('BT_ScanForDevices');
+        this.startScanButton            = document.getElementById('BT_StartScan');
+        this.stopScanButton             = document.getElementById('BT_StopScan');
+        this.setDiscoverableButton      = document.getElementById('BT_SetDiscoverable');
+        this.stopDiscoverableButton     = document.getElementById('BT_StopDiscoverable');
         this.pairButton                 = document.getElementById('BT_Pair');
         this.unpairButton               = document.getElementById('BT_Unpair');
+        this.abortPairingButton         = document.getElementById('BT_AbortPairing');
+        this.forgetButton               = document.getElementById('BT_Forget');
         this.connectButton              = document.getElementById('BT_Connect');
         this.disconnectButton           = document.getElementById('BT_Disconnect');
         this.btLowEnergyButton          = document.getElementById('BT_LE');
-        this.assignButton               = document.getElementById('BT_Assign');
-        this.revokeButton               = document.getElementById('BT_Revoke');
+        this.assignRemoteButton         = document.getElementById('BT_AssignRemote');
+        this.revokeRemoteButton         = document.getElementById('BT_RevokeRemote');
+        this.assignAudioSinkButton      = document.getElementById('BT_AssignAudioSink');
+        this.revokeAudioSinkButton      = document.getElementById('BT_RevokeAudioSink');
 
         // ---- device list ----
         this.deviceList                 = document.getElementById('BT_Devices')
         this.deviceList.onchange        = this.renderDevice.bind(this);
 
         // Bind buttons
-        this.scanButton.onclick         = this.scanForDevices.bind(this);
+        this.startScanButton.onclick    = this.startScan.bind(this);
+        this.stopScanButton.onclick     = this.stopScan.bind(this);
+        this.setDiscoverableButton.onclick  = this.setDiscoverable.bind(this);
+        this.stopDiscoverableButton.onclick = this.stopDiscoverable.bind(this);
         this.pairButton.onclick         = this.pairDevice.bind(this);
         this.unpairButton.onclick       = this.unpairDevice.bind(this);
+        this.abortPairingButton.onclick = this.abortPairingDevice.bind(this);
+        this.forgetButton.onclick       = this.forgetDevice.bind(this);
         this.disconnectButton.onclick   = this.disconnect.bind(this);
         this.connectButton.onclick      = this.connect.bind(this);
-        this.assignButton.onclick       = this.assign.bind(this);
-        this.revokeButton.onclick       = this.revoke.bind(this);
+        this.assignRemoteButton.onclick = this.assignRemote.bind(this);
+        this.revokeRemoteButton.onclick = this.revokeRemote.bind(this);
+        this.assignAudioSinkButton.onclick = this.assignAudioSink.bind(this);
+        this.revokeAudioSinkButton.onclick = this.revokeAudioSink.bind(this);
 
         // ---- Text fields
         this.nameEl                     = document.getElementById("BT_Name");
@@ -151,15 +179,48 @@ class BluetoothControl extends Plugin {
 
         // ---- Status -----
         this.scanningStatus             = document.getElementById('BT_Scanning');
+        this.discoverableStatus         = document.getElementById('BT_Discoverable');
         this.statusMessages             = document.getElementById('statusMessages');
 
-        // ---- Connected Devices -----
-        this.deviceList                 = document.getElementById('BT_Devices');
+        this.scanStartedListener = this.api.t.on("BluetoothControl", "scanstarted", this.scanStarted.bind(this));
+        this.scanCompleteListener = this.api.t.on("BluetoothControl", "scancomplete", this.scanComplete.bind(this));
+        this.discoverableStartedListener = this.api.t.on("BluetoothControl", "discoverablestarted", this.discoverableStarted.bind(this));
+        this.discoverableCompleteListener = this.api.t.on("BluetoothControl", "discoverablecomplete", this.discoverableComplete.bind(this));
+        this.deviceStateListener = this.api.t.on("BluetoothControl", "devicestatechange", this.deviceUpdated.bind(this));
 
-        this.scanListener = this.api.t.on("BluetoothControl", "scancomplete",       this.scanComplete.bind(this));
-        this.deviceStateListener = this.api.t.on("BluetoothControl", "devicestatechange",  this.renderDevice.bind(this));
+        this.update(true)
+    }
 
+
+    /* -------------------------- NOTIFICATIONS ---------------------------*/
+
+    deviceUpdated(params) {
+        this.renderDevice()
+        this.updateStatus(`${params.address} is ${params.state}`)
+    }
+
+    scanStarted(params) {
+        this.scanning.add(params.type)
         this.update()
+        this.updateStatus(`${params.type} scan in progress...`);
+    }
+
+    scanComplete(params) {
+        this.scanning.delete(params.type)
+        this.update(true)
+        this.updateStatus(`${params.type} scan complete`);
+    }
+
+    discoverableStarted(params) {
+        this.discoverable.add(params.type)
+        this.update()
+        this.updateStatus(`${params.type} adapter now discoverable...`);
+    }
+
+    discoverableComplete(params) {
+        this.discoverable.delete(params.type)
+        this.update()
+        this.updateStatus(`${params.type} adapter no longer discoverable`);
     }
 
     /* ----------------------------- DATA ------------------------------*/
@@ -167,7 +228,7 @@ class BluetoothControl extends Plugin {
     devices() {
         const _rpc = {
             plugin : 'BluetoothControl',
-            method : 'devices'
+            method : 'getdevicelist'
         };
 
         return this.api.req(null, _rpc).then( devices => {
@@ -177,41 +238,24 @@ class BluetoothControl extends Plugin {
 
             this._devices = []
             if (devices && devices.length)
-                devices.forEach( (address) => { this._devices.push({ address : address }) });
+                devices.forEach( (entry) => { this._devices.push({ address : entry.address, type: entry.type }) });
 
             return this._devices
         });
     }
 
-    device(address) {
+    device(address, type) {
         const _rpc = {
             plugin: 'BluetoothControl',
-            method: 'device@' + address
+            method: 'getdeviceinfo',
+            params: { address: address, type: type }
         }
 
         return this.api.req(null, _rpc)
     }
 
-    scanComplete() {
-        this.scanning = false
-        this.renderScanStatus()
-        this.update()
-        this.updateStatus('Scan complete');
-    }
 
     /* ----------------------------- RENDERING ------------------------------*/
-
-    renderScanStatus () {
-        const _rest = {
-            method  : 'GET',
-            path    : this.callsign
-        };
-
-        // unfortunately not supported on JSON RPC yet
-        return this.api.req(_rest, null).then( results => {
-            this.scanningStatus.innerHTML = results.scanning === true ? 'ON' : 'OFF';
-        });
-    }
 
     updateDeviceList() {
         this.deviceList.innerHTML = '';
@@ -228,12 +272,17 @@ class BluetoothControl extends Plugin {
 
     renderDevice() {
         let idx = this.deviceList.selectedIndex;
-        if (idx === -1 || this._devices.length === 0)
+        if (idx === -1 || this._devices.length === 0) {
+            this.nameEl.innerHTML = '-'
+            this.typeEl.innerHTML = '-'
+            this.connectedEl.innerHTML = '-'
+            this.pairedEl.innerHTML = '-'
             return
-
+        }
 
         let address = this._devices[idx].address
-        this.device(address).then( (data)=>{
+        let type = this._devices[idx].type
+        this.device(address, type).then( (data)=>{
             if (data)
                 this._devices[idx] = { address, ...data }
 
@@ -257,32 +306,77 @@ class BluetoothControl extends Plugin {
         this.statusMessageTimer = setTimeout(this.updateStatus, 5000, '');
     }
 
-    update() {
-        this.renderScanStatus()
-        this.devices().then( () => {
-            this.updateDeviceList()
-        })
+    update(devices = false) {
+        this.scanningStatus.innerHTML = this.scanning.size == 0? "idle" : Array.from(this.scanning).join(', ')
+        this.discoverableStatus.innerHTML = this.discoverable.size == 0? "idle" : Array.from(this.discoverable).join(', ')
+        if (devices) {
+            this.devices().then( () => {
+                this.updateDeviceList()
+            })
+        }
     }
 
     /* ----------------------------- BUTTONS ------------------------------*/
 
-    scanForDevices() {
-        this.updateStatus(`Start scanning`);
-        this.scanning = true
-        this.renderScanStatus()
-
+    startScan() {
         const _rpc = {
             plugin : 'BluetoothControl',
             method : 'scan',
             params : {
-                type : this.btLowEnergyButton.checked ? 'LowEnergy' : 'Regular',
-                timeout: 10
+                type : this.btLowEnergyButton.checked ? 'LowEnergy' : 'Classic',
+                timeout: 12
             }
         };
 
         this.api.req(null, _rpc).catch( e => {
             if (e.message)
-            this.updateStatus(`Error: ${e.message}`);
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
+    }
+
+    stopScan() {
+        const _rpc = {
+            plugin : 'BluetoothControl',
+            method : 'stopscanning',
+            params : {
+                type : this.btLowEnergyButton.checked ? 'LowEnergy' : 'Classic'
+            }
+        };
+
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
+    }
+
+    setDiscoverable() {
+        const _rpc = {
+            plugin : 'BluetoothControl',
+            method : 'setdiscoverable',
+            params : {
+                type : this.btLowEnergyButton.checked ? 'LowEnergy' : 'Classic',
+                timeout: 30
+            }
+        };
+
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
+    }
+
+    stopDiscoverable() {
+        const _rpc = {
+            plugin : 'BluetoothControl',
+            method : 'stopdiscoverable',
+            params : {
+                type : this.btLowEnergyButton.checked ? 'LowEnergy' : 'Classic'
+            }
+        };
+
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
         })
     }
 
@@ -294,7 +388,8 @@ class BluetoothControl extends Plugin {
             plugin : this.callsign,
             method : 'pair',
             params : {
-                "address" : this._devices[idx].address
+                "address" : this._devices[idx].address,
+                "type" : this._devices[idx].type
             }
         };
 
@@ -312,7 +407,8 @@ class BluetoothControl extends Plugin {
             plugin : this.callsign,
             method : 'unpair',
             params : {
-                "address" : this._devices[idx].address
+                "address" : this._devices[idx].address,
+                "type" : this._devices[idx].type
             }
         };
 
@@ -320,6 +416,46 @@ class BluetoothControl extends Plugin {
             if (e.message)
                 this.updateStatus(`Error: ${e.message}`, true);
         })
+    }
+
+    abortPairingDevice() {
+        var idx = this.deviceList.selectedIndex;
+        this.updateStatus(`Aborting pairing to ${this._devices[idx].name}`);
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'abortpairing',
+            params : {
+                "address" : this._devices[idx].address,
+                "type" : this._devices[idx].type
+            }
+        };
+
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
+    }
+
+    forgetDevice() {
+        var idx = this.deviceList.selectedIndex;
+        this.updateStatus(`Removing ${this._devices[idx].name}`);
+
+        const _rpc = {
+            plugin : this.callsign,
+            method : 'forget',
+            params : {
+                "address" : this._devices[idx].address,
+                "type" : this._devices[idx].type
+            }
+        };
+
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
+
+        this.update(true)
     }
 
     connect() {
@@ -330,7 +466,8 @@ class BluetoothControl extends Plugin {
             plugin : this.callsign,
             method : 'connect',
             params : {
-                "address" : this._devices[idx].address
+                "address" : this._devices[idx].address,
+                "type" : this._devices[idx].type
             }
         };
 
@@ -348,7 +485,8 @@ class BluetoothControl extends Plugin {
             plugin : this.callsign,
             method : 'disconnect',
             params : {
-                "address" : this._devices[idx].address
+                "address" : this._devices[idx].address,
+                "type" : this._devices[idx].type
             }
         };
 
@@ -358,9 +496,9 @@ class BluetoothControl extends Plugin {
         })
     }
 
-    assign() {
+    assignRemote() {
         var idx = this.deviceList.selectedIndex;
-        this.updateStatus(`Assigning ${this._devices[idx].name}`);
+        this.updateStatus(`Assigning ${this._devices[idx].name} as BLE remote control unit`);
 
         const _rpc = {
             plugin : 'BluetoothRemoteControl',
@@ -376,9 +514,9 @@ class BluetoothControl extends Plugin {
         })
     }
 
-    revoke() {
+    revokeRemote() {
         var idx = this.deviceList.selectedIndex;
-        this.updateStatus(`Revoking ${this._devices[idx].name}`);
+        this.updateStatus(`Revoking BLE remote ${this._devices[idx].name}`);
 
         const _rpc = {
             plugin : 'BluetoothRemoteControl',
@@ -394,11 +532,50 @@ class BluetoothControl extends Plugin {
         })
     }
 
+    assignAudioSink() {
+        var idx = this.deviceList.selectedIndex;
+        this.updateStatus(`Assigning ${this._devices[idx].name} as BR/EDR audio sink`);
+
+        const _rpc = {
+            plugin : 'BluetoothAudioSink',
+            method : 'assign',
+            params : {
+                "address" : this._devices[idx].address
+            }
+        };
+
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
+    }
+
+    revokeAudioSink() {
+        var idx = this.deviceList.selectedIndex;
+        this.updateStatus(`Revoking BR/EDR audio sink ${this._devices[idx].name}`);
+
+        const _rpc = {
+            plugin : 'BluetoothAudioSink',
+            method : 'revoke',
+            params : {
+                "address" : this._devices[idx].address
+            }
+        };
+
+        this.api.req(null, _rpc).catch( e => {
+            if (e.message)
+                this.updateStatus(`Error: ${e.message}`, true);
+        })
+    }
+
     close() {
         clearInterval(this.statusMessageTimer);
 
-        if (this.scanListener && typeof this.scanListener.dispose === 'function') this.scanListener.dispose();
-        if (this.scanListener && typeof this.deviceStateListener.dispose === 'function') this.deviceStateListener.dispose();
+        if (this.scanStartedListener && typeof this.scanStartedListener.dispose === 'function') this.scanStartedListener.dispose();
+        if (this.scanCompleteListener && typeof this.scanCompleteListener.dispose === 'function') this.scanCompleteListener.dispose();
+        if (this.discoverableStartedListener && typeof this.discoverableStartedListener.dispose === 'function') this.discoverableStartedListener.dispose();
+        if (this.discoverableCompleteListener && typeof this.discoverableCompleteListener.dispose === 'function') this.discoverableCompleteListener.dispose();
+        if (this.deviceStateListener && typeof this.deviceStateListener.dispose === 'function') this.deviceStateListener.dispose();
     }
 }
 
