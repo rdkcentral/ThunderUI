@@ -92,7 +92,7 @@ class MessageControl extends Plugin {
             <thead id="traceDataHeader">
                 <tr>
                     <td>time</td>
-                    <td>file + line</td>
+                    <td>file:class:line</td>
                     <td>module</td>
                     <td>category</td>
                     <td>message</td>
@@ -196,6 +196,16 @@ class MessageControl extends Plugin {
         this.toggleTracing(m.module, m.category, m.enabled);
     }
 
+    escapeHtml(unsafe)
+    {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+     }
+
     _socketMessage(data) {
         const msg = JSON.parse(data.data);
 
@@ -203,11 +213,15 @@ class MessageControl extends Plugin {
 
         const tr = document.createElement('tr');
         const time = document.createElement('td');
+        const properClassName = this.escapeHtml(msg.classname);
         time.innerHTML = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
         tr.appendChild(time);
 
         const file = document.createElement('td');
-        file.innerHTML = `${msg.filename}:${msg.linenumber}`;
+        if (msg.filename !== undefined && msg.classname !== undefined && msg.linenumber !== undefined)
+        	file.innerHTML = `${msg.filename}:${properClassName}:${msg.linenumber}`;
+        else
+        	file.innerHTML = '';
         tr.appendChild(file);
 
         const module = document.createElement('td');
