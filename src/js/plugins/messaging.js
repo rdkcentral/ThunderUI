@@ -42,7 +42,7 @@ class MessageControl extends Plugin {
 
     toggleTracing(module, id, enabled) {
        var body = {
-            "type": module === 'SysLog' ? 'Logging' : 'Tracing',
+            "type": module === 'SysLog' ? 'Logging' : (module === 'Reporting' ? 'Reporting' : 'Tracing'),
             "module": module,
             "category": id,
             "enabled": enabled
@@ -92,7 +92,7 @@ class MessageControl extends Plugin {
             <thead id="traceDataHeader">
                 <tr>
                     <td>time</td>
-                    <td>file + line</td>
+                    <td>file:class:line / callsign</td>
                     <td>module</td>
                     <td>category</td>
                     <td>message</td>
@@ -116,7 +116,7 @@ class MessageControl extends Plugin {
 
             if (self.traceModules !== undefined) {
               for (var i = 0; i < self.traceModules.length; i++) {
-                if (self.traceModules[i].type == 'Tracing' || self.traceModules[i].type == 'Logging') {
+                if (self.traceModules[i].type == 'Tracing' || self.traceModules[i].type == 'Logging' || self.traceModules[i].type == 'Reporting') {
                   // check if tracemodule is in mapping object, if not add it
                   if (self.uniqueTraceModules.indexOf(
                           self.traceModules[i].module) === -1) {
@@ -196,6 +196,16 @@ class MessageControl extends Plugin {
         this.toggleTracing(m.module, m.category, m.enabled);
     }
 
+    escapeHtml(unsafe)
+    {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+     }
+
     _socketMessage(data) {
         const msg = JSON.parse(data.data);
 
@@ -207,7 +217,14 @@ class MessageControl extends Plugin {
         tr.appendChild(time);
 
         const file = document.createElement('td');
-        file.innerHTML = `${msg.filename}:${msg.linenumber}`;
+        if (msg.filename !== undefined && msg.classname !== undefined && msg.linenumber !== undefined) {
+            const properClassName = this.escapeHtml(msg.classname);
+            file.innerHTML = `${msg.filename}:${properClassName}:${msg.linenumber}`;
+        }
+        else if (msg.callsign !== undefined)
+            file.innerHTML = `${msg.callsign}`;
+        else
+        	file.innerHTML = '';
         tr.appendChild(file);
 
         const module = document.createElement('td');
