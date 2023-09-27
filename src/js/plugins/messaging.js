@@ -239,8 +239,10 @@ class MessageControl extends Plugin {
         category.innerHTML = msg.category;
         tr.appendChild(category);
 
+        var Convert = require('ansi-to-html');
+        var convert = new Convert();
         const incomingMsg = document.createElement('td');
-        incomingMsg.innerHTML = msg.message;
+        incomingMsg.innerHTML = convert.toHtml(msg.message);
         tr.appendChild(incomingMsg);
 
 
