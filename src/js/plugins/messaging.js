@@ -42,7 +42,10 @@ class MessageControl extends Plugin {
 
     toggleTracing(module, id, enabled) {
        var body = {
-            "type": module === 'SysLog' ? 'Logging' : (module === 'Reporting' ? 'Reporting' : 'Tracing'),
+            "type":  module === 'SysLog'            ? 'Logging'
+                  : (module === 'Reporting'         ? 'Reporting'
+                  : (module === 'OperationalStream' ? 'OperationalStream'
+                  : 'Tracing')),
             "module": module,
             "category": id,
             "enabled": enabled
@@ -116,7 +119,8 @@ class MessageControl extends Plugin {
 
             if (self.traceModules !== undefined) {
               for (var i = 0; i < self.traceModules.length; i++) {
-                if (self.traceModules[i].type == 'Tracing' || self.traceModules[i].type == 'Logging' || self.traceModules[i].type == 'Reporting') {
+                if (self.traceModules[i].type == 'Tracing'      || self.traceModules[i].type == 'Logging' ||
+                    self.traceModules[i].type == 'Reporting'    || self.traceModules[i].type == 'OperationalStream') {
                   // check if tracemodule is in mapping object, if not add it
                   if (self.uniqueTraceModules.indexOf(
                           self.traceModules[i].module) === -1) {
@@ -235,8 +239,10 @@ class MessageControl extends Plugin {
         category.innerHTML = msg.category;
         tr.appendChild(category);
 
+        var Convert = require('ansi-to-html');
+        var convert = new Convert();
         const incomingMsg = document.createElement('td');
-        incomingMsg.innerHTML = msg.message;
+        incomingMsg.innerHTML = convert.toHtml(msg.message);
         tr.appendChild(incomingMsg);
 
 

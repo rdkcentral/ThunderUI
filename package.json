@@ -16,7 +16,9 @@
       "pre-commit": "npm run build && git add dist"
     }
   },
-  "dependencies": {},
+  "dependencies": {
+    "ansi-to-html": "^0.7.2"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rdkcentral/ThunderUI.git"
