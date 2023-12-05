@@ -93,12 +93,17 @@ class MessageControl extends Plugin {
         <div class="grid__col grid__col--7-of-8" id="traceTableContainer">
         <table id="traceTable" CELLSPACING=0>
             <thead id="traceDataHeader">
+                <col width="10px" />
+                <col width="45px" />
+                <col width="30px" />
+                <col width="200px" />
+                <col width="100px" />
                 <tr>
-                    <td>time</td>
-                    <td>file:class:line / callsign</td>
-                    <td>module</td>
-                    <td>category</td>
-                    <td>message</td>
+                    <th>time</th>
+                    <th>module</th>
+                    <th>category</th>
+                    <th>message</th>
+                    <th>file:line::class / callsign</th>
                 </tr>
             </div>
             <tbody id="traceData">
@@ -220,17 +225,6 @@ class MessageControl extends Plugin {
         time.innerHTML = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
         tr.appendChild(time);
 
-        const file = document.createElement('td');
-        if (msg.filename !== undefined && msg.classname !== undefined && msg.linenumber !== undefined) {
-            const properClassName = this.escapeHtml(msg.classname);
-            file.innerHTML = `${msg.filename}:${properClassName}:${msg.linenumber}`;
-        }
-        else if (msg.callsign !== undefined)
-            file.innerHTML = `${msg.callsign}`;
-        else
-        	file.innerHTML = '';
-        tr.appendChild(file);
-
         const module = document.createElement('td');
         module.innerHTML = msg.module;
         tr.appendChild(module);
@@ -245,6 +239,16 @@ class MessageControl extends Plugin {
         incomingMsg.innerHTML = convert.toHtml(msg.message);
         tr.appendChild(incomingMsg);
 
+        const file = document.createElement('td');
+        if (msg.filename !== undefined && msg.classname !== undefined && msg.linenumber !== undefined) {
+            const properClassName = this.escapeHtml(msg.classname);
+            file.innerHTML = `${msg.filename}:${msg.linenumber}::${properClassName}`;
+        }
+        else if (msg.callsign !== undefined)
+            file.innerHTML = `${msg.callsign}`;
+        else
+            file.innerHTML = '';
+        tr.appendChild(file);
 
         document.getElementById('traceData').appendChild(tr);
         const objDiv = document.getElementById("traceTableContainer");

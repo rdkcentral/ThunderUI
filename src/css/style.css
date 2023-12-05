@@ -727,6 +727,10 @@ div#hide-notifications:hover {
 
 #traceTableContainer {
     overflow: auto;
+    table-layout: fixed;
+    word-break: break-all;
+    max-width: 95%;
+    font-size: 80%;
     min-height: 500px;
     max-height: 500px;
     background-color: #0b0c12;
@@ -740,23 +744,24 @@ div#hide-notifications:hover {
     background: white;
 }
 
-#traceDataHeader td{
+#traceDataHeader th{
     padding: 5px;
 }
 
 #traceTable {
     min-width: 100%;
     width: max-content;
+    border-collapse: collapse;
 }
 #traceTable tr{
     margin-top: 5px;
     margin-bottom: 5px;
+    border-bottom: 1pt solid white;
 }
 
 #traceTable td {
     padding-left: 5px;
     padding-right: 5px;
-
 }
 
 #webShellData {
