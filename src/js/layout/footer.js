@@ -125,7 +125,7 @@ class Footer {
                 //
             })
 
-        if (this.paused === true || (this.deviceInfo && this.deviceInfo.state !== 'activated'))
+        if (this.paused === true || (this.deviceInfo && this.deviceInfo.state !== 'Activated'))
             return;
 
         // deviceinfo can be optional, dont try to get the status if its not available

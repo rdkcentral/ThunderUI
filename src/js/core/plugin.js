@@ -30,7 +30,7 @@ class Plugin {
         this.callsign = pluginData.callsign;
         this.configuration = pluginData.configuration;
         this.classname = pluginData.classname;
-        this.state = pluginData.state; // suspended, resumed, deactivated, activated
+        this.state = pluginData.state; // Suspended, Resumed, Deactivated, Activated
         this.supportsSuspended = false;
         this.supportsVisibility = false;
         this.renderInMenu = true;
@@ -78,7 +78,7 @@ class Plugin {
         const _rpc = {
             plugin : plugin ? plugin : this.callsign,
             method : 'state',
-            params : 'suspended'
+            params : 'Suspended'
         };
 
         return this.api.req(_rest, _rpc)
@@ -93,7 +93,7 @@ class Plugin {
         const _rpc = {
             plugin : plugin ? plugin : this.callsign,
             method : 'state',
-            params : 'resumed'
+            params : 'Resumed'
         };
 
         return this.api.req(_rest, _rpc)

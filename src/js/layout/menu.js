@@ -105,7 +105,7 @@ class Menu {
                     continue;
 
                 const loadedPlugin = this.plugins[ plugin.callsign ];
-                if (plugin.state !== 'deactivated' && loadedPlugin.renderInMenu === true) {
+                if (plugin.state !== 'Deactivated' && loadedPlugin.renderInMenu === true) {
                     console.debug('Menu :: rendering ' + plugin.callsign);
                     var li = document.createElement('li');
                     li.id = "item_" + plugin.callsign;
