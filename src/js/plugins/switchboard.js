@@ -109,12 +109,12 @@ class SwitchBoard extends Plugin {
                 checkboxLabel.setAttribute("for", callsign);
                 checkboxDiv.appendChild(checkboxLabel);
 
-                if (plugin.state == "activated" || plugin.state == "resumed" || plugin.state == "suspended") {
+                if (plugin.state == "Activated" || plugin.state == "Resumed" || plugin.state == "Suspended") {
                     checkbox.checked = true;
                 }
 
                 // add switch button
-                if (plugin.state !== 'resumed') {
+                if (plugin.state !== 'Resumed') {
                     var switchDiv = document.createElement('div');
                     switchDiv.id = callsign + 'switchdiv';
                     switchDiv.className = 'suspend'; // reusing suspend look & feel
@@ -122,7 +122,7 @@ class SwitchBoard extends Plugin {
                     switchCheckBox.type = "checkbox";
                     switchCheckBox.id = callsign + 'switch';
 
-                    if (plugin.state == "activated" || plugin.state == "resumed") {
+                    if (plugin.state == "Activated" || plugin.state == "Resumed") {
                         switchCheckBox.checked = true;
                     }
 
