@@ -107,7 +107,7 @@ export default class WpeApi {
         return url;
     };
 
-    // Compatibility method to deal with transitioning APIs and older version of WPEFramework
+    // Compatibility method to deal with transitioning APIs and older version of Thunder
     // note: This assumes the WebSocket to jsonrpc will fail.
     req(rest, jsonrpc) {
         return new Promise( (resolve, reject) => {
