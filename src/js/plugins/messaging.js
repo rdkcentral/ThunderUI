@@ -16,39 +16,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/** The tracing plugin controls the trace values for debugging output on the stdout
+/** The messaging plugin controls the messaging values for debugging output and allows to display the messages
  */
 
 import Plugin from '../core/plugin.js';
 
 class MessageControl extends Plugin {
 
-    constructor(pluginData, api) {
+    constructor(pluginData, api)
+    {
         super(pluginData, api);
-        this.displayName = 'Messaging';
+        this.displayName        = 'Messaging';
 
-        this.selectedTraceModule    = undefined;
-        this.traceModules           = undefined;
-        this.uniqueTraceModules     = undefined;
-        this.socketUrl              = `ws://${api.host[0]}:${api.host[1]}/Service/MessageControl`;
-        this.traceSocket            = undefined;
+        this.modules            = undefined;
+        this.selectedModule     = undefined;
+        this.controls           = undefined;
+
+        this.socketUrl          = `ws://${api.host[0]}:${api.host[1]}/Service/MessageControl`;
+        this.messagingSocket    = undefined;
     }
 
-
-    close(){
+    close()
+    {
         this._closeSocket();
         super.close()
     }
 
-    toggleTracing(module, id, enabled) {
+    enableControl(module, id, enabled)
+    {
        var body = {
-            "type":  module === 'SysLog'            ? 'Logging'
-                  : (module === 'Reporting'         ? 'Reporting'
-                  : (module === 'OperationalStream' ? 'OperationalStream'
-                  : 'Tracing')),
-            "module": module,
-            "category": id,
-            "enabled": enabled
+            "type"      :   module === 'SysLog'            ? 'Logging'
+                        :  (module === 'Reporting'         ? 'Reporting'
+                        :  (module === 'OperationalStream' ? 'OperationalStream'
+                        :   'Tracing')),
+            "module"    :   module,
+            "category"  :   id,
+            "enabled"   :   enabled
         };
 
         const _rpc = {
@@ -60,23 +63,35 @@ class MessageControl extends Plugin {
         return this.api.req(null, _rpc);
     }
 
-    retrieveControls() {
+    retrieveModules()
+    {
         const _rpc = {
             plugin : 'MessageControl',
-            method : 'controls'
+            method : 'modules'
         };
 
         return this.api.req(null, _rpc);
     }
 
-    render() {
+    retrieveCategories(module)
+    {
+        const _rpc = {
+            plugin : 'MessageControl',
+            method : 'controls@' + module
+        };
+
+        return this.api.req(null, _rpc);
+    }
+
+    render()
+    {
         this._openSocket();
 
         var self = this;
         var mainDiv = document.getElementById('main');
 
-
-        mainDiv.innerHTML = `<div class="title grid__col grid__col--8-of-8">
+        mainDiv.innerHTML =
+        `<div class="title grid__col grid__col--8-of-8">
             Modules
         </div>
 
@@ -84,15 +99,14 @@ class MessageControl extends Plugin {
             <label for="modules">Modules</label>
         </div>
         <div class="text grid__col grid__col--6-of-8">
-            <select id="tracingModules"></select>
+            <select id="messagingModules"></select>
         </div>
 
-        <div id="tracing_div"></div>
+        <div id="messaging_div"></div>
 
-
-        <div class="grid__col grid__col--7-of-8" id="traceTableContainer">
-        <table id="traceTable" CELLSPACING=0>
-            <thead id="traceDataHeader">
+        <div class="grid__col grid__col--7-of-8" id="messagesTableContainer">
+        <table id="messagesTable" CELLSPACING=0>
+            <thead id="messagesDataHeader">
                 <col width="10px" />
                 <col width="45px" />
                 <col width="30px" />
@@ -106,121 +120,117 @@ class MessageControl extends Plugin {
                     <th>file:line::class / callsign</th>
                 </tr>
             </div>
-            <tbody id="traceData">
+            <tbody id="messagesData">
             </tbody>
         </table>
         </div>
         </div>`;
 
-        document.getElementById('tracingModules').onchange = this.getSelectedModuleAndShowCategories.bind(this);
+        document.getElementById('messagingModules').onchange = this.getSelectedModuleAndShowCategories.bind(this);
 
-        this.retrieveControls().then( response => {
-            self.traceModules = response;
-            self.uniqueTraceModules = [];
-            var traceModulesSelectElement = document.getElementById('tracingModules');
+        this.retrieveModules().then( response => {
+            self.modules = response;
+            var modulesSelectElement = document.getElementById('messagingModules');
 
             // clear out the select element
-            traceModulesSelectElement.options.length = 0;
+            modulesSelectElement.options.length = 0;
 
-            if (self.traceModules !== undefined) {
-              for (var i = 0; i < self.traceModules.length; i++) {
-                if (self.traceModules[i].type == 'Tracing'      || self.traceModules[i].type == 'Logging' ||
-                    self.traceModules[i].type == 'Reporting'    || self.traceModules[i].type == 'OperationalStream') {
-                  // check if tracemodule is in mapping object, if not add it
-                  if (self.uniqueTraceModules.indexOf(
-                          self.traceModules[i].module) === -1) {
-                    self.uniqueTraceModules.push(self.traceModules[i].module);
+            if (self.modules !== undefined) {
+                for (var i = 0; i < self.modules.length; i++) {
                     var newOptionElement = document.createElement('option');
-                    newOptionElement.innerHTML = self.traceModules[i].module;
+                    newOptionElement.innerHTML = self.modules[i];
 
-                    if (self.traceModules[i].module ===
-                        self.selectedTraceModule)
-                      newOptionElement.selected = true;
-
-                    traceModulesSelectElement.appendChild(newOptionElement);
-                  }
+                    if (self.modules[i] === self.selectedModule) {
+                        newOptionElement.selected = true;
+                    }
+                    modulesSelectElement.appendChild(newOptionElement);
                 }
-              }
-
-              if (self.selectedTraceModule === undefined)
-                self.selectedTraceModule = self.traceModules[0].module;
-              self.showTraceCategories(self.selectedTraceModule);
+                if (self.selectedModule === undefined) {
+                    self.selectedModule = self.modules[0];
+                }
+                self.showCategories(self.selectedModule);
             }
         });
     }
 
-    getSelectedModuleAndShowCategories() {
-        var selector = document.getElementById('tracingModules');
-        var selectedModule = this.uniqueTraceModules[ selector.selectedIndex ];
-        this.showTraceCategories(selectedModule);
+    getSelectedModuleAndShowCategories()
+    {
+        var selector = document.getElementById('messagingModules');
+        var selectedModule = this.modules[ selector.selectedIndex ];
+        this.showCategories(selectedModule);
     }
 
-    showTraceCategories(module) {
-        var tracingDiv = document.getElementById("tracing_div");
-        tracingDiv.innerHTML = '';
+    showCategories(module)
+    {
+        this.retrieveCategories(module).then( response => {
+            this.controls = response;
 
-        if (this.traceModules.length === 0)
-            return;
+            var messagingDiv = document.getElementById("messaging_div");
+            messagingDiv.innerHTML = '';
 
-        // update the state of the module we selected for the tracing menu redraw
-        this.selectedTraceModule = module;
+            if (this.controls.length === 0) {
+                return;
+            }
 
-        for (var i=0; i<this.traceModules.length; i++) {
-            var m = this.traceModules[i];
-            if (m.module !== module)
-                continue;
+            // update the state of the module we selected for the messaging menu redraw
+            this.selectedModule = module;
 
-            var labelDiv = document.createElement("div");
-            labelDiv.className = "label grid__col grid__col--2-of-8";
-            tracingDiv.appendChild(labelDiv);
+            for (var i = 0; i < this.controls.length; i++) {
+                var control = this.controls[i];
 
-            var label =  document.createElement("label");
-            label.innerHTML = m.category;
-            label.setAttribute("for", m.category);
-            labelDiv.appendChild(label);
+                var labelDiv = document.createElement("div");
+                labelDiv.className = "label grid__col grid__col--2-of-8";
+                messagingDiv.appendChild(labelDiv);
 
-            var div = document.createElement("div");
-            div.className = "grid__col grid__col--6-of-8";
-            tracingDiv.appendChild(div);
+                var label =  document.createElement("label");
+                label.innerHTML = control.category;
+                label.setAttribute("for", control.category);
+                labelDiv.appendChild(label);
 
-            var checkboxDiv = document.createElement("div");
-            checkboxDiv.className = "checkbox";
-            div.appendChild(checkboxDiv);
+                var div = document.createElement("div");
+                div.className = "grid__col grid__col--6-of-8";
+                messagingDiv.appendChild(div);
 
-            var checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.id = m.category;
-            checkbox.checked = (m.enabled !== undefined) && m.enabled;
-            checkbox.onclick = this.toggleTrace.bind(this, m);
-            checkboxDiv.appendChild(checkbox);
+                var checkboxDiv = document.createElement("div");
+                checkboxDiv.className = "checkbox";
+                div.appendChild(checkboxDiv);
 
-            var checkboxLabel = document.createElement("label");
-            checkboxLabel.setAttribute("for", m.category);
-            checkboxDiv.appendChild(checkboxLabel);
-        }
+                var checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.id = control.category;
+                checkbox.checked = (control.enabled !== undefined) && control.enabled;
+                checkbox.onclick = this.toggleControl.bind(this, control);
+                checkboxDiv.appendChild(checkbox);
+
+                var checkboxLabel = document.createElement("label");
+                checkboxLabel.setAttribute("for", control.category);
+                checkboxDiv.appendChild(checkboxLabel);
+            }
+        });
     }
 
-    toggleTrace(m) {
-        m.enabled = !m.enabled;
-        this.toggleTracing(m.module, m.category, m.enabled);
+    toggleControl(control)
+    {
+        control.enabled = !control.enabled;
+        this.enableControl(control.module, control.category, control.enabled);
     }
 
     escapeHtml(unsafe)
     {
         return unsafe
-             .replace(/&/g, "&amp;")
-             .replace(/</g, "&lt;")
-             .replace(/>/g, "&gt;")
-             .replace(/"/g, "&quot;")
-             .replace(/'/g, "&#039;");
-     }
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
-    _socketMessage(data) {
+    _socketMessage(data)
+    {
         const msg = JSON.parse(data.data);
-
         const date = new Date(msg.time);
-
         const tr = document.createElement('tr');
+
         const time = document.createElement('td');
         time.innerHTML = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
         tr.appendChild(time);
@@ -244,30 +254,33 @@ class MessageControl extends Plugin {
             const properClassName = this.escapeHtml(msg.classname);
             file.innerHTML = `${msg.filename}:${msg.linenumber}::${properClassName}`;
         }
-        else if (msg.callsign !== undefined)
+        else if (msg.callsign !== undefined) {
             file.innerHTML = `${msg.callsign}`;
-        else
+        }
+        else {
             file.innerHTML = '';
+        }
         tr.appendChild(file);
 
-        document.getElementById('traceData').appendChild(tr);
-        const objDiv = document.getElementById("traceTableContainer");
+        document.getElementById('messagesData').appendChild(tr);
+        const objDiv = document.getElementById("messagesTableContainer");
         objDiv.scrollTop = objDiv.scrollHeight;
     }
 
-    _openSocket() {
+    _openSocket()
+    {
         this._closeSocket();
-        this.traceSocket = new WebSocket(this.socketUrl, 'json');
-        this.traceSocket.onmessage = this._socketMessage.bind(this);
+        this.messagingSocket = new WebSocket(this.socketUrl, 'json');
+        this.messagingSocket.onmessage = this._socketMessage.bind(this);
     }
 
-    _closeSocket() {
-        if (this.traceSocket) {
-            this.traceSocket.close();
-            this.traceSocket = undefined;
+    _closeSocket()
+    {
+        if (this.messagingSocket) {
+            this.messagingSocket.close();
+            this.messagingSocket = undefined;
         }
     }
-
 }
 
 export default MessageControl;
