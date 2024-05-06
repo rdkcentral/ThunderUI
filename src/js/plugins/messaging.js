@@ -130,6 +130,7 @@ class MessageControl extends Plugin {
 
         this.retrieveModules().then( response => {
             self.modules = response;
+            self.modules.sort();
             var modulesSelectElement = document.getElementById('messagingModules');
 
             // clear out the select element
@@ -164,6 +165,7 @@ class MessageControl extends Plugin {
     {
         this.retrieveCategories(module).then( response => {
             this.controls = response;
+            this.controls.sort((a, b) => (a.category < b.category) ? -1 : (a.category > b.category) ? 1 : 0);
 
             var messagingDiv = document.getElementById("messaging_div");
             messagingDiv.innerHTML = '';
