@@ -123,13 +123,13 @@ class Controller extends Plugin {
             }
         }
 
-        if (plugin.state === 'deactivated') {
+        if (plugin.state === 'Deactivated') {
             console.debug('Activating ' + callsign);
             this.activate(callsign).then( (resp) => {
                 if (this.plugins[ callsign ] !== undefined)
-                    this.plugins[ callsign ].state = 'activated';
+                    this.plugins[ callsign ].state = 'Activated';
 
-                plugin.state = 'activated';
+                plugin.state = 'Activated';
             }).catch( e => {
                 this.render();
             });
@@ -137,9 +137,9 @@ class Controller extends Plugin {
             console.debug('Deactivating ' + callsign);
             this.deactivate(callsign).then( (resp) => {
                 if (this.plugins[ callsign ] !== undefined)
-                    this.plugins[ callsign ].state = 'deactivated';
+                    this.plugins[ callsign ].state = 'Deactivated';
 
-                plugin.state = 'deactivated';
+                plugin.state = 'Deactivated';
             }).catch(e => {
                 this.render();
             });
@@ -157,11 +157,11 @@ class Controller extends Plugin {
             }
         }
 
-        if (plugin.state === 'deactivated') {
+        if (plugin.state === 'Deactivated') {
             console.debug('Activating ' + callsign);
             this.activate(callsign).then( resp => {
                 if (this.plugins[ callsign ] !== undefined)
-                    this.plugins[ callsign ].state = 'activated';
+                    this.plugins[ callsign ].state = 'Activated';
 
                 // we have to rerender at this stage, we're going to be out of sync
                 if (document.getElementById(callsign + 'suspend').checked === false)
@@ -173,16 +173,16 @@ class Controller extends Plugin {
             return;
         }
 
-        if (plugin.state === 'resumed') {
+        if (plugin.state === 'Resumed') {
             console.debug('Suspending ' + callsign);
             this.suspend(callsign).then( resp => {
                 this.updateSuspendLabel(callsign, 'resume');
 
                 if (this.plugins[ callsign ] !== undefined)
-                    this.plugins[ callsign ].state = 'resumed';
+                    this.plugins[ callsign ].state = 'Resumed';
 
                 document.getElementById(callsign + 'suspend').checked = true;
-                plugin.state = 'suspended';
+                plugin.state = 'Suspended';
             });
         } else {
             console.debug('Resuming ' + callsign);
@@ -190,10 +190,10 @@ class Controller extends Plugin {
                 this.updateSuspendLabel(callsign, 'suspend');
 
                 if (this.plugins[ callsign ] !== undefined)
-                    this.plugins[ callsign ].state = 'suspended';
+                    this.plugins[ callsign ].state = 'Suspended';
 
                 document.getElementById(callsign + 'suspend').checked = false;
-                plugin.state = 'resumed';
+                plugin.state = 'Resumed';
             });
         }
     }
@@ -300,7 +300,7 @@ class Controller extends Plugin {
                 var checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 checkbox.id = callsign;
-                if (plugin.state == "activated" || plugin.state == "resumed" || plugin.state == "suspended") {
+                if (plugin.state == "Activated" || plugin.state == "Resumed" || plugin.state == "Suspended") {
                     checkbox.checked = true;
                 }
 
@@ -311,14 +311,14 @@ class Controller extends Plugin {
                 checkboxLabel.setAttribute("for", callsign);
                 checkboxDiv.appendChild(checkboxLabel);
 
-                if ( (plugin.state === 'suspended') || (plugin.state === 'resumed') ) {
+                if ( (plugin.state === 'Suspended') || (plugin.state === 'Resumed') ) {
                     var suspend = document.createElement("div");
                     suspend.id = callsign + "suspenddiv";
                     suspend.className = "suspend";
                     var suspendCheckbox = document.createElement("input");
                     suspendCheckbox.type = "checkbox";
                     suspendCheckbox.id = callsign + "suspend";
-                    if (plugin.state == "suspended") {
+                    if (plugin.state == "Suspended") {
                         suspendCheckbox.checked = true;
                     }
 
@@ -328,7 +328,7 @@ class Controller extends Plugin {
                     var suspendLabel = document.createElement("label");
                     suspendLabel.setAttribute("for", callsign + "suspend");
                     suspendLabel.id = callsign + "suspendlabel";
-                    if (plugin.state == "suspended") {
+                    if (plugin.state == "Suspended") {
                         suspendLabel.innerHTML = "resume";
                     } else {
                         suspendLabel.innerHTML = "suspend";

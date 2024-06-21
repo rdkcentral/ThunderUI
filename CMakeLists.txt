@@ -17,7 +17,9 @@
 
 cmake_minimum_required(VERSION 3.3)
 
-project(WPEFrameworkUI)
+project(ThunderUI)
+
+include(GNUInstallDirs)
 
 set(NPM "${NPM_BINARY_PATH}npm")
 
@@ -44,6 +46,6 @@ if(AUDIT_AND_FIX)
 endif()
 
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/dist/"
-    DESTINATION share/WPEFramework/Controller/UI
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/Thunder/Controller/UI
     FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ 
 )

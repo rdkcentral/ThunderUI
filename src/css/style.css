@@ -725,8 +725,12 @@ div#hide-notifications:hover {
     padding: 10px 0 0 0;
 }
 
-#traceTableContainer {
+#messagesTableContainer {
     overflow: auto;
+    table-layout: fixed;
+    word-break: break-all;
+    max-width: 95%;
+    font-size: 80%;
     min-height: 500px;
     max-height: 500px;
     background-color: #0b0c12;
@@ -735,28 +739,29 @@ div#hide-notifications:hover {
     color: white;
 }
 
-#traceDataHeader{
+#messagesDataHeader{
     color: black;
     background: white;
 }
 
-#traceDataHeader td{
+#messagesDataHeader th{
     padding: 5px;
 }
 
-#traceTable {
+#messagesTable {
     min-width: 100%;
     width: max-content;
+    border-collapse: collapse;
 }
-#traceTable tr{
+#messagesTable tr{
     margin-top: 5px;
     margin-bottom: 5px;
+    border-bottom: 1pt solid white;
 }
 
-#traceTable td {
+#messagesTable td {
     padding-left: 5px;
     padding-right: 5px;
-
 }
 
 #webShellData {
