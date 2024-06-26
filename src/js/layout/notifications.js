@@ -30,39 +30,49 @@ class Notifications {
     handleNotification(data) {
         document.getElementById('notifications-block').style.display = "block"
 
-
         var div = document.createElement('div')
-
         var string = ''
-
         var i = 0
+
         for (var key1 in data) {
             if (data[key1] === 'Monitor') {
-                div.className = 'red'
+                div.className = 'red';
             }
+
             if (key1 === "callsign") {
-                var label = document.createElement('label')
-                label.innerHTML = '"' + data[key1] + '"'
-                div.appendChild(label)
-            } else if (key1 === "data") {
+                var label = document.createElement('label');
+                label.innerHTML = '"' + data[key1] + '"';
+                div.appendChild(label);
+            }
+            else if (key1 === "data") {
                 string = string + key1 + ': {'
-                var o = 0
+                var o = 0;
+
                 for (var key2 in data.data) {
-                    string = string + key2 + ': ' + data.data[key2]
+                    var value = data.data[key2];
+
+                    if (typeof value === 'object') {
+                        value = JSON.stringify(value);
+                    }
+                    string = string + key2 + ': ' + value;
+
                     if (o == Object.keys(data.data).length - 1) {
                         string = string + '}'
-                    } else {
+                    }
+                    else {
                         string = string + ', '
                     }
-                    o++
+                    o++;
                 }
-            } else {
-                string = string + key1 + ': ' + data[key1]
             }
-            if (key1 != "callsign" && i != Object.keys(data).length - 1) {
-                string = string + ', '
+            else {
+                string = string + key1 + ': ' + data[key1];
             }
-            i++
+
+            if ((key1 != "callsign") && (i != (Object.keys(data).length - 1))) {
+                string = string + ', ';
+            }
+            i++;
         }
 
         var span = document.createElement('span')
