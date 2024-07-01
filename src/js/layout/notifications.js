@@ -19,7 +19,8 @@
 /** The footer bar provides stats on the current device */
 
 class Notifications {
-    constructor(api) {
+    constructor(api)
+    {
         this.renderInMenu = false;
         this.api = api;
         this.api.t.on('Controller', 'all', this.handleNotification);
@@ -27,12 +28,13 @@ class Notifications {
         document.getElementById('hide-notifications').onclick = this.toggleVisibility.bind(this);
     }
 
-    handleNotification(data) {
-        document.getElementById('notifications-block').style.display = "block"
+    handleNotification(data)
+    {
+        document.getElementById('notifications-block').style.display = "block";
 
-        var div = document.createElement('div')
-        var string = ''
-        var i = 0
+        var div = document.createElement('div');
+        var string = '';
+        var i = 0;
 
         for (var key1 in data) {
             if (data[key1] === 'Monitor') {
@@ -41,52 +43,54 @@ class Notifications {
 
             if (key1 === "callsign") {
                 var label = document.createElement('label');
-                label.innerHTML = '"' + data[key1] + '"';
+                label.innerHTML = data[key1];
                 div.appendChild(label);
             }
-            else if (key1 === "data") {
-                string = string + key1 + ': {'
-                var o = 0;
+            else if (key1 === "event") {
+                string = string + key1 + ': "' + data[key1] + `"`;
+            }
+            else if (key1 === "params") {
+                if (typeof data[key1] === 'string') {
+                    string = string + ', ' + key1 + ': "' + data[key1] + `"`;
+                }
+                else {
+                    string = string + ', ' + key1 + ': {';
+                    var o = 0;
+                    var paramsLength = Object.keys(data[key1]).length;
 
-                for (var key2 in data.data) {
-                    var value = data.data[key2];
+                    for (var key2 in data[key1]) {
+                        var value = data[key1][key2];
 
-                    if (typeof value === 'object') {
-                        value = JSON.stringify(value);
-                    }
-                    string = string + key2 + ': ' + value;
+                        if (typeof value === 'object') {
+                            value = JSON.stringify(value);
+                        }
+                        string = string + key2 + ': "' + value + `"`;
 
-                    if (o == Object.keys(data.data).length - 1) {
-                        string = string + '}'
+                        if (i == paramsLength - 1) {
+                            string = string + '}';
+                        }
+                        else {
+                            string = string + ', ';
+                        }
+                        i++;
                     }
-                    else {
-                        string = string + ', '
-                    }
-                    o++;
                 }
             }
-            else {
-                string = string + key1 + ': ' + data[key1];
-            }
-
-            if ((key1 != "callsign") && (i != (Object.keys(data).length - 1))) {
-                string = string + ', ';
-            }
-            i++;
         }
 
-        var span = document.createElement('span')
-        span.innerHTML = string
-        div.appendChild(span)
+        var span = document.createElement('span');
+        span.innerHTML = string;
+        div.appendChild(span);
 
-        document.getElementById('notifications').appendChild(div)
-        document.getElementById('notifications').scrollTop= document.getElementById('notifications').scrollHeight
+        document.getElementById('notifications').appendChild(div);
+        document.getElementById('notifications').scrollTop= document.getElementById('notifications').scrollHeight;
     }
 
-    toggleVisibility() {
+    toggleVisibility()
+    {
         var isVisible = (document.getElementById('notifications').style.display === 'block');
-        document.getElementById('notifications').style.display = isVisible ? "none" : "block"
-        document.getElementById('hide-notifications').innerHTML = isVisible ? "show console" : "hide console"
+        document.getElementById('notifications').style.display = isVisible ? "none" : "block";
+        document.getElementById('hide-notifications').innerHTML = isVisible ? "show console" : "hide console";
     }
 
 }
