@@ -34,7 +34,6 @@ class Notifications {
 
         var div = document.createElement('div');
         var string = '';
-        var i = 0;
 
         for (var key1 in data) {
             if (data[key1] === 'Monitor') {
@@ -55,7 +54,7 @@ class Notifications {
                 }
                 else {
                     string = string + ', ' + key1 + ': {';
-                    var o = 0;
+                    var i = 0;
                     var paramsLength = Object.keys(data[key1]).length;
 
                     for (var key2 in data[key1]) {
