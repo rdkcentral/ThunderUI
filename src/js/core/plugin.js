@@ -71,14 +71,15 @@ class Plugin {
 
     suspend(plugin) {
         const _rest = {
-            method  : 'POST',
-            path    : `${plugin ? plugin : this.callsign}/Suspend`
+            method  : 'PUT',
+            path    : `Controller/Suspend/${plugin ? plugin : this.callsign}`,
+            body    : null
         };
 
         const _rpc = {
-            plugin : plugin ? plugin : this.callsign,
-            method : 'state',
-            params : 'Suspended'
+            plugin : 'Controller',
+            method : 'suspend',
+            params : {'callsign': plugin ? plugin : this.callsign}
         };
 
         return this.api.req(_rest, _rpc)
@@ -86,14 +87,15 @@ class Plugin {
 
     resume(plugin) {
         const _rest = {
-            method  : 'POST',
-            path    : `${plugin ? plugin : this.callsign}/Resume`
+            method  : 'PUT',
+            path    : `Controller/Resume/${plugin ? plugin : this.callsign}`,
+            body    : null
         };
 
         const _rpc = {
-            plugin : plugin ? plugin : this.callsign,
-            method : 'state',
-            params : 'Resumed'
+            plugin : 'Controller',
+            method : 'resume',
+            params : {'callsign': plugin ? plugin : this.callsign}
         };
 
         return this.api.req(_rest, _rpc)
