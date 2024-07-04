@@ -52,6 +52,9 @@ class Notifications {
                 if (typeof data[key1] === 'string') {
                     string = string + ', ' + key1 + ': "' + data[key1] + `"`;
                 }
+                else if (typeof data[key1] === 'boolean') {
+                    string = string + ', ' + key1 + ': "' + data[key1].toString() + '"';
+                }
                 else {
                     string = string + ', ' + key1 + ': {';
                     var i = 0;
@@ -62,6 +65,9 @@ class Notifications {
 
                         if (typeof value === 'object') {
                             value = JSON.stringify(value);
+                        }
+                        else if (typeof value === 'boolean') {
+                            value = value.toString();
                         }
                         string = string + key2 + ': "' + value + `"`;
 
