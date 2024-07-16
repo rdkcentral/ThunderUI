@@ -537,8 +537,8 @@ class BluetoothControl extends Plugin {
         this.updateStatus(`Assigning ${this._devices[idx].name} as BR/EDR audio sink`);
 
         const _rpc = {
-            plugin : 'BluetoothAudioSink',
-            method : 'assign',
+            plugin : 'BluetoothAudio',
+            method : 'sink::assign',
             params : {
                 "address" : this._devices[idx].address
             }
@@ -555,8 +555,8 @@ class BluetoothControl extends Plugin {
         this.updateStatus(`Revoking BR/EDR audio sink ${this._devices[idx].name}`);
 
         const _rpc = {
-            plugin : 'BluetoothAudioSink',
-            method : 'revoke',
+            plugin : 'BluetoothAudio',
+            method : 'sink::revoke',
             params : {
                 "address" : this._devices[idx].address
             }
