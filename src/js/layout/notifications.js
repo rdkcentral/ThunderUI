@@ -49,41 +49,7 @@ class Notifications {
                 string += key1 + ': "' + data[key1] + `"`;
             }
             else if (key1 === "params") {
-                string += ', ' + key1 + ': ';
-                if (typeof data[key1] === 'object') {
-                    string += '{';
-                    var i = 0;
-                    var paramsLength = Object.keys(data[key1]).length;
-
-                    for (var key2 in data[key1]) {
-                        var value = data[key1][key2];
-
-                        string += key2 + ': ';
-
-                        if (typeof value === 'object') {
-                            value = JSON.stringify(value);
-                            string += `"` + value + `"`;
-                        }
-                        else if (typeof value === 'string') {
-                            string += `"` + value + `"`;
-                        }
-                        else {
-                            string += value;
-                        }
-
-                        if (i != paramsLength - 1) {
-                            string += ', ';
-                        }
-                        i++;
-                    }
-                    string += '}';
-                }
-                else if (typeof data[key1] === 'string') {
-                    string += '"' + data[key1] + `"`;
-                }
-                else {
-                    string += data[key1];
-                }
+                string += ', ' + key1 + ': ' + JSON.stringify(data[key1], null, 1).replace(/"(\w+)"\s*:/g, '$1:').replace(/\n/g,"");
             }
         }
 
