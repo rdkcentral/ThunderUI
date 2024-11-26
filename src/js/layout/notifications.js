@@ -67,7 +67,7 @@ class Notifications {
 
                         if (typeof value === 'object') {
                             value = JSON.stringify(value);
-                            string += `"` value + `"`;
+                            string += `"` + value + `"`;
                         }
                         else if (typeof value === 'boolean') {
                             value = value.toString();
@@ -77,7 +77,7 @@ class Notifications {
                             string += value;
                         }
                         else {
-                            string += `"` value + `"`;
+                            string += `"` + value + `"`;
                         }
 
                         if (i == paramsLength - 1) {
