@@ -56,7 +56,7 @@ class Notifications {
                     string += ', ' + key1 + ': "' + data[key1].toString() + '"';
                 }
                 else {
-                    string = string + ', ' + key1 + ': {';
+                    string += ', ' + key1 + ': {';
                     var i = 0;
                     var paramsLength = Object.keys(data[key1]).length;
 
