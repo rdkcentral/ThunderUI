@@ -49,13 +49,7 @@ class Notifications {
                 string += key1 + ': "' + data[key1] + `"`;
             }
             else if (key1 === "params") {
-                if (typeof data[key1] === 'string') {
-                    string += ', ' + key1 + ': "' + data[key1] + `"`;
-                }
-                else if (typeof data[key1] === 'boolean') {
-                    string += ', ' + key1 + ': "' + data[key1].toString() + '"';
-                }
-                else {
+                if (typeof data[key1] === 'object') {
                     string += ', ' + key1 + ': {';
                     var i = 0;
                     var paramsLength = Object.keys(data[key1]).length;
@@ -69,25 +63,25 @@ class Notifications {
                             value = JSON.stringify(value);
                             string += `"` + value + `"`;
                         }
-                        else if (typeof value === 'boolean') {
-                            value = value.toString();
-                            string += value;
-                        }
-                        else if (typeof value === 'number') {
-                            string += value;
-                        }
-                        else {
+                        else if (typeof value === 'string') {
                             string += `"` + value + `"`;
                         }
-
-                        if (i == paramsLength - 1) {
-                            string = string + '}';
-                        }
                         else {
-                            string = string + ', ';
+                            string += value;
+                        }
+
+                        if (i != paramsLength - 1) {
+                            string += ', ';
                         }
                         i++;
                     }
+                    string += '}';
+                }
+                else if (typeof data[key1] === 'string') {
+                    string += ', ' + key1 + ': "' + data[key1] + `"`;
+                }
+                else {
+                    string += ', ' + key1 + ': ' + data[key1];
                 }
             }
         }
