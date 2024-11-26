@@ -49,8 +49,9 @@ class Notifications {
                 string += key1 + ': "' + data[key1] + `"`;
             }
             else if (key1 === "params") {
+                string += ', ' + key1 + ': ';
                 if (typeof data[key1] === 'object') {
-                    string += ', ' + key1 + ': {';
+                    string += '{';
                     var i = 0;
                     var paramsLength = Object.keys(data[key1]).length;
 
@@ -78,10 +79,10 @@ class Notifications {
                     string += '}';
                 }
                 else if (typeof data[key1] === 'string') {
-                    string += ', ' + key1 + ': "' + data[key1] + `"`;
+                    string += '"' + data[key1] + `"`;
                 }
                 else {
-                    string += ', ' + key1 + ': ' + data[key1];
+                    string += data[key1];
                 }
             }
         }
