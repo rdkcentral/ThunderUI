@@ -46,40 +46,10 @@ class Notifications {
                 div.appendChild(label);
             }
             else if (key1 === "event") {
-                string = string + key1 + ': "' + data[key1] + `"`;
+                string += key1 + ': "' + data[key1] + `"`;
             }
             else if (key1 === "params") {
-                if (typeof data[key1] === 'string') {
-                    string = string + ', ' + key1 + ': "' + data[key1] + `"`;
-                }
-                else if (typeof data[key1] === 'boolean') {
-                    string = string + ', ' + key1 + ': "' + data[key1].toString() + '"';
-                }
-                else {
-                    string = string + ', ' + key1 + ': {';
-                    var i = 0;
-                    var paramsLength = Object.keys(data[key1]).length;
-
-                    for (var key2 in data[key1]) {
-                        var value = data[key1][key2];
-
-                        if (typeof value === 'object') {
-                            value = JSON.stringify(value);
-                        }
-                        else if (typeof value === 'boolean') {
-                            value = value.toString();
-                        }
-                        string = string + key2 + ': "' + value + `"`;
-
-                        if (i == paramsLength - 1) {
-                            string = string + '}';
-                        }
-                        else {
-                            string = string + ', ';
-                        }
-                        i++;
-                    }
-                }
+                string += ', ' + key1 + ': ' + JSON.stringify(data[key1], null, 1).replace(/"(\w+)"\s*:/g, '$1:').replace(/\n/g,"");
             }
         }
 
