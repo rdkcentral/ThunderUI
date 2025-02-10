@@ -45,10 +45,11 @@ class MessageControl extends Plugin {
     enableControl(module, id, enabled)
     {
        var body = {
-            "type"      :   module === 'SysLog'            ? 'Logging'
-                        :  (module === 'Reporting'         ? 'Reporting'
-                        :  (module === 'OperationalStream' ? 'OperationalStream'
-                        :   'Tracing')),
+            "type"      :   module === 'SysLog'             ? 'Logging'
+                        :  (module === 'Reporting'          ? 'Reporting'
+                        :  (module === 'OperationalStream'  ? 'OperationalStream'
+                        :  (module === 'Assert'             ? 'Assert'
+                        :   'Tracing'))),
             "module"    :   module,
             "category"  :   id,
             "enabled"   :   enabled
@@ -117,7 +118,7 @@ class MessageControl extends Plugin {
                     <th>module</th>
                     <th>category</th>
                     <th>message</th>
-                    <th>file:line::class / callsign</th>
+                    <th>additional information</th>
                 </tr>
             </div>
             <tbody id="messagesData">
@@ -252,9 +253,12 @@ class MessageControl extends Plugin {
         tr.appendChild(incomingMsg);
 
         const file = document.createElement('td');
-        if (msg.filename !== undefined && msg.classname !== undefined && msg.linenumber !== undefined) {
+        if (msg.classname !== undefined && msg.filename !== undefined && msg.linenumber !== undefined) {
             const properClassName = this.escapeHtml(msg.classname);
             file.innerHTML = `${msg.filename}:${msg.linenumber}::${properClassName}`;
+        }
+        else if (msg.processid !== undefined && msg.processname !== undefined && msg.filename !== undefined && msg.linenumber !== undefined) {
+            file.innerHTML = `[${msg.processid}]${msg.processname}::${msg.filename}:${msg.linenumber}`;
         }
         else if (msg.callsign !== undefined) {
             file.innerHTML = `${msg.callsign}`;
