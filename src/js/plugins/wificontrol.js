@@ -202,19 +202,12 @@ class WifiControl extends Plugin {
     }
 
     scanForNetworks() {
-        var self = this;
-
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/Scan`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'scan',
         };
 
-        this.api.req(_rest, _rpc).then( resp => {
+        this.api.req(null, _rpc).then( resp => {
             this.update();
             // get the results
             setTimeout(this.getNetworks.bind(this), 5000);
@@ -224,27 +217,16 @@ class WifiControl extends Plugin {
     getConfig(ssid) {
         this.update();
 
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/Config/` + ssid,
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'config@' + ssid,
         };
 
-        this.api.req(_rest, _rpc).then( resp => {
+        this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
 
-            // backwards compatibility with REST
-            let config = resp.config ? resp.config : resp;
-
-            if (config === undefined)
-                return;
-
-            this.configinfo.push(config)
+            this.configinfo.push(resp)
             this.renderConfigDetails();
         });
     }
@@ -252,35 +234,23 @@ class WifiControl extends Plugin {
     getConfigs() {
         this.update();
 
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/Configs`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'configs',
         };
 
-        this.api.req(_rest, _rpc).then( resp => {
+        this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
 
-            // backwards compatibility with REST
-            let _configs = resp.configs ? resp.configs : resp;
-
-            if (_configs === undefined)
-                return;
-
-            this.configs = _configs;
+            this.configs = resp;
             this.configinfo = [];
             this.configListEl.innerHTML = '';
 
-
-            for (var i=0; i<_configs.length; i++) {
+            for (var i=0; i<resp.length; i++) {
                 var newChild = this.configListEl.appendChild(document.createElement("option"));
-                newChild.innerHTML = `${_configs[i]}`;
-                this.getConfig(`${_configs[i]}`);
+                newChild.innerHTML = `${resp[i]}`;
+                this.getConfig(`${resp[i]}`);
             }
         });
     }
@@ -288,17 +258,12 @@ class WifiControl extends Plugin {
     getNetworks() {
         this.update();
 
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/Networks`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'networks'
         };
 
-        this.api.req(_rest, _rpc).then( resp => {
+        this.api.req(null, _rpc).then( resp => {
             // bail out if the plugin returns nothing
             if (resp === undefined)
                 return;
@@ -308,20 +273,17 @@ class WifiControl extends Plugin {
             if (this.rendered === false)
                 return;
 
-            // backwards compatibility with REST
-            let _networks = resp.networks ? resp.networks : resp;
-
             this.networkListEl.innerHTML = '';
-            for (var i=0; i<_networks.length; i++) {
+            for (var i=0; i<resp.length; i++) {
                 // some networks return /x00/x00/x00/x00 and we're filtering out that at the json parse in core/wpe.js, so lets skip it
-                if (_networks[i].ssid === '')
+                if (resp[i].ssid === '')
                     continue;
 
                 // store the same list in this.networks
-                this.networks.push(_networks[i]);
+                this.networks.push(resp[i]);
 
                 var newChild = this.networkListEl.appendChild(document.createElement("option"));
-                newChild.innerHTML = `${_networks[i].ssid} (${_networks[i].signal})`;
+                newChild.innerHTML = `${resp[i].ssid} (${resp[i].signal})`;
             }
         });
     }
@@ -453,23 +415,16 @@ class WifiControl extends Plugin {
 
         config.method = this.methodEl.value;
 
-        const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}/Config/${this.ssidEl.value}`,
-            body    : config
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'config@' + `${this.ssidEl.value}`,
             params : { 'value': config }
         };
 
-        this.api.req(_rest, _rpc).then( resp => {
-            this.statusMessage(`Saved config for ${this.ssidEl.value}`);
+        this.api.req(null, _rpc).then( resp => {
+            self.statusMessage(`Saved config for ${this.ssidEl.value}`);
             self.getConfigs();
         });
-
     }
 
     deleteConfig() {
@@ -481,31 +436,20 @@ class WifiControl extends Plugin {
             accesspoint : false,
         };
 
-        const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}/Config/${this.configs[idx]}`,
-            body    : config
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'config@' + `${this.configs[idx]}`,
             params : { 'value': config }
         };
 
-        this.api.req(_rest, _rpc).then( resp => {
-            this.connecting = true;
+        this.api.req(null, _rpc).then( resp => {
+            self.connecting = true;
             self.getConfigs();
         });
     }
 
     requestDHCP() {
         this.statusMessage('Requesting DHCP for wlan0');
-
-        const _rest = {
-            method  : 'PUT',
-            path    : `NetworkControl/${this.wlanInterface}/Flush`
-        };
 
         const _rpc = {
             plugin : 'NetworkControl',
@@ -515,18 +459,13 @@ class WifiControl extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc);
+        this.api.req(null, _rpc);
     }
 
     connect() {
         var idx = this.configListEl.selectedIndex;
 
         this.statusMessage(`Connecting to ${this.configs[idx]}`);
-
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/Connect/${this.configs[idx]}`
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -536,7 +475,7 @@ class WifiControl extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc).then( () => {
+        this.api.req(null, _rpc).then( () => {
             this.connecting = true;
             setTimeout(this.requestDHCP.bind(this), 5000);
         });
@@ -545,11 +484,6 @@ class WifiControl extends Plugin {
     disconnect() {
         if (this.connected === undefined || this.connected === '')
             return;
-
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/Disconnect/${this.connected}`
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -560,7 +494,7 @@ class WifiControl extends Plugin {
         };
 
         this.statusMessage(`Disconnecting from ${this.connected}`);
-        this.api.req(_rest, _rpc);
+        this.api.req(null, _rpc);
     }
 
     close() {
