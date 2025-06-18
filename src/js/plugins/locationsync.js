@@ -89,33 +89,23 @@ class LocationSync extends Plugin {
     }
 
     syncLocation() {
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'sync'
         };
 
-        this.api.req(_rest, _rpc).then( () => {
+        this.api.req(null, _rpc).then( () => {
           this.update();
         });
     }
 
     location() {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'location'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     update() {

@@ -198,16 +198,6 @@ class DeviceInfo extends Plugin {
 
 
     status() {
-        const _rest = {
-            method  : 'GET',
-            path    : 'DeviceInfo'
-        };
-
-        const _rpc = {
-            plugin : 'DeviceInfo',
-            method : 'systeminfo'
-        };
-
         return this.displayInfo().then((info) => {
             return new Promise((resolve, reject) => {
                 this.deviceInfo()
@@ -219,17 +209,12 @@ class DeviceInfo extends Plugin {
     }
 
     deviceInfo() {
-        const _rest = {
-            method  : 'GET',
-            path    : 'DeviceInfo'
-        };
-
         const _rpc = {
             plugin : 'DeviceInfo',
             method : 'systeminfo'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     displayInfo() {
@@ -246,60 +231,40 @@ class DeviceInfo extends Plugin {
     }
 
     totalGPURam() {
-      const _rest = {
-        method: 'GET',
-        path: 'DisplayInfo',
-      };
-
       const _rpc = {
         plugin: 'DisplayInfo',
         method: 'totalgpuram',
       };
 
-      return this.api.req(_rest, _rpc);
+      return this.api.req(null, _rpc);
     }
 
     freeGPURam() {
-      const _rest = {
-        method: 'GET',
-        path: 'DisplayInfo',
-      };
-
       const _rpc = {
         plugin: 'DisplayInfo',
         method: 'freegpuram',
       };
 
-      return this.api.req(_rest, _rpc);
+      return this.api.req(null, _rpc);
     }
 
 
     addresses() {
-        const _rest = {
-            method  : 'GET',
-            path    : 'DeviceInfo'
-        };
-
         const _rpc = {
             plugin : 'DeviceInfo',
             method : 'addresses'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     socketinfo() {
-        const _rest = {
-            method  : 'GET',
-            path    : 'DeviceInfo'
-        };
-
         const _rpc = {
             plugin : 'DeviceInfo',
             method : 'socketinfo'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     update() {

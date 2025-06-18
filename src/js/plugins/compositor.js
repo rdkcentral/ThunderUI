@@ -236,22 +236,16 @@ class Compositor extends Plugin {
 
     // write only :(
     opacity(client, value) {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/${client}/Opacity/${value}`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'opacity@'+client,
         };
 
         if (value !== undefined) {
-            _rest.method = 'POST'
             _rpc.params = value
         }
 
-        return this.api.req(_rest,_rpc);
+        return this.api.req(null,_rpc);
     }
 
     compositorSetOpacity() {
@@ -269,38 +263,26 @@ class Compositor extends Plugin {
         console.log(state);
         var client = this.menu.options[this.menu.selectedIndex].value;
 
-        const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}/Visible/${state}`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'visiblity@'+client,
             params : state === 'Show' ? 'visible':'hidden'
         };
 
-        this.api.req(_rest,_rpc);
+        this.api.req(null,_rpc);
     }
 
     geometry(client, attributes) {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/${client}/Geometry`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'geometry@' + client
         };
 
         if (attributes !== undefined) {
-            _rest.method = 'POST'
-            _rest.path += `/${attributes.x}/${attributes.y}/${attributes.w}/${attributes.h}`
             _rpc.params = { x: parseInt(attributes.x), y: parseInt(attributes.y), width: parseInt(attributes.w), height: parseInt(attributes.h) }
         }
 
-        return this.api.req(_rest,_rpc);
+        return this.api.req(null,_rpc);
     }
 
     zorder(client) {
@@ -325,23 +307,16 @@ class Compositor extends Plugin {
     }
 
     resolution(value) {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/Resolution`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'resolution',
         };
 
         if (value !== undefined) {
-            _rest.method = 'POST'
-            _rest.path += `/${value}`
             _rpc.params = value
         }
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     setResolution() {

@@ -143,11 +143,6 @@ class LinearPlaybackControl extends Plugin {
     }
 
     rpcSetChannel(channel) {
-        const _rest = {
-            method: 'PUT',
-            path: `${this.callsign}/channel`
-        };
-
         const _rpc = {
             plugin: this.callsign,
             method: 'channel',
@@ -157,15 +152,10 @@ class LinearPlaybackControl extends Plugin {
 
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     rpcSetSeek(seek) {
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/seek`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'seek',
@@ -175,15 +165,10 @@ class LinearPlaybackControl extends Plugin {
 
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     rpcSetTrickPlaySpeed(speed) {
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/trickplay`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'trickplay',
@@ -193,20 +178,15 @@ class LinearPlaybackControl extends Plugin {
 
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     rpcGet(endpoint) {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/${endpoint}`
-        };
-
         const _rpc = {
             plugin: this.callsign,
             method: endpoint
         };
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     setUrlFromPreset() {

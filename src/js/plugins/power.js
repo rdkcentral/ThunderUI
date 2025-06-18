@@ -39,17 +39,12 @@ class Power extends Plugin {
     }
 
     state() {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/State`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'state'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     render()        {
@@ -104,29 +99,22 @@ class Power extends Plugin {
     }
 
     changeState(nextState) {
-        const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}/State`,
-            body    : {
-                'PowerState' : this.stateSelectorEl.value,
-            }
-        };
-
         const _rpc = {
             plugin : this.callsign,
-            method : 'state',
+            method : 'set',
             params : {
-                'powerstate' : this.stateSelectorEl.value
+                'state' : this.stateSelectorEl.value
             }
         };
 
         if (this.timeoutInput.value !== '') {
-            _rest.body.Timeout = this.timeoutInput.value;
-            _rpc.body.timeout = this.timeoutInput.value;
+            _rpc.params.timeout = this.timeoutInput.value;
+        }
+        else {
+            _rpc.params.timeout = 10;
         }
 
-        //FIXME doesn't have a rpc specification yet
-        this.api.req(_rest).then( () => {
+        this.api.req(null, _rpc).then( () => {
             if (nextState < 2)
                 setTimeout(this.update, 5000);
         });
