@@ -25,26 +25,36 @@ class SwitchBoard extends Plugin {
 
     constructor(pluginData, api) {
         super(pluginData, api);
-
-        //this.renderInMenu = false;
-        this.defaultPlugin = undefined;
-        this.switchablePlugins = [];
+        this.renderInMenu = true;
 
         // get switchboard configuration
-        this.state().then( resp => {
-            this.defaultPlugin = resp.default;
-            this.switchablePlugins = resp.callsigns;
+        this.switchablePlugins = [];
+        this.switches().then( resp => {
+            this.switchablePlugins = resp;
+        });
+
+        this.defaultPlugin = undefined;
+        this.default().then( resp => {
+            this.defaultPlugin = resp;
         });
     }
 
-    state() {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/Switch`
+    switches() {
+        const _rpc = {
+            plugin : 'SwitchBoard',
+            method : 'switches'
         };
 
-        //FIXME does not have a jsonrpc interface
-        return this.api.req(_rest);
+        return this.api.req(null, _rpc);
+    }
+
+    default() {
+        const _rpc = {
+            plugin : 'SwitchBoard',
+            method : 'default'
+        };
+
+        return this.api.req(null, _rpc);
     }
 
     getDefaultSwitchBoardPlugin () {
@@ -52,7 +62,7 @@ class SwitchBoard extends Plugin {
     }
 
     getSwitchablePlugins() {
-        return this.switchBoardPlugins;
+        return this.switchablePlugins;
     }
 
     render() {
@@ -65,8 +75,8 @@ class SwitchBoard extends Plugin {
 
         var switchBoardPluginDiv = document.getElementById('switchBoardPlugins');
 
-       this.api.getControllerPlugins().then( data => {
-            var plugins = data.plugins;
+        this.api.getControllerPlugins().then( data => {
+            var plugins = data;
             var switchIdx = 0;
 
             for (var i=0; i < plugins.length; i++) {
@@ -142,12 +152,17 @@ class SwitchBoard extends Plugin {
     }
 
     switchPlugin(plugin) {
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/Switch/${plugin}`
+        var body = {
+            "callsign" : plugin
         };
 
-        this.api.req(_rest).then( () => {
+        const _rpc = {
+            plugin : 'SwitchBoard',
+            method : 'activate',
+            params : body
+        };
+
+        this.api.req(null, _rpc).then( () => {
             this.render();
         });
     }
