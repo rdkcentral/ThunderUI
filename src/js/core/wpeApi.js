@@ -151,17 +151,12 @@ export default class WpeApi {
         if (this.plugins !== undefined)
             return Promise.resolve(this.plugins)
 
-        const _rest = {
-            method  : 'GET',
-            path    : 'Controller/Plugins'
-        };
-
         const _rpc = {
             plugin : 'Controller',
             method : 'status'
         };
 
-        return this.req(_rest, _rpc).then(plugins => {
+        return this.req(null, _rpc).then(plugins => {
             //cache the response
             this.plugins = plugins
             return plugins

@@ -113,33 +113,23 @@ class Warehouse extends Plugin {
   }
 
   deviceReset(bool) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'resetDevice',
       params: { supressReboot: bool },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   internalReset() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'internalReset',
       params: { passPhrase: 'FOR TEST PURPOSES ONLY' },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         alert('Internal reset success');
       }
@@ -147,17 +137,12 @@ class Warehouse extends Plugin {
   }
 
   lightReset() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'lightReset',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         alert('Light reset success');
       }
@@ -165,18 +150,13 @@ class Warehouse extends Plugin {
   }
 
   frontPanelSet() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'setFrontPanelState',
       params: { state: this.state.value },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         alert('Front panel LED states set successfully');
       } else {
@@ -186,17 +166,12 @@ class Warehouse extends Plugin {
   }
 
   deviceInfo() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getDeviceInfo',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.btMac.innerHTML = result.bluetooth_mac;
         this.boxIP.innerHTML = result.boxIP;
@@ -212,17 +187,12 @@ class Warehouse extends Plugin {
   }
 
   isClean() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'isClean',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (!result.success) {
         this.custData.innerHTML = 'Error:' + result.error;
       } else {

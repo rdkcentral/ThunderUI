@@ -92,33 +92,23 @@ class FrameRate extends Plugin {
   }
 
   setFrequency(frequency) {
-    const _rest = {
-      method: 'PUT',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'setCollectionFrequency',
       params: { frequency: frequency },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   updateFrequency(fps) {
-    const _rest = {
-      method: 'PUT',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'updateFps',
       params: { newFpsValue: parseInt(fps) },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   update() {
@@ -136,17 +126,12 @@ class FrameRate extends Plugin {
   }
 
   start() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'startFpsCollection',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   stopCollection() {
@@ -158,17 +143,12 @@ class FrameRate extends Plugin {
   }
 
   stop() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'stopFpsCollection',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   close() {

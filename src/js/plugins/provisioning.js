@@ -67,31 +67,21 @@ class Provisioning extends Plugin {
     }
 
     triggerProvisioning() {
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'provision'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     status() {
-        const _rest = {
-            method  : 'GET',
-            path    : this.callsign
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'state'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     update() {

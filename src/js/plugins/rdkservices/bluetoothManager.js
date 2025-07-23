@@ -143,17 +143,12 @@ class BluetoothManager extends Plugin {
   }
 
   devices() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getDiscoveredDevices',
       params: {},
     };
-    return this.api.req(_rest, _rpc).then(devices => {
+    return this.api.req(null, _rpc).then(devices => {
       if (devices === undefined) {
         return;
       }
@@ -170,17 +165,12 @@ class BluetoothManager extends Plugin {
   }
 
   getPairedDevices() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getPairedDevices',
       params: {},
     };
-    return this.api.req(_rest, _rpc).then(devices => {
+    return this.api.req(null, _rpc).then(devices => {
       this._pairedID = [];
 
       if (devices.pairedDevices && devices.pairedDevices.length) {
@@ -194,18 +184,13 @@ class BluetoothManager extends Plugin {
   }
 
   device(deviceID) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getDeviceInfo',
       params: { deviceID: deviceID },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   scanComplete() {
@@ -284,11 +269,6 @@ class BluetoothManager extends Plugin {
 
   scanForDevices() {
     this.scanning = true;
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'startScan',
@@ -296,7 +276,7 @@ class BluetoothManager extends Plugin {
     };
 
     return this.api
-      .req(_rest, _rpc)
+      .req(null, _rpc)
       .then(result => {
         console.log(result);
       })
@@ -308,11 +288,6 @@ class BluetoothManager extends Plugin {
   pairDevice() {
     var idx = this.deviceList.selectedIndex;
     this.updateStatus(`Pairing to ${this._devices[idx].name}`, true);
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'pair',
@@ -320,7 +295,7 @@ class BluetoothManager extends Plugin {
     };
 
     return this.api
-      .req(_rest, _rpc)
+      .req(null, _rpc)
       .then(result => {
         if (!result.success) {
           this.updateStatus('Pairing failed', false, true);
@@ -335,11 +310,6 @@ class BluetoothManager extends Plugin {
     var idx = this.deviceList.selectedIndex;
     this.updateStatus(`Unpairing ${this._devices[idx].name}`, true);
 
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'unpair',
@@ -347,7 +317,7 @@ class BluetoothManager extends Plugin {
     };
 
     return this.api
-      .req(_rest, _rpc)
+      .req(null, _rpc)
       .then(result => {
         if (!result.success) {
           this.updateStatus('Unpairing failed', false, true);
@@ -361,11 +331,6 @@ class BluetoothManager extends Plugin {
   connect() {
     var idx = this.deviceList.selectedIndex;
     this.updateStatus(`Connecting to ${this._devices[idx].name}`, true);
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'connect',
@@ -377,7 +342,7 @@ class BluetoothManager extends Plugin {
     };
 
     return this.api
-      .req(_rest, _rpc)
+      .req(null, _rpc)
       .then(result => {
         if (!result.success) {
           this.updateStatus('Connecting failed', false, true);
@@ -392,11 +357,6 @@ class BluetoothManager extends Plugin {
     var idx = this.deviceList.selectedIndex;
     this.updateStatus(`Disconnecting from ${this._devices[idx].name}`, true);
 
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'disconnect',
@@ -406,7 +366,7 @@ class BluetoothManager extends Plugin {
     };
 
     return this.api
-      .req(_rest, _rpc)
+      .req(null, _rpc)
       .then(result => {
         if (!result.success) {
           this.updateStatus('Disconnecting failed', false, true);
@@ -418,11 +378,6 @@ class BluetoothManager extends Plugin {
   }
 
   respondToevent(id, type, value) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'respondToEvent',
@@ -433,7 +388,7 @@ class BluetoothManager extends Plugin {
       },
     };
 
-    return this.api.req(_rest, _rpc).then(response => {
+    return this.api.req(null, _rpc).then(response => {
       console.log(response);
     });
   }
