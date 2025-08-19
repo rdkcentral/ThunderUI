@@ -116,33 +116,22 @@ class TimeSync extends Plugin {
     setTime() {
         let time = document.getElementById('timeinput').value;
 
-        const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}`,
-            body    : { 'time' : time }
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'time',
             params : time
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     getTime() {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'time'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     update() {

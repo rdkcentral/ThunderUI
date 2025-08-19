@@ -303,17 +303,12 @@ class SystemServices extends Plugin {
   }
 
   getXConf() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getXconfParams',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.buildType.innerHTML = result.xconfParams.env;
         this.estbMac.innerHTML = result.xconfParams.eStbMac;
@@ -324,17 +319,12 @@ class SystemServices extends Plugin {
   }
 
   getSystemVersion() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getSystemVersions',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.rxVersion.innerHTML = result.receiverVersion;
       }
@@ -342,17 +332,12 @@ class SystemServices extends Plugin {
   }
 
   getMoca() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'queryMocaStatus',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         if (result.mocaEnabled) {
           this.moca.checked = true;
@@ -366,18 +351,13 @@ class SystemServices extends Plugin {
   }
 
   setMoca(bool) {
-    const _rest = {
-      method: 'PUT',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'enableMoca',
       params: { value: bool },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (!result.success) {
         alert('Action failed');
       }
@@ -386,17 +366,12 @@ class SystemServices extends Plugin {
   }
 
   getGZ() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'isGzEnabled',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         if (result.enabled) {
           this.gz.checked = true;
@@ -410,18 +385,13 @@ class SystemServices extends Plugin {
   }
 
   setGZ(bool) {
-    const _rest = {
-      method: 'PUT',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'setGzEnabled',
       params: { enabled: bool },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (!result.success) {
         alert('Action failed');
       }
@@ -430,18 +400,13 @@ class SystemServices extends Plugin {
   }
 
   setCache() {
-    const _rest = {
-      method: 'PUT',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: '',
       params: { value: bool },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (!result.success) {
         alert('Action failed');
       }
@@ -450,17 +415,12 @@ class SystemServices extends Plugin {
   }
 
   getStandbyMode() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getPreferredStandbyMode',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.standbyMode.innerHTML = result.preferredStandbyMode;
       }
@@ -468,17 +428,12 @@ class SystemServices extends Plugin {
   }
 
   getAvailStandbyModes() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getAvailableStandbyModes',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.supportedStandbyModes && result.supportedStandbyModes.length > 0) {
         result.supportedStandbyModes.forEach(d => {
           var newStandByChild = this.availModes.appendChild(document.createElement('option'));
@@ -489,34 +444,24 @@ class SystemServices extends Plugin {
   }
 
   setStandby() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'setPreferredStandbyMode',
       params: { standbyMode: this.availModes.value },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       this.getStandbyMode();
     });
   }
 
   getPowerState() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getPowerState',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.powerMode.innerHTML = result.powerState;
       }
@@ -524,32 +469,22 @@ class SystemServices extends Plugin {
   }
 
   setPowerState() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'setPowerState',
       params: { powerState: this.powerStates.value, standbyReason: 'APIUnitTest' },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   getMode() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getMode',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.mode.innerHTML = result.modeInfo.mode;
       }
@@ -557,32 +492,22 @@ class SystemServices extends Plugin {
   }
 
   setMode() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'setMode',
       params: { modeInfo: { mode: this.modeList.value, duration: parseInt(this.modeDuration.value) } },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   getUpTime() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'requestSystemUptime',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.upTime.innerHTML = new Date(result.systemUptime * 1000).toISOString().substr(11, 8);
       }
@@ -606,18 +531,13 @@ class SystemServices extends Plugin {
   }
 
   setCacheKey() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'setCachedValue',
       params: { key: this.setKey.value, value: this.setValue.value },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.upTime.innerHTML = result.systemUptime + 'seconds';
       } else {
@@ -628,10 +548,6 @@ class SystemServices extends Plugin {
 
   getCacheValue() {
     window.clearTimeout(this.timeOut);
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
 
     const _rpc = {
       plugin: this.callsign,
@@ -639,7 +555,7 @@ class SystemServices extends Plugin {
       params: { key: this.getKey.value },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.getValue.innerHTML =
           result[this.getKey.value] == undefined ? 'Value not found' : result[this.getKey.value];
@@ -654,18 +570,13 @@ class SystemServices extends Plugin {
   }
 
   removeCache() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'removeCacheKey',
       params: { key: this.getKey.value },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         alert('Successfully removed');
       } else {
@@ -675,17 +586,12 @@ class SystemServices extends Plugin {
   }
 
   prevRebootInfo() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getPreviousRebootInfo2',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.rebootSrc.innerHTML = result.rebootInfo.source;
         this.rebootReason.innerHTML = result.rebootInfo.reason;
@@ -696,17 +602,12 @@ class SystemServices extends Plugin {
   }
 
   getTempInfo() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getTemperatureThresholds',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.coreTemp.innerHTML = result.temperatureThresholds.temperature;
         this.warnTemp.innerHTML = result.temperatureThresholds.WARN;
@@ -716,17 +617,12 @@ class SystemServices extends Plugin {
   }
 
   getSerialNmmber() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getSerialNumber',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.serialNumber.innerHTML = result.serialNumber;
       }
@@ -734,17 +630,12 @@ class SystemServices extends Plugin {
   }
 
   getTimeZone() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getTimeZoneDST',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.timeZone.innerHTML = result.timeZone;
       }
@@ -752,11 +643,6 @@ class SystemServices extends Plugin {
   }
 
   getRFCConfig() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getRFCConfig',
@@ -771,7 +657,7 @@ class SystemServices extends Plugin {
       },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.accountID.innerHTML =
           result.RFCConfig['Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID'];
@@ -785,17 +671,12 @@ class SystemServices extends Plugin {
   }
 
   getDeepSleepReason() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getLastDeepSleepReason',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.deepSleep.innerHTML = result.lastDeepSleepReason;
       }
@@ -803,18 +684,13 @@ class SystemServices extends Plugin {
   }
 
   getPropertyValue() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getStateInfo',
       params: { param: this.propertyName.value },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.propertyValue.innerHTML = result[this.propertyName.value];
       }
@@ -822,32 +698,22 @@ class SystemServices extends Plugin {
   }
 
   getFirmwareUpdateInfo() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getFirmwareUpdateInfo',
       params: { GUID: '1234abcd' },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   getFirmwareUpdateState() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getFirmwareUpdateState',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   close() {

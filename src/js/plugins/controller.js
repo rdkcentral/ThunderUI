@@ -48,65 +48,41 @@ class Controller extends Plugin {
     }
 
     harakiri() {
-        const _rest = {
-            method  : 'PUT',
-            path    : 'Controller/Harakiri',
-            body    : null
-        };
-
         const _rpc = {
             plugin : 'Controller',
             method : 'harakiri',
             params : {'callsign': this.callsign}
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     initiateDiscovery() {
-        const _rest = {
-            method  : 'PUT',
-            path    : 'Controller/Discovery',
-            body    : null
-        };
-
         const _rpc = {
             plugin : 'Controller',
             method : 'startdiscovery',
             params : {'ttl': 1}
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     getDiscovery() {
-        const _rest = {
-            method  : 'GET',
-            path    : 'Controller/Discovery',
-            body    : null
-        };
-
         const _rpc = {
             plugin : 'Controller',
             method : 'discoveryresults'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     persist(callback) {
-        const _rest = {
-            method  : 'PUT',
-            path    : 'Controller/Persist',
-            body    : null
-        };
-
         const _rpc = {
             plugin : 'Controller',
             method : 'storeconfig'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     /**

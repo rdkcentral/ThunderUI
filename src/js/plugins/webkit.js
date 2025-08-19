@@ -159,45 +159,30 @@ class WebKitBrowser extends Plugin {
     }
 
     status() {
-        const _rest = {
-            method  : 'GET',
-            path    : this.callsign
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'state'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     fps() {
-        const _rest = {
-            method  : 'GET',
-            path    : this.callsign
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'fps'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     url() {
-        const _rest = {
-            method  : 'GET',
-            path    : this.callsign
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'url'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     render()        {
@@ -297,19 +282,13 @@ class WebKitBrowser extends Plugin {
         console.log('Setting url ' + url + ' for ' + this.callsign);
         var body = {'url':  url };
 
-        const _rest = {
-            method  : 'POST',
-            path    : this.callsign + '/URL',
-            body    : body
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'url',
             params : url
         };
 
-        this.api.req(_rest, null);
+        this.api.req(null, null);
 
         document.getElementById(this.callsign + '_linkPresets').selectedIndex = 0;
     }

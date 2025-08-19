@@ -47,18 +47,13 @@ class TraceControl extends Plugin {
             "state": state === 'on' ? 'enabled' : 'disabled'
         };
 
-        const _rest = {
-            method  : 'PUT',
-            path    : 'TraceControl' +  '/' + module + '/' + id + '/' + state
-        };
-
         const _rpc = {
             plugin : 'TraceControl',
             method : 'set',
             params : body
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     render() {

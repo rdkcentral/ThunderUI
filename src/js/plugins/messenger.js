@@ -178,11 +178,6 @@ class Messenger extends Plugin {
   }
 
   joinRoom(user, room) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'join',
@@ -192,15 +187,10 @@ class Messenger extends Plugin {
       },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   leaveRoom(roomId) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'leave',
@@ -209,15 +199,10 @@ class Messenger extends Plugin {
       },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   sentMessage(roomId, message) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'sent',
@@ -227,7 +212,7 @@ class Messenger extends Plugin {
       },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   removeJoinText() {
