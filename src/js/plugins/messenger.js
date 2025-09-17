@@ -132,6 +132,18 @@ class Messenger extends Plugin {
     }
   }
 
+  _extractRoomId(response) {
+    if (typeof response === 'string') return response;
+    if (!response) return null;
+    if (typeof response.result === 'string') return response.result;
+    const candidate = (response.result !== undefined ? response.result : response);
+    if (typeof candidate === 'string') return candidate;
+    if (candidate && typeof candidate === 'object') {
+      return candidate.roomid || candidate.roomId || candidate.room || candidate.id || null;
+    }
+    return null;
+  }
+
   doJoinRoom() {
     if (
       this.user.value !== '' &&
@@ -149,19 +161,7 @@ class Messenger extends Plugin {
           return;
         }
 
-        const roomId = (()=>{
-          if (typeof response === 'string') return response;
-          if (response && typeof response === 'object') {
-            if (typeof response.result === 'string') return response.result;
-            const candidate = (response.result !== undefined ? response.result : response);
-            if (typeof candidate === 'string') return candidate;
-            if (candidate && typeof candidate === 'object') {
-              return candidate.roomid || candidate.roomId || candidate.room || candidate.id || null;
-            }
-          }
-          return null;
-        })();
-
+        const roomId = this._extractRoomId(response);
         console.debug('Extracted roomId:', roomId);
 
         if (roomId && typeof roomId === 'string' && roomId.trim().length) {
@@ -172,7 +172,6 @@ class Messenger extends Plugin {
           setTimeout(() => this.removeJoinText(), 2000);
 
           this._addRoomOptions(roomId);
-
           this.room_id.value = roomId;
           this.message_room_id.value = roomId;
         } else {
@@ -202,14 +201,14 @@ class Messenger extends Plugin {
       this.leaveRoom(leavingId).then(response => {
         const hasError = response && response.error;
         if (!hasError) {
-          this.left_text.innerHTML = 'Left room ' + this._formatRoomLabel(leavingId);
-            setTimeout(() => this.removeLeftText(), 2000);
-            this.room_id.remove(this.roomIdValue);
-            this.message_room_id.remove(this.roomIdValue);
-            this.rooms.delete(leavingId);
-            this.user.value = '';
-            this.room.value = '';
-            this.message.value = '';
+          this.left_text.textContent = 'Left room ' + this._formatRoomLabel(leavingId);
+          setTimeout(() => this.removeLeftText(), 2000);
+          this.room_id.remove(this.roomIdValue);
+          this.message_room_id.remove(this.roomIdValue);
+          this.rooms.delete(leavingId);
+          this.user.value = '';
+          this.room.value = '';
+          this.message.value = '';
         } else {
           console.warn('Leave error response:', response);
           alert('Failed to leave room');
@@ -230,7 +229,7 @@ class Messenger extends Plugin {
       this.sentMessage(targetRoomId, this.message.value).then(response => {
         const hasError = response && response.error;
         if (!hasError) {
-          this.send_text.innerHTML = 'Message sent to ' + targetRoomId;
+          this.send_text.innerText = 'Message sent to ' + targetRoomId;
           setTimeout(() => this.removeSendText(), 2000);
         } else {
           console.warn('Send error response:', response);
@@ -243,7 +242,7 @@ class Messenger extends Plugin {
     } else if (this.message.value === '' || this.message.value.trim().length === 0) {
       alert('Please provide message value');
     } else if (this.messageRoomIdValue < 0) {
-      alert('No rooms are available to send message');
+      alert('No rooms are available to send a message');
     }
   }
 
