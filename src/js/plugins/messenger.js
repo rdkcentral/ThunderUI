@@ -168,7 +168,7 @@ class Messenger extends Plugin {
           if (!this.rooms.has(roomId)) {
             this.rooms.set(roomId, { name: enteredRoomName, user: enteredUser });
           }
-          this.joined_text.innerHTML = 'Joined room ' + this._formatRoomLabel(roomId);
+          this.joined_text.textContent = 'Joined room ' + this._formatRoomLabel(roomId);
           setTimeout(() => this.removeJoinText(), 2000);
 
           this._addRoomOptions(roomId);
@@ -285,15 +285,15 @@ class Messenger extends Plugin {
   }
 
   removeJoinText() {
-    if (this.joined_text) this.joined_text.innerHTML = '';
+    if (this.joined_text) this.joined_text.textContent = '';
   }
 
   removeLeftText() {
-    if (this.left_text) this.left_text.innerHTML = '';
+    if (this.left_text) this.left_text.textContent = '';
   }
 
   removeSendText() {
-    if (this.send_text) this.send_text.innerHTML = '';
+    if (this.send_text) this.send_text.textContent = '';
   }
 
   close() {
