@@ -288,7 +288,7 @@ class WebKitBrowser extends Plugin {
             params : url
         };
 
-        this.api.req(null, null);
+        this.api.req(null, _rpc);
 
         document.getElementById(this.callsign + '_linkPresets').selectedIndex = 0;
     }
