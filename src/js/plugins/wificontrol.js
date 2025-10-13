@@ -225,8 +225,10 @@ class WifiControl extends Plugin {
         this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
+            if (resp.config === undefined)
+                return;
 
-            this.configinfo.push(resp)
+            this.configinfo.push(resp.config);
             this.renderConfigDetails();
         });
     }
@@ -242,15 +244,17 @@ class WifiControl extends Plugin {
         this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
+            if (resp.configs === undefined)
+                return;
 
-            this.configs = resp;
+            this.configs = resp.configs;
             this.configinfo = [];
             this.configListEl.innerHTML = '';
 
-            for (var i=0; i<resp.length; i++) {
+            for (var i=0; i<resp.configs.length; i++) {
                 var newChild = this.configListEl.appendChild(document.createElement("option"));
-                newChild.innerHTML = `${resp[i]}`;
-                this.getConfig(`${resp[i]}`);
+                newChild.innerHTML = `${resp.configs[i]}`;
+                this.getConfig(`${resp.configs[i]}`);
             }
         });
     }
