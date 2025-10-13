@@ -274,16 +274,16 @@ class WifiControl extends Plugin {
                 return;
 
             this.networkListEl.innerHTML = '';
-            for (var i=0; i<resp.length; i++) {
+            for (var i=0; i<resp.networks.length; i++) {
                 // some networks return /x00/x00/x00/x00 and we're filtering out that at the json parse in core/wpe.js, so lets skip it
-                if (resp[i].ssid === '')
+                if (resp.networks[i].ssid === '')
                     continue;
 
                 // store the same list in this.networks
-                this.networks.push(resp[i]);
+                this.networks.push(resp.networks[i]);
 
                 var newChild = this.networkListEl.appendChild(document.createElement("option"));
-                newChild.innerHTML = `${resp[i].ssid} (${resp[i].signal})`;
+                newChild.innerHTML = `${resp.networks[i].ssid} (${resp.networks[i].signal})`;
             }
         });
     }
