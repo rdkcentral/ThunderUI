@@ -204,7 +204,7 @@ class WifiControl extends Plugin {
     scanForNetworks() {
         const _rpc = {
             plugin : this.callsign,
-            method : 'scan',
+            method : 'scan'
         };
 
         this.api.req(null, _rpc).then( resp => {
@@ -219,16 +219,14 @@ class WifiControl extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'config@' + ssid,
+            method : 'config@' + ssid
         };
 
         this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
-            if (resp.config === undefined)
-                return;
 
-            this.configinfo.push(resp.config);
+            this.configinfo.push(resp);
             this.renderConfigDetails();
         });
     }
@@ -238,23 +236,21 @@ class WifiControl extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'configs',
+            method : 'configs'
         };
 
         this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
-            if (resp.configs === undefined)
-                return;
 
-            this.configs = resp.configs;
+            this.configs = resp;
             this.configinfo = [];
             this.configListEl.innerHTML = '';
 
-            for (var i=0; i<resp.configs.length; i++) {
+            for (var i=0; i<resp.length; i++) {
                 var newChild = this.configListEl.appendChild(document.createElement("option"));
-                newChild.innerHTML = `${resp.configs[i]}`;
-                this.getConfig(`${resp.configs[i]}`);
+                newChild.innerHTML = `${resp[i]}`;
+                this.getConfig(`${resp[i]}`);
             }
         });
     }
@@ -278,16 +274,16 @@ class WifiControl extends Plugin {
                 return;
 
             this.networkListEl.innerHTML = '';
-            for (var i=0; i<resp.networks.length; i++) {
+            for (var i=0; i<resp.length; i++) {
                 // some networks return /x00/x00/x00/x00 and we're filtering out that at the json parse in core/wpe.js, so lets skip it
-                if (resp.networks[i].ssid === '')
+                if (resp[i].ssid === '')
                     continue;
 
                 // store the same list in this.networks
-                this.networks.push(resp.networks[i]);
+                this.networks.push(resp[i]);
 
                 var newChild = this.networkListEl.appendChild(document.createElement("option"));
-                newChild.innerHTML = `${resp.networks[i].ssid} (${resp.networks[i].signal})`;
+                newChild.innerHTML = `${resp[i].ssid} (${resp[i].signal})`;
             }
         });
     }
