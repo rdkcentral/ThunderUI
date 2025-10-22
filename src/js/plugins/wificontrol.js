@@ -204,7 +204,7 @@ class WifiControl extends Plugin {
     scanForNetworks() {
         const _rpc = {
             plugin : this.callsign,
-            method : 'scan',
+            method : 'scan'
         };
 
         this.api.req(null, _rpc).then( resp => {
@@ -219,14 +219,14 @@ class WifiControl extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'config@' + ssid,
+            method : 'config@' + ssid
         };
 
         this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
 
-            this.configinfo.push(resp)
+            this.configinfo.push(resp);
             this.renderConfigDetails();
         });
     }
@@ -236,7 +236,7 @@ class WifiControl extends Plugin {
 
         const _rpc = {
             plugin : this.callsign,
-            method : 'configs',
+            method : 'configs'
         };
 
         this.api.req(null, _rpc).then( resp => {
