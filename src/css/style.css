@@ -882,3 +882,33 @@ input[type=checkbox] {
     -moz-transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
     -webkit-transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
+
+.instance-selector {
+    padding: 15px;
+    background-color: #1a1a1a;
+    border-bottom: 2px solid #333;
+    margin: 0;
+}
+
+.instance-selector select {
+    width: 100%;
+    padding: 10px;
+    background-color: #2a2a2a;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.instance-selector select:hover {
+    background-color: #333;
+    border-color: #555;
+}
+
+.instance-selector select:focus {
+    outline: none;
+    border-color: #00a8e1;
+    box-shadow: 0 0 5px rgba(0, 168, 225, 0.3);
+}
