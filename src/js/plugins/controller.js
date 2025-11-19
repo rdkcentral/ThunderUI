@@ -59,7 +59,26 @@ class Controller extends Plugin {
             params: { 'callsign': callsignParam }
         };
 
-        return this.api.req(null, _rpc);
+        return this.api.t.call(controllerToUse, 'activate', {
+            callsign: callsignParam
+        }).then(result => {
+            // Manually trigger menu update (composite controllers don't send notifications)
+            if (window.menu) {
+                console.log('✅ Calling window.menu.update() after activation');
+                // Manually update the cache since composite controllers don't send notifications
+                if (window.menu.pluginStateCache) {
+                    window.menu.pluginStateCache.set(callsign, 'Activated');
+                    console.log('📝 Manually updated cache:', callsign, '-> Activated');
+                }
+                // Add small delay to ensure Thunder has updated its state
+                setTimeout(() => {
+                    window.menu.update();
+                }, 200);
+            } else {
+                window.menu.update();
+            }
+            return result;
+        });
     }
 
     // Override deactivate to use the correct controller for composite plugins
@@ -87,7 +106,26 @@ class Controller extends Plugin {
             params: { 'callsign': callsignParam }
         };
 
-        return this.api.req(null, _rpc);
+        return this.api.t.call(controllerToUse, 'deactivate', {
+            callsign: callsignParam
+        }).then(result => {
+            // Manually trigger menu update (composite controllers don't send notifications)
+            if (window.menu) {
+                console.log('✅ Calling window.menu.update() after deactivation');
+                // Manually update the cache since composite controllers don't send notifications
+                if (window.menu.pluginStateCache) {
+                    window.menu.pluginStateCache.set(callsign, 'Deactivated');
+                    console.log('📝 Manually updated cache:', callsign, '-> Deactivated');
+                }
+                // Add small delay to ensure Thunder has updated its state
+                setTimeout(() => {
+                    window.menu.update();
+                }, 200);
+            } else {
+                window.menu.update();
+            }
+            return result;
+        });
     }
 
     // Override suspend to use the correct controller for composite plugins

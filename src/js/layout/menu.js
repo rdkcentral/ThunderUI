@@ -19,8 +19,6 @@
 /** The side navigation menu provides navigation across the different plugins */
 import { showPlugin } from '../core/application.js';
 
-// ...existing code...
-
 class Menu {
     constructor(plugins, api) {
         this.api                = api;
@@ -29,6 +27,12 @@ class Menu {
         this.renderInMenu       = false;
         this.selectedInstance   = null;
         this.currentPlugin      = null; // Track current plugin
+        this.compositeControllerListeners = new Map(); // Track composite controller listeners
+        this.renderTimeout      = null; // Track pending render timeout
+        this.pluginStateCache   = new Map();
+
+        // Expose menu instance globally for manual updates
+        window.menu = this;
 
         var bodyEl = document.getElementsByTagName('body')[0];
 
@@ -137,17 +141,129 @@ class Menu {
             }
         };
 
+        // Listen for ALL events on Controller to see what we're getting
         this.api.t.on('Controller', 'all', _notification => {
-            if (_notification.data && _notification.data.state) {
-                // Only re-render if BridgeLink or similar composit plugin was activated/deactivated
-                // This updates the instance selector when bridged instances appear/disappear
-                const callsign = _notification.data.callsign;
-                if (callsign && this.isBridgeLinkPlugin(callsign)) {
-                    // Re-render to update the instance selector
-                    this.render(this.currentPlugin);
+            console.log('Controller notification received:', _notification);
+            
+             // Check if it's a statechange event
+             if (_notification.event === 'statechange' && _notification.callsign !== undefined) {
+                 const callsign = _notification.callsign;
+                 const state = _notification.params ? _notification.params.state : undefined;
+                 
+                 console.log('Controller statechange detected!');
+                 console.log('  - callsign:', callsign);
+                 console.log('  - state:', state);
+                 
+                // Update the state cache immediately
+                if (state) {
+                    // Normalize to capitalized format to match API response
+                    const normalizedState = state.charAt(0).toUpperCase() + state.slice(1).toLowerCase();
+                    this.pluginStateCache.set(callsign, normalizedState);
+                    console.log('Updated state cache:', callsign, '->', normalizedState);
                 }
-                // Don't re-render for regular plugin state changes - let the plugin pages handle that
-            }
+                  
+                 // Always re-render to update the menu
+                 // Add a small delay to allow Thunder's state to propagate
+                 // Use debouncing to avoid multiple rapid re-renders
+                 if (this.renderTimeout) {
+                     clearTimeout(this.renderTimeout);
+                 }
+                 this.renderTimeout = setTimeout(() => {
+                     this.renderTimeout = null;
+                     console.log('Menu re-rendering after state change');
+                     this.render(this.currentPlugin);
+                 }, 100);
+              }
+          });
+          
+          // Setup listeners for composite controllers
+          this.setupCompositeControllerListeners();
+     }
+
+    setupCompositeControllerListeners() {
+        // Get the list of plugins to detect composite controllers
+        this.api.getControllerPlugins().then(plugins => {
+            console.log('setupCompositeControllerListeners - total plugins:', plugins.length);
+            const delimiter = '/';
+            const compositeControllers = new Set();
+
+            // Find all composite controllers
+            plugins.forEach(plugin => {
+                const callsign = plugin.callsign;
+                const delimiterIndex = callsign.indexOf(delimiter);
+                
+                if (delimiterIndex !== -1) {
+                    // This is a composite plugin (e.g., BridgeLink/Monitor)
+                    const prefix = callsign.substring(0, delimiterIndex);
+                    const compositeController = prefix + delimiter + 'Controller';
+                    compositeControllers.add(compositeController);
+                }
+            });
+
+            console.log('Found composite controllers:', Array.from(compositeControllers));
+
+            // Subscribe to state changes from each composite controller
+            compositeControllers.forEach(controllerCallsign => {
+                if (this.compositeControllerListeners.has(controllerCallsign)) {
+                    console.log('Listener already exists for:', controllerCallsign);
+                    return;
+                }
+                
+                console.log('Setting up NEW listener for:', controllerCallsign);
+                
+                // TEST: Try listening to ALL events first to see what we get
+                const testListener = this.api.t.on(controllerCallsign, 'all', (_notification) => {
+                    console.log('🔔 ANY notification from', controllerCallsign, ':', _notification);
+                });
+                
+                 // Subscribe to the composite controller's state changes
+                 // Note: Listen to 'statechange' specifically, not 'all'
+                 const listener = this.api.t.on(controllerCallsign, 'statechange', (_notification) => {
+                    console.log('STATE CHANGE notification from', controllerCallsign, ':', _notification);
+                        
+                    // The notification structure for composite controllers might be different
+                    // Let's handle both possible formats
+                    const callsign = _notification.callsign;
+                    const state = _notification.state || (_notification.params ? _notification.params.state : undefined);
+                    
+                    if (!callsign || !state) {
+                        console.warn('Invalid notification format:', _notification);
+                        return;
+                    }
+                        
+                    // Build full composite callsign and update cache
+                    const delimiter = '/';
+                    const prefix = controllerCallsign.substring(0, controllerCallsign.lastIndexOf(delimiter));
+                    const fullCallsign = prefix + delimiter + callsign;
+                    
+                    console.log('Composite controller statechange:', {
+                        from: controllerCallsign,
+                        notificationCallsign: callsign,
+                        builtFullCallsign: fullCallsign,
+                        state: state
+                    });
+                    
+                    // Normalize state and update cache
+                    const normalizedState = state.charAt(0).toUpperCase() + state.slice(1).toLowerCase();
+                    this.pluginStateCache.set(fullCallsign, normalizedState);
+                    console.log('Updated state cache:', fullCallsign, '->', normalizedState);
+                    
+                    // Re-render to update plugin states (debounced)
+                    if (this.renderTimeout) {
+                        clearTimeout(this.renderTimeout);
+                    }
+                    this.renderTimeout = setTimeout(() => {
+                        this.renderTimeout = null;
+                        console.log('Menu re-rendering after composite controller state change');
+                        this.render(this.currentPlugin);
+                    }, 100);
+                });
+                
+                this.compositeControllerListeners.set(controllerCallsign, listener);
+                console.log('Listener registered for:', controllerCallsign);
+            });
+            
+            console.log('Total composite listeners registered:', this.compositeControllerListeners.size);
         });
     }
 
@@ -227,6 +343,9 @@ class Menu {
             const availableInstances = this.getAvailableInstances(_plugins);
             this.updateInstanceSelector(availableInstances);
             
+            // Re-setup composite controller listeners in case instances changed
+            this.setupCompositeControllerListeners();
+            
             let ul = document.createElement('ul');
 
             for (let i = 0; i<_plugins.length; i++) {
@@ -239,50 +358,60 @@ class Menu {
                 const baseCallsign = delimiterIndex !== -1 ? callsign.substring(delimiterIndex + 1) : callsign;
                 const prefix = delimiterIndex !== -1 ? callsign.substring(0, delimiterIndex) : null;
                 
-                // Filter based on selected instance
-                if (this.selectedInstance === null) {
-                    // Show only local plugins (no prefix)
-                    if (prefix !== null)
-                        continue;
-                } else {
-                    // Show only plugins from selected instance
-                    if (prefix !== this.selectedInstance)
-                        continue;
-                }
+                // Use cached state if available, otherwise fall back to API state
+                const actualState = this.pluginStateCache.has(callsign) ? 
+                    this.pluginStateCache.get(callsign) : 
+                    plugin.state;
                 
-                // check if plugin is available in our loaded plugins (using base callsign)
-                if (enabledPlugins.indexOf(baseCallsign) === -1)
-                    continue;
+                 if (baseCallsign === 'MessageControl') {
+                    console.log('MessageControl - API state:', plugin.state, 'Cached state:', this.pluginStateCache.get(callsign), 'Using:', actualState);
+                 }
+                 
+                 // Filter based on selected instance
+                 if (this.selectedInstance === null) {
+                     // Show only local plugins (no prefix)
+                     if (prefix !== null)
+                         continue;
+                 } else {
+                     // Show only plugins from selected instance
+                     if (prefix !== this.selectedInstance)
+                         continue;
+                 }
+                 
+                 // check if plugin is available in our loaded plugins (using base callsign)
+                 if (enabledPlugins.indexOf(baseCallsign) === -1)
+                     continue;
 
-                const loadedPlugin = this.plugins[ baseCallsign ];
-                if (plugin.state !== 'Deactivated' && loadedPlugin.renderInMenu === true) {
-                    console.debug('Menu :: rendering ' + callsign);
-                    var li = document.createElement('li');
-                    li.id = "item_" + callsign;
+                 const loadedPlugin = this.plugins[ baseCallsign ];
+                // Use actualState instead of plugin.state
+                if (actualState.toLowerCase() !== 'deactivated' && loadedPlugin.renderInMenu === true) {
+                     console.debug('Menu :: rendering ' + callsign);
+                     var li = document.createElement('li');
+                     li.id = "item_" + callsign;
 
-                    if (activePlugin === undefined && i === 0) {
-                        li.className = 'menu-item active';
-                    } else if (activePlugin === callsign) {
-                        li.className = 'menu-item active';
-                    } else {
-                        li.className = 'menu-item';
-                    }
+                     if (activePlugin === undefined && i === 0) {
+                         li.className = 'menu-item active';
+                     } else if (activePlugin === callsign) {
+                         li.className = 'menu-item active';
+                     } else {
+                         li.className = 'menu-item';
+                     }
 
-                    // Use the display name without prefix since we're already filtering by instance
-                    const displayName = loadedPlugin.displayName !== undefined ? 
-                        loadedPlugin.displayName : 
-                        baseCallsign;
-                    
-                    li.appendChild(document.createTextNode(displayName));
-                    li.onclick = this.toggleMenuItem.bind(this, callsign);  // FIX: Changed from bind(null, ...) to bind(this, ...)
-                    ul.appendChild(li);
-                    this.nav.appendChild(ul);
-                }
-            }
-        });
-    }
+                     // Use the display name without prefix since we're already filtering by instance
+                     const displayName = loadedPlugin.displayName !== undefined ? 
+                         loadedPlugin.displayName : 
+                         baseCallsign;
+                     
+                     li.appendChild(document.createTextNode(displayName));
+                     li.onclick = this.toggleMenuItem.bind(this, callsign);
+                     ul.appendChild(li);
+                     this.nav.appendChild(ul);
+                 }
+             }
+         });
+     }
 
-    update() {
+     update() {
         // just re-render for now
         this.render(this.currentPlugin);
     }
