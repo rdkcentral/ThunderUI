@@ -70,13 +70,17 @@ class Controller extends Plugin {
                     window.menu.pluginStateCache.set(callsign, 'Activated');
                     console.log('📝 Manually updated cache:', callsign, '-> Activated');
                 }
-                // Add small delay to ensure Thunder has updated its state
-                setTimeout(() => {
-                    window.menu.update();
-                }, 200);
-            } else {
-                window.menu.update();
-            }
+                
+                // For BridgeLink, reload the page to properly initialize the instance selector
+                if (callsign === 'BridgeLink') {
+                    console.log('🔄 BridgeLink activated - reloading page in 1 second');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    setTimeout(() => window.menu.update(), 200);
+                }
+             } else {
+                 window.menu.update();
+             }
             return result;
         });
     }
@@ -117,13 +121,17 @@ class Controller extends Plugin {
                     window.menu.pluginStateCache.set(callsign, 'Deactivated');
                     console.log('📝 Manually updated cache:', callsign, '-> Deactivated');
                 }
-                // Add small delay to ensure Thunder has updated its state
-                setTimeout(() => {
-                    window.menu.update();
-                }, 200);
-            } else {
-                window.menu.update();
-            }
+                
+                // For BridgeLink, reload the page to properly clean up the instance selector
+                if (callsign === 'BridgeLink') {
+                    console.log('🔄 BridgeLink deactivated - reloading page in 1 second');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    setTimeout(() => window.menu.update(), 200);
+                }
+             } else {
+                 window.menu.update();
+             }
             return result;
         });
     }
