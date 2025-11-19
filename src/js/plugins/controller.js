@@ -38,10 +38,10 @@ class Controller extends Plugin {
     activate(callsign) {
         const delimiter = '/';
         const delimiterIndex = callsign.indexOf(delimiter);
-        
+
         let controllerToUse = 'Controller';
         let callsignParam = callsign; // The callsign to pass as parameter
-        
+
         if (delimiterIndex !== -1) {
             // This is a composite plugin (e.g., BridgeLink/Monitor)
             // Use the composite controller (e.g., BridgeLink/Controller)
@@ -50,37 +50,30 @@ class Controller extends Plugin {
             // Strip the prefix from the callsign parameter
             callsignParam = callsign.substring(delimiterIndex + 1);
         }
-        
-        console.log('activate() - callsign:', callsign, 'using controller:', controllerToUse, 'param:', callsignParam);
-        
+
         const _rpc = {
             plugin: controllerToUse,
             method: 'activate',
             params: { 'callsign': callsignParam }
         };
-
+ 
         return this.api.t.call(controllerToUse, 'activate', {
             callsign: callsignParam
         }).then(result => {
-            // Manually trigger menu update (composite controllers don't send notifications)
             if (window.menu) {
-                console.log('✅ Calling window.menu.update() after activation');
-                // Manually update the cache since composite controllers don't send notifications
                 if (window.menu.pluginStateCache) {
-                    window.menu.pluginStateCache.set(callsign, 'Activated');
-                    console.log('📝 Manually updated cache:', callsign, '-> Activated');
+                window.menu.pluginStateCache.set(callsign, 'Activated');
                 }
                 
                 // For BridgeLink, reload the page to properly initialize the instance selector
                 if (callsign === 'BridgeLink') {
-                    console.log('🔄 BridgeLink activated - reloading page in 1 second');
                     setTimeout(() => window.location.reload(), 1000);
                 } else {
                     setTimeout(() => window.menu.update(), 200);
                 }
-             } else {
-                 window.menu.update();
-             }
+            } else {
+                window.menu.update();
+            }
             return result;
         });
     }
@@ -89,10 +82,10 @@ class Controller extends Plugin {
     deactivate(callsign) {
         const delimiter = '/';
         const delimiterIndex = callsign.indexOf(delimiter);
-        
+
         let controllerToUse = 'Controller';
         let callsignParam = callsign; // The callsign to pass as parameter
-        
+
         if (delimiterIndex !== -1) {
             // This is a composite plugin (e.g., BridgeLink/Monitor)
             // Use the composite controller (e.g., BridgeLink/Controller)
@@ -101,9 +94,7 @@ class Controller extends Plugin {
             // Strip the prefix from the callsign parameter
             callsignParam = callsign.substring(delimiterIndex + 1);
         }
-        
-        console.log('deactivate() - callsign:', callsign, 'using controller:', controllerToUse, 'param:', callsignParam);
-        
+
         const _rpc = {
             plugin: controllerToUse,
             method: 'deactivate',
@@ -113,25 +104,20 @@ class Controller extends Plugin {
         return this.api.t.call(controllerToUse, 'deactivate', {
             callsign: callsignParam
         }).then(result => {
-            // Manually trigger menu update (composite controllers don't send notifications)
             if (window.menu) {
-                console.log('✅ Calling window.menu.update() after deactivation');
-                // Manually update the cache since composite controllers don't send notifications
                 if (window.menu.pluginStateCache) {
-                    window.menu.pluginStateCache.set(callsign, 'Deactivated');
-                    console.log('📝 Manually updated cache:', callsign, '-> Deactivated');
+                window.menu.pluginStateCache.set(callsign, 'Deactivated');
                 }
-                
+
                 // For BridgeLink, reload the page to properly clean up the instance selector
                 if (callsign === 'BridgeLink') {
-                    console.log('🔄 BridgeLink deactivated - reloading page in 1 second');
                     setTimeout(() => window.location.reload(), 1000);
                 } else {
                     setTimeout(() => window.menu.update(), 200);
                 }
-             } else {
-                 window.menu.update();
-             }
+            } else {
+                window.menu.update();
+            }
             return result;
         });
     }
@@ -140,19 +126,17 @@ class Controller extends Plugin {
     suspend(callsign) {
         const delimiter = '/';
         const delimiterIndex = callsign.indexOf(delimiter);
-        
+
         let controllerToUse = 'Controller';
         let callsignParam = callsign; // The callsign to pass as parameter
-        
+
         if (delimiterIndex !== -1) {
             const prefix = callsign.substring(0, delimiterIndex);
             controllerToUse = prefix + delimiter + 'Controller';
             // Strip the prefix from the callsign parameter
             callsignParam = callsign.substring(delimiterIndex + 1);
         }
-        
-        console.log('suspend() - callsign:', callsign, 'using controller:', controllerToUse, 'param:', callsignParam);
-        
+
         const _rpc = {
             plugin: controllerToUse,
             method: 'suspend',
@@ -166,19 +150,17 @@ class Controller extends Plugin {
     resume(callsign) {
         const delimiter = '/';
         const delimiterIndex = callsign.indexOf(delimiter);
-        
+
         let controllerToUse = 'Controller';
         let callsignParam = callsign; // The callsign to pass as parameter
-        
+
         if (delimiterIndex !== -1) {
             const prefix = callsign.substring(0, delimiterIndex);
             controllerToUse = prefix + delimiter + 'Controller';
             // Strip the prefix from the callsign parameter
             callsignParam = callsign.substring(delimiterIndex + 1);
         }
-        
-        console.log('resume() - callsign:', callsign, 'using controller:', controllerToUse, 'param:', callsignParam);
-        
+
         const _rpc = {
             plugin: controllerToUse,
             method: 'resume',
@@ -243,23 +225,16 @@ class Controller extends Plugin {
      * UI
      */
     toggleActivity(callsign) {
-        console.log('toggleActivity called with callsign:', callsign);
-        console.log('this.pluginMap:', this.pluginMap);
-        console.log('this.plugins:', this.plugins);
-        
         var plugin;
 
         // Try to find the plugin using the pluginMap first (for composite controllers)
         if (this.pluginMap && this.pluginMap[callsign]) {
             plugin = this.pluginMap[callsign];
-            console.log('Found plugin in pluginMap:', plugin);
         } else {
-            console.log('Plugin not in pluginMap, searching array...');
             // Fallback to the original array search
             for (var i=0; i<this.plugins.length; i++) {
                 if (this.plugins[i].callsign === callsign) {
                     plugin = this.plugins[i];
-                    console.log('Found plugin in array:', plugin);
                     break;
                 }
             }
@@ -270,13 +245,8 @@ class Controller extends Plugin {
             return;
         }
 
-        console.log('Plugin state:', plugin.state);
-
         if (plugin.state === 'Deactivated') {
-            console.debug('Activating ' + callsign);
-            console.log('Calling this.activate with:', callsign);
             this.activate(callsign).then( (resp) => {
-                console.log('Activation successful, response:', resp);
                 plugin.state = 'Activated';
                 this.render();
             }).catch( e => {
@@ -284,10 +254,7 @@ class Controller extends Plugin {
                 this.render();
             });
         } else {
-            console.debug('Deactivating ' + callsign);
-            console.log('Calling this.deactivate with:', callsign);
             this.deactivate(callsign).then( (resp) => {
-                console.log('Deactivation successful, response:', resp);
                 plugin.state = 'Deactivated';
                 this.render();
             }).catch(e => {
@@ -296,7 +263,7 @@ class Controller extends Plugin {
             });
         }
     }
-
+ 
     toggleSuspend(callsign) {
         var plugin;
 
@@ -319,7 +286,6 @@ class Controller extends Plugin {
         }
 
         if (plugin.state === 'Deactivated') {
-            console.debug('Activating ' + callsign);
             this.activate(callsign).then( resp => {
                 plugin.state = 'Activated';
                 // we have to rerender at this stage, we're going to be out of sync
@@ -333,14 +299,12 @@ class Controller extends Plugin {
         }
 
         if (plugin.state === 'Resumed') {
-            console.debug('Suspending ' + callsign);
             this.suspend(callsign).then( resp => {
                 this.updateSuspendLabel(callsign, 'resume');
                 document.getElementById(callsign + 'suspend').checked = true;
                 plugin.state = 'Suspended';
             });
         } else {
-            console.debug('Resuming ' + callsign);
             this.resume(callsign).then( resp => {
                 this.updateSuspendLabel(callsign, 'suspend');
                 document.getElementById(callsign + 'suspend').checked = false;
@@ -388,28 +352,28 @@ class Controller extends Plugin {
 
         this.mainDiv = document.getElementById('main');
         this.mainDiv.innerHTML = `
-          <div class="title grid__col grid__col--8-of-8">
+        <div class="title grid__col grid__col--8-of-8">
             Plugins
-          </div>
-          <div id="controllerPlugins"></div>
-          <div class="title grid__col grid__col--8-of-8">
+        </div>
+        <div id="controllerPlugins"></div>
+        <div class="title grid__col grid__col--8-of-8">
             Device actions
-          </div>
-          <div class="text grid__col grid__col--8-of-8">
+        </div>
+        <div class="text grid__col grid__col--8-of-8">
             <button type="button" id="persistButton">PERSIST</button>
-          </div>
-          <div class="text grid__col grid__col--8-of-8">
+        </div>
+        <div class="text grid__col grid__col--8-of-8">
             <button type="button" id="harakiriButton">REBOOT</button>
-          </div>
-          <div class="title grid__col grid__col--8-of-8">
+        </div>
+        <div class="title grid__col grid__col--8-of-8">
             Discover devices
-          </div>
-          <div class="label grid__col grid__col--2-of-8">
+        </div>
+        <div class="label grid__col grid__col--2-of-8">
             <button type="button" id="discoverButton">DISCOVER</button>
-          </div>
-          <div class="text grid__col grid__col--6-of-8">
+        </div>
+        <div class="text grid__col grid__col--6-of-8">
             <ul id="discoveryList"></ul>
-          </div>
+        </div>
         </div>
         `;
 
@@ -424,20 +388,13 @@ class Controller extends Plugin {
         const isCompositController = delimiterIndex !== -1;
         const controllerPrefix = isCompositController ? this.callsign.substring(0, delimiterIndex) : null;
 
-        console.log('Controller.render() - callsign:', this.callsign);
-        console.log('Controller.render() - isCompositController:', isCompositController);
-        console.log('Controller.render() - controllerPrefix:', controllerPrefix);
-
         this.status().then(  data => {
             var plugins = data.plugins ? data.plugins : data;
             this.plugins = plugins; // store it
-            
+
             // Create a mapping from display callsign to original plugin
             // This is needed because we modify callsigns for composite controllers
             this.pluginMap = {};
-
-            console.log('Controller.render() - plugins received:', plugins.length);
-            console.log('Controller.render() - first few plugins:', plugins.slice(0, 5).map(p => p.callsign));
 
             for (var i=0; i < plugins.length; i++) {
                 var plugin = plugins[i];
@@ -459,25 +416,18 @@ class Controller extends Plugin {
                     // Viewing a bridged Controller (e.g., BridgeLink/Controller)
                     // The status call returns plugins from the remote Thunder without the prefix
                     // So we need to add the prefix to the callsign for operations
-                    // But first, skip any plugins that already have a different prefix (shouldn't happen, but just in case)
-                    if (pluginPrefix !== null && pluginPrefix !== controllerPrefix) {
-                        console.log('Controller.render() - filtering out (wrong prefix):', callsign);
+                    // But first, skip any plugins that already have a different prefix
+                    if (pluginPrefix !== null && pluginPrefix !== controllerPrefix)
                         continue;
-                    }
-                    
+
                     // If the plugin doesn't have a prefix, we need to add it for operations
-                    if (pluginPrefix === null) {
+                    if (pluginPrefix === null)
                         callsign = controllerPrefix + delimiter + originalCallsign;
-                        console.log('Controller.render() - adding prefix, new callsign:', callsign);
-                    }
-                    console.log('Controller.render() - including:', callsign);
                 } else {
                     // Viewing local Controller
                     // Only show plugins without prefix (local plugins)
-                    if (pluginPrefix !== null) {
-                        console.log('Controller.render() - filtering out (has prefix):', callsign);
+                    if (pluginPrefix !== null)
                         continue;
-                    }
                 }
 
                 // Map the display callsign to the original plugin object
@@ -555,8 +505,8 @@ class Controller extends Plugin {
 
     close() {
         if (this.controllerListener && typeof this.controllerListener.dispose === 'function') {
-          this.controllerListener.dispose();
-          this.controllerListener = null;
+        this.controllerListener.dispose();
+        this.controllerListener = null;
         }
     }
 }
