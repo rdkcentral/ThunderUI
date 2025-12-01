@@ -140,11 +140,12 @@ export default class WpeApi {
 
     // Compatibility method to deal with transitioning APIs and older version of Thunder
     // note: This assumes the WebSocket to jsonrpc will fail.
-    req(rest, jsonrpc) {
+    req(rest, jsonrpc, options = {}) {
         return new Promise( (resolve, reject) => {
             if (jsonrpc) {
-                // Apply active prefix to plugin name
-                const prefixedPlugin = this.getPrefixedPlugin(jsonrpc.plugin);
+                // Apply active prefix to plugin name unless skipPrefix is set
+                // skipPrefix is used for infrastructure calls with absolute paths
+                const prefixedPlugin = options.skipPrefix ? jsonrpc.plugin : this.getPrefixedPlugin(jsonrpc.plugin);
                 console.debug(`<JSON> ${prefixedPlugin}.1.${jsonrpc.method}`, jsonrpc.params ? jsonrpc.params : '');
                 this.t.call(prefixedPlugin, jsonrpc.method, jsonrpc.params)
                 .then( result => {

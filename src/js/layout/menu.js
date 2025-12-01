@@ -246,7 +246,8 @@ class Menu {
         }
     }
 
-    // Get instances from a list of plugins, with optional prefix for nested composites
+    // Get composite plugin instances from a list of plugins
+    // Returns unique instance names (e.g., ["BridgeLink1", "BridgeLink2"])
     _extractInstancesFromPlugins(plugins, prefix = '') {
         const instances = [];
         const delimiter = '/';
@@ -266,44 +267,15 @@ class Menu {
         return instances;
     }
 
-    // Recursively discover nested composite plugins
-    async _discoverNestedInstances(instance, discoveredInstances) {
-        const delimiter = '/';
-        const compositeController = instance + delimiter + 'Controller';
-        
-        try {
-            const response = await this.api.req(null, {
-                plugin: compositeController,
-                method: 'status'
-            });
-            
-            const plugins = response.plugins || response;
-            const nestedInstances = this._extractInstancesFromPlugins(plugins, instance);
-            
-            for (const nested of nestedInstances) {
-                if (!discoveredInstances.includes(nested)) {
-                    discoveredInstances.push(nested);
-                    // Recursively check for deeper nesting
-                    await this._discoverNestedInstances(nested, discoveredInstances);
-                }
-            }
-        } catch (e) {
-            // Composite controller doesn't exist or isn't accessible
-            console.debug('Could not query nested composite:', compositeController, e);
-         }
-    }
-
-    async getAvailableInstances(plugins) {
-        // First get top-level instances from local plugins
+    getAvailableInstances(plugins) {
+        // Get composite plugin instances from local plugins
+        // Note: Only single-level composite plugins are supported (e.g., BridgeLink1, BridgeLink2).
+        // Nested/chained composites (e.g., BridgeLink1/BridgeLink2) are not supported by Thunder.
+        // To access a chained instance, connect directly to the intermediate Thunder's UI.
         const instances = this._extractInstancesFromPlugins(plugins);
         
-        // Then recursively discover nested instances
-        for (const instance of [...instances]) {
-            await this._discoverNestedInstances(instance, instances);
-        }
-        
         return instances;
-     }
+    }
 
     // Update the instance selector dropdown
     updateInstanceSelector(instances) {
@@ -344,82 +316,47 @@ class Menu {
 
     render(activePlugin) {
         // Determine which controller to query based on selected instance
-        console.log('Menu.render() - selectedInstance:', this.selectedInstance);
         let statusPromise;
         if (this.selectedInstance === null) {
             // Query local controller
             statusPromise = this.api.getControllerPlugins();
         } else {
-            // For nested instances like BridgeLink1/BridgeLink2, we need to query the parent controller
-            // (BridgeLink1/Controller) because nested composite controllers aren't directly accessible
+            // Query the composite controller for the selected instance
             const delimiter = '/';
-            const parts = this.selectedInstance.split(delimiter);
-            let compositeController;
-            
-            if (parts.length > 1) {
-                // Nested instance: query parent controller (e.g., BridgeLink1/Controller for BridgeLink1/BridgeLink2)
-                compositeController = parts[0] + delimiter + 'Controller';
-            } else {
-                // Top-level instance: query its controller directly
-                compositeController = this.selectedInstance + delimiter + 'Controller';
-            }
-            
-             statusPromise = this.api.req(null, {
-                 plugin: compositeController,
-                 method: 'status'
-             }).catch(err => {
-                 console.warn('Failed to query composite controller:', compositeController, err);
-                 // Fall back to local controller
-                 this.selectedInstance = null;
-                 localStorage.removeItem('thunderUI_selectedInstance');
-                 return this.api.getControllerPlugins();
-             }).then(response => {
-                 console.log('Menu.render() - response from', compositeController, ':', response);
-                 if (this.selectedInstance === null) {
-                     console.log('Menu.render() - fell back to local');
-                     return response;
-                 }
-                  const plugins = response.plugins || response;
-                  console.log('Menu.render() - plugins before mapping:', plugins.map(p => p.callsign));
-                 
-                 // For nested instances, filter and remap the plugins
-                 let mapped;
-                 if (parts.length > 1) {
-                     // Nested instance: filter for plugins starting with the nested part (e.g., BridgeLink2/)
-                     const nestedPrefix = parts.slice(1).join(delimiter); // e.g., "BridgeLink2"
-                     const filteredPlugins = plugins.filter(p => {
-                         const callsign = p.callsign;
-                         return callsign.startsWith(nestedPrefix + delimiter) || callsign === nestedPrefix;
-                     });
-                     // Remap with full prefix
-                     mapped = filteredPlugins.map(p => ({
-                         ...p, 
-                         callsign: parts[0] + delimiter + p.callsign
-                     }));
-                 } else {
-                     // Top-level instance: add the instance prefix to each plugin's callsign
-                     mapped = plugins.map(p => ({...p, callsign: this.selectedInstance + '/' + p.callsign}));
-                 }
-                 
-                  console.log('Menu.render() - plugins after mapping:', mapped.map(p => p.callsign));
-                  return mapped;
-              });
-          }
-
-         statusPromise.then( _plugins => {
-             console.log('Menu.render() - final _plugins:', _plugins.map(p => p.callsign));
-              this.clear();
-             const enabledPlugins = Object.keys(this.plugins);
+            const compositeController = this.selectedInstance + delimiter + 'Controller';
+             
+              // Use skipPrefix since we're querying with an absolute path
+              statusPromise = this.api.req(null, {
+                   plugin: compositeController,
+                   method: 'status'
+              }, { skipPrefix: true }).catch(err => {
+                   console.warn('Failed to query composite controller:', compositeController, err);
+                   // Fall back to local controller
+                   this.selectedInstance = null;
+                   localStorage.removeItem('thunderUI_selectedInstance');
+                   return this.api.getControllerPlugins();
+              }).then(response => {
+                  if (this.selectedInstance === null) {
+                      return response;
+                  }
+                   const plugins = response.plugins || response;
+                  // Add the instance prefix to each plugin's callsign
+                  return plugins.map(p => ({...p, callsign: this.selectedInstance + '/' + p.callsign}));
+               });
+           }
  
-             // Detect available instances and update selector - always use local controller
-             // to discover instances, regardless of which instance is currently selected
-             this.api.getControllerPlugins().then(localPlugins => {
-                 this.getAvailableInstances(localPlugins).then(availableInstances => {
-                     this.updateInstanceSelector(availableInstances);
-                     // Set up listeners for composite controllers
-                     this.setupCompositeControllerListeners();
-                 });
-             });
+          statusPromise.then( _plugins => {
+               this.clear();
+              const enabledPlugins = Object.keys(this.plugins);
+  
+              // Detect available instances and update selector - always use local controller
+              // to discover instances, regardless of which instance is currently selected
+              this.api.getControllerPlugins().then(localPlugins => {
+                 const availableInstances = this.getAvailableInstances(localPlugins);
+                 this.updateInstanceSelector(availableInstances);
+                 // Set up listeners for composite controllers
+                 this.setupCompositeControllerListeners();
+              });
  
              let ul = document.createElement('ul');
  
