@@ -62,12 +62,22 @@ class Controller extends Plugin {
         }).then(result => {
             if (window.menu) {
                 if (window.menu.pluginStateCache) {
-                window.menu.pluginStateCache.set(callsign, 'Activated');
+                    window.menu.pluginStateCache.set(callsign, 'Activated');
                 }
-                
-                // For BridgeLink, reload the page to properly initialize the instance selector
-                if (callsign === 'BridgeLink') {
-                    setTimeout(() => window.location.reload(), 1000);
+
+                // Check if this is a composite plugin by probing for its controller
+                // Only check top-level plugins (no "/" in callsign)
+                if (delimiterIndex === -1) {
+                    // Wait for the plugin to fully start before probing
+                    setTimeout(() => {
+                        this.isCompositePlugin(callsign).then(isComposite => {
+                            if (isComposite) {
+                                setTimeout(() => window.location.reload(), 500);
+                            } else {
+                                window.menu.update();
+                            }
+                        });
+                    }, 1000);
                 } else {
                     setTimeout(() => window.menu.update(), 200);
                 }
@@ -95,6 +105,16 @@ class Controller extends Plugin {
             callsignParam = callsign.substring(delimiterIndex + 1);
         }
 
+        // For deactivation, we need to check if it's a composite plugin before deactivating
+        const checkCompositeFirst = delimiterIndex === -1 ? this.isCompositePlugin(callsign) : Promise.resolve(false);
+
+        return checkCompositeFirst.then(isComposite => {
+            return this._doDeactivate(controllerToUse, callsignParam, callsign, delimiterIndex, isComposite);
+        });
+    }
+
+    // Internal method to perform the actual deactivation
+    _doDeactivate(controllerToUse, callsignParam, callsign, delimiterIndex, isComposite) {
         const _rpc = {
             plugin: controllerToUse,
             method: 'deactivate',
@@ -106,12 +126,18 @@ class Controller extends Plugin {
         }).then(result => {
             if (window.menu) {
                 if (window.menu.pluginStateCache) {
-                window.menu.pluginStateCache.set(callsign, 'Deactivated');
+                    window.menu.pluginStateCache.set(callsign, 'Deactivated');
                 }
 
-                // For BridgeLink, reload the page to properly clean up the instance selector
-                if (callsign === 'BridgeLink') {
-                    setTimeout(() => window.location.reload(), 1000);
+                // For composite plugins, reload the page to properly clean up the instance selector
+                // Only check top-level plugins (no "/" in callsign)
+                if (delimiterIndex === -1) {
+                    // isComposite was determined before deactivation
+                    if (isComposite) {
+                        setTimeout(() => window.location.reload(), 500);
+                    } else {
+                        setTimeout(() => window.menu.update(), 200);
+                    }
                 } else {
                     setTimeout(() => window.menu.update(), 200);
                 }
@@ -263,7 +289,7 @@ class Controller extends Plugin {
             });
         }
     }
- 
+
     toggleSuspend(callsign) {
         var plugin;
 
@@ -503,10 +529,22 @@ class Controller extends Plugin {
         suspendLabel.innerHTML = nextState;
     }
 
+    // Detect if a plugin is a composite plugin by probing for its controller
+    isCompositePlugin(callsign) {
+        const compositeController = callsign + '/Controller';
+        return this.api.t.call(compositeController, 'status', {})
+            .then(response => {
+                return true;
+            })
+            .catch(error => {
+                return false;
+            });
+    }
+
     close() {
         if (this.controllerListener && typeof this.controllerListener.dispose === 'function') {
-        this.controllerListener.dispose();
-        this.controllerListener = null;
+            this.controllerListener.dispose();
+            this.controllerListener = null;
         }
     }
 }

@@ -279,32 +279,32 @@ class Menu {
 
     render(activePlugin) {
         this.api.getControllerPlugins().then( _plugins => {
-        this.clear();
-        const enabledPlugins = Object.keys(this.plugins);
+            this.clear();
+            const enabledPlugins = Object.keys(this.plugins);
 
-        // Detect available instances and update selector
-        const availableInstances = this.getAvailableInstances(_plugins);
-        this.updateInstanceSelector(availableInstances);
+            // Detect available instances and update selector
+            const availableInstances = this.getAvailableInstances(_plugins);
+            this.updateInstanceSelector(availableInstances);
 
-        // Re-setup composite controller listeners in case instances changed
-        this.setupCompositeControllerListeners();
+            // Re-setup composite controller listeners in case instances changed
+            this.setupCompositeControllerListeners();
 
-        let ul = document.createElement('ul');
+            let ul = document.createElement('ul');
 
-        for (let i = 0; i<_plugins.length; i++) {
-            const plugin = _plugins[i];
-            const callsign = plugin.callsign;
+            for (let i = 0; i<_plugins.length; i++) {
+                const plugin = _plugins[i];
+                const callsign = plugin.callsign;
 
-            // Extract base callsign (remove BridgeLink/ or any other prefix)
-            const delimiter = '/';
-            const delimiterIndex = callsign.indexOf(delimiter);
-            const baseCallsign = delimiterIndex !== -1 ? callsign.substring(delimiterIndex + 1) : callsign;
-            const prefix = delimiterIndex !== -1 ? callsign.substring(0, delimiterIndex) : null;
+                // Extract base callsign (remove BridgeLink/ or any other prefix)
+                const delimiter = '/';
+                const delimiterIndex = callsign.indexOf(delimiter);
+                const baseCallsign = delimiterIndex !== -1 ? callsign.substring(delimiterIndex + 1) : callsign;
+                const prefix = delimiterIndex !== -1 ? callsign.substring(0, delimiterIndex) : null;
 
-            // Use cached state if available, otherwise fall back to API state
-            const actualState = this.pluginStateCache.has(callsign) ? 
-                this.pluginStateCache.get(callsign) : 
-                plugin.state;
+                // Use cached state if available, otherwise fall back to API state
+                const actualState = this.pluginStateCache.has(callsign) ?
+                    this.pluginStateCache.get(callsign) :
+                    plugin.state;
 
                 // Filter based on selected instance
                 if (this.selectedInstance === null) {
