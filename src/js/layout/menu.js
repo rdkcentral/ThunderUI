@@ -27,12 +27,13 @@ class Menu {
         this.renderInMenu       = false;
         // Restore selected instance from localStorage if available
         this.selectedInstance   = localStorage.getItem('thunderUI_selectedInstance') || null;
+        // Restore current plugin from localStorage if available
+        this.currentPlugin      = localStorage.getItem('thunderUI_currentPlugin') || null;
         
         // Also set the API prefix to match the restored selection
         if (this.selectedInstance) {
             this.api.setActivePrefix(this.selectedInstance);
         }
-        this.currentPlugin      = null; // Track current plugin
         this.compositeControllerListeners = new Map(); // Track composite controller listeners
         this.renderTimeout      = null; // Track pending render timeout
         this.pluginStateCache   = new Map();
@@ -110,12 +111,14 @@ class Menu {
                     if (pluginExists) {
                         // Update current plugin and render with it active
                         this.currentPlugin = newCallsign;
+                        localStorage.setItem('thunderUI_currentPlugin', newCallsign);
                         this.render(newCallsign);
                         showPlugin(newCallsign);
                     } else {
                         // Plugin doesn't exist in new instance, just render the menu without selecting anything
                         console.debug(`Plugin ${newCallsign} not found in selected instance`);
                         this.currentPlugin = null;
+                        localStorage.removeItem('thunderUI_currentPlugin');
                         this.render();
                     }
                 });
@@ -180,6 +183,16 @@ class Menu {
 
         // Setup listeners for composite controllers
         this.setupCompositeControllerListeners();
+
+        // If we have a restored currentPlugin, show it after a short delay
+        // (to allow the initial render to complete)
+        if (this.currentPlugin) {
+            setTimeout(() => {
+                if (this.currentPlugin) {
+                    showPlugin(this.currentPlugin);
+                }
+            }, 100);
+        }
     }
 
     setupCompositeControllerListeners() {
@@ -428,6 +441,9 @@ class Menu {
     toggleMenuItem(callsign) {
         // Store the current plugin
         this.currentPlugin = callsign;
+
+        // Persist to localStorage so it survives page reloads
+        localStorage.setItem('thunderUI_currentPlugin', callsign);
 
         var items = document.getElementsByClassName('menu-item');
         for (var i = 0; i < items.length; i++) {
