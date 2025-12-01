@@ -85,7 +85,7 @@ function init(host){
 
 /** (global) renders a plugin in the main div */
 function showPlugin(callsign) {
-    // Extract base callsign for plugin lookup (e.g., "DeviceInfo" from "BridgeLink1/BridgeLink2/DeviceInfo")
+    // Extract base callsign for plugin lookup (e.g., "DeviceInfo" from "BridgeLink1/DeviceInfo")
     const delimiter = '/';
     const lastDelimiterIndex = callsign.lastIndexOf(delimiter);
     const baseCallsign = lastDelimiterIndex !== -1 ? callsign.substring(lastDelimiterIndex + 1) : callsign;
@@ -110,6 +110,7 @@ function showPlugin(callsign) {
     plugins[ baseCallsign ].render();
 }
 
+/** (global) refresh current active plugin */
 function renderCurrentPlugin() {
     // lets re-render menu too, just to be sure
     plugins.menu.render(activePlugin);

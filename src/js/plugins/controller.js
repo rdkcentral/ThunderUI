@@ -374,29 +374,29 @@ class Controller extends Plugin {
 
         this.mainDiv = document.getElementById('main');
         this.mainDiv.innerHTML = `
-        <div class="title grid__col grid__col--8-of-8">
-            Plugins
-        </div>
-        <div id="controllerPlugins"></div>
-        <div class="title grid__col grid__col--8-of-8">
-            Device actions
-        </div>
-        <div class="text grid__col grid__col--8-of-8">
-            <button type="button" id="persistButton">PERSIST</button>
-        </div>
-        <div class="text grid__col grid__col--8-of-8">
-            <button type="button" id="harakiriButton">REBOOT</button>
-        </div>
-        <div class="title grid__col grid__col--8-of-8">
-            Discover devices
-        </div>
-        <div class="label grid__col grid__col--2-of-8">
-            <button type="button" id="discoverButton">DISCOVER</button>
-        </div>
-        <div class="text grid__col grid__col--6-of-8">
-            <ul id="discoveryList"></ul>
-        </div>
-        </div>
+            <div class="title grid__col grid__col--8-of-8">
+                Plugins
+            </div>
+            <div id="controllerPlugins"></div>
+            <div class="title grid__col grid__col--8-of-8">
+                Device actions
+            </div>
+            <div class="text grid__col grid__col--8-of-8">
+                <button type="button" id="persistButton">PERSIST</button>
+            </div>
+            <div class="text grid__col grid__col--8-of-8">
+                <button type="button" id="harakiriButton">REBOOT</button>
+            </div>
+            <div class="title grid__col grid__col--8-of-8">
+                Discover devices
+            </div>
+            <div class="label grid__col grid__col--2-of-8">
+                <button type="button" id="discoverButton">DISCOVER</button>
+            </div>
+            <div class="text grid__col grid__col--6-of-8">
+                <ul id="discoveryList"></ul>
+            </div>
+            </div>
         `;
 
         document.getElementById('persistButton').onclick = this.persist.bind(this);
@@ -412,11 +412,9 @@ class Controller extends Plugin {
 
         this.status().then(  data => {
             var plugins = data.plugins ? data.plugins : data;
-            console.log('Controller.render() - raw plugins from status:', plugins);
-            console.log('Controller.render() - controllerPrefix:', controllerPrefix, 'isCompositController:', isCompositController);
             this.plugins = plugins; // store it
  
-             // Create a mapping from display callsign to original plugin
+            // Create a mapping from display callsign to original plugin
             // This is needed because we modify callsigns for composite controllers
             this.pluginMap = {};
 
@@ -442,25 +440,21 @@ class Controller extends Plugin {
                     // So we need to add the prefix to the callsign for operations
                     // But first, skip any plugins that already have a different prefix
                     if (pluginPrefix !== null && pluginPrefix !== controllerPrefix) {
-                        console.log('Controller.render() - skipping plugin due to prefix mismatch:', callsign, 'pluginPrefix:', pluginPrefix, 'controllerPrefix:', controllerPrefix);
                         continue;
                     }
 
                     // If the plugin doesn't have a prefix, we need to add it for operations
                     if (pluginPrefix === null) {
                         callsign = controllerPrefix + delimiter + originalCallsign;
-                        console.log('Controller.render() - added prefix, new callsign:', callsign);
                     }
                 } else {
                     // Viewing local Controller
                     // Only show plugins without prefix (local plugins)
                     if (pluginPrefix !== null) {
-                        console.log('Controller.render() - skipping prefixed plugin in local view:', callsign);
                         continue;
                     }
                 }
-+
-+                console.log('Controller.render() - rendering plugin:', callsign, 'state:', plugin.state);
+
                 // Map the display callsign to the original plugin object
                 this.pluginMap[callsign] = plugin;
 

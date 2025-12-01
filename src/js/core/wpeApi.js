@@ -36,7 +36,7 @@ export default class WpeApi {
 
         this.socketListeners = {};
         
-        // Active prefix for composite plugin support (e.g., "BridgeLink1" or "BridgeLink1/BridgeLink2")
+        // Active prefix for composite plugin support (e.g., "BridgeLink1")
         this.activePrefix = null;
 
         // might use this later if the requests are getting to slow with the jsonrpc -> rest fallback.
