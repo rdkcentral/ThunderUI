@@ -85,19 +85,31 @@ function init(host){
 
 /** (global) renders a plugin in the main div */
 function showPlugin(callsign) {
-    if (plugins[ callsign ] === undefined)
+    // Extract base callsign for plugin lookup (e.g., "DeviceInfo" from "BridgeLink1/BridgeLink2/DeviceInfo")
+    const delimiter = '/';
+    const lastDelimiterIndex = callsign.lastIndexOf(delimiter);
+    const baseCallsign = lastDelimiterIndex !== -1 ? callsign.substring(lastDelimiterIndex + 1) : callsign;
+    const prefix = lastDelimiterIndex !== -1 ? callsign.substring(0, lastDelimiterIndex) : null;
+
+    if (plugins[ baseCallsign ] === undefined)
         return;
 
-    if (activePlugin !== undefined && plugins[ activePlugin ] !== undefined)
-        plugins[ activePlugin ].close();
+    if (activePlugin !== undefined) {
+        // Get base callsign for the currently active plugin
+        const activeLastDelimiter = activePlugin.lastIndexOf(delimiter);
+        const activeBaseCallsign = activeLastDelimiter !== -1 ? activePlugin.substring(activeLastDelimiter + 1) : activePlugin;
+        if (plugins[ activeBaseCallsign ] !== undefined)
+            plugins[ activeBaseCallsign ].close();
+    }
 
-    document.getElementById('main').innerHTML = '';
-    plugins[ callsign ].render();
     activePlugin = callsign;
-    window.localStorage.setItem('lastActivePlugin', callsign);
-};
+    
+    // Set the active prefix on the API so all subsequent calls use it
+    api.setActivePrefix(prefix);
+    
+    plugins[ baseCallsign ].render();
+}
 
-/** (global) refresh current active plugin */
 function renderCurrentPlugin() {
     // lets re-render menu too, just to be sure
     plugins.menu.render(activePlugin);

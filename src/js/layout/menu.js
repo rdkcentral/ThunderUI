@@ -25,7 +25,13 @@ class Menu {
         this.plugins            = plugins;
         this.top                = document.getElementById('top');
         this.renderInMenu       = false;
-        this.selectedInstance   = null;
+        // Restore selected instance from localStorage if available
+        this.selectedInstance   = localStorage.getItem('thunderUI_selectedInstance') || null;
+        
+        // Also set the API prefix to match the restored selection
+        if (this.selectedInstance) {
+            this.api.setActivePrefix(this.selectedInstance);
+        }
         this.currentPlugin      = null; // Track current plugin
         this.compositeControllerListeners = new Map(); // Track composite controller listeners
         this.renderTimeout      = null; // Track pending render timeout
@@ -68,6 +74,16 @@ class Menu {
         // Hook up the instance selector change event
         this.instanceDropdown.onchange = (e) => {
             this.selectedInstance = e.target.value || null;
+            
+            // Persist selection to localStorage
+            if (this.selectedInstance) {
+                localStorage.setItem('thunderUI_selectedInstance', this.selectedInstance);
+            } else {
+                localStorage.removeItem('thunderUI_selectedInstance');
+            }
+            
+            // Update the API prefix to match the selected instance
+            this.api.setActivePrefix(this.selectedInstance);
 
             // If we're switching instances and have a current plugin, try to load the equivalent plugin
             if (this.currentPlugin) {
@@ -230,21 +246,64 @@ class Menu {
         }
     }
 
-    // Extract available Thunder instances from plugin list
-    getAvailableInstances(plugins) {
-        const instances = new Set();
+    // Get instances from a list of plugins, with optional prefix for nested composites
+    _extractInstancesFromPlugins(plugins, prefix = '') {
+        const instances = [];
         const delimiter = '/';
-
-        for (let i = 0; i < plugins.length; i++) {
-            const callsign = plugins[i].callsign;
+        
+        for (const plugin of plugins) {
+            const callsign = plugin.callsign;
             const delimiterIndex = callsign.indexOf(delimiter);
-
-            if (delimiterIndex !== -1)
-                instances.add(callsign.substring(0, delimiterIndex));
+            // Found a composite plugin indicator (e.g., has Controller in it)
+            if (delimiterIndex !== -1) {
+                const instanceName = callsign.substring(0, delimiterIndex);
+                const fullPath = prefix ? prefix + delimiter + instanceName : instanceName;
+                if (!instances.includes(fullPath)) {
+                    instances.push(fullPath);
+                }
+            }
         }
-
-        return Array.from(instances).sort();
+        return instances;
     }
+
+    // Recursively discover nested composite plugins
+    async _discoverNestedInstances(instance, discoveredInstances) {
+        const delimiter = '/';
+        const compositeController = instance + delimiter + 'Controller';
+        
+        try {
+            const response = await this.api.req(null, {
+                plugin: compositeController,
+                method: 'status'
+            });
+            
+            const plugins = response.plugins || response;
+            const nestedInstances = this._extractInstancesFromPlugins(plugins, instance);
+            
+            for (const nested of nestedInstances) {
+                if (!discoveredInstances.includes(nested)) {
+                    discoveredInstances.push(nested);
+                    // Recursively check for deeper nesting
+                    await this._discoverNestedInstances(nested, discoveredInstances);
+                }
+            }
+        } catch (e) {
+            // Composite controller doesn't exist or isn't accessible
+            console.debug('Could not query nested composite:', compositeController, e);
+         }
+    }
+
+    async getAvailableInstances(plugins) {
+        // First get top-level instances from local plugins
+        const instances = this._extractInstancesFromPlugins(plugins);
+        
+        // Then recursively discover nested instances
+        for (const instance of [...instances]) {
+            await this._discoverNestedInstances(instance, instances);
+        }
+        
+        return instances;
+     }
 
     // Update the instance selector dropdown
     updateInstanceSelector(instances) {
@@ -269,7 +328,13 @@ class Menu {
             } else if (currentValue && currentValue !== '') {
                 // Previously selected instance no longer exists, reset to local
                 this.selectedInstance = null;
+                localStorage.removeItem('thunderUI_selectedInstance');
                 this.instanceDropdown.value = '';
+            }
+            
+            // Sync the dropdown with the stored selectedInstance (for page reload)
+            if (this.selectedInstance && instances.includes(this.selectedInstance)) {
+                this.instanceDropdown.value = this.selectedInstance;
             }
         } else {
             // Hide the selector if no linked instances
@@ -278,57 +343,125 @@ class Menu {
     }
 
     render(activePlugin) {
-        this.api.getControllerPlugins().then( _plugins => {
-            this.clear();
-            const enabledPlugins = Object.keys(this.plugins);
+        // Determine which controller to query based on selected instance
+        console.log('Menu.render() - selectedInstance:', this.selectedInstance);
+        let statusPromise;
+        if (this.selectedInstance === null) {
+            // Query local controller
+            statusPromise = this.api.getControllerPlugins();
+        } else {
+            // For nested instances like BridgeLink1/BridgeLink2, we need to query the parent controller
+            // (BridgeLink1/Controller) because nested composite controllers aren't directly accessible
+            const delimiter = '/';
+            const parts = this.selectedInstance.split(delimiter);
+            let compositeController;
+            
+            if (parts.length > 1) {
+                // Nested instance: query parent controller (e.g., BridgeLink1/Controller for BridgeLink1/BridgeLink2)
+                compositeController = parts[0] + delimiter + 'Controller';
+            } else {
+                // Top-level instance: query its controller directly
+                compositeController = this.selectedInstance + delimiter + 'Controller';
+            }
+            
+             statusPromise = this.api.req(null, {
+                 plugin: compositeController,
+                 method: 'status'
+             }).catch(err => {
+                 console.warn('Failed to query composite controller:', compositeController, err);
+                 // Fall back to local controller
+                 this.selectedInstance = null;
+                 localStorage.removeItem('thunderUI_selectedInstance');
+                 return this.api.getControllerPlugins();
+             }).then(response => {
+                 console.log('Menu.render() - response from', compositeController, ':', response);
+                 if (this.selectedInstance === null) {
+                     console.log('Menu.render() - fell back to local');
+                     return response;
+                 }
+                  const plugins = response.plugins || response;
+                  console.log('Menu.render() - plugins before mapping:', plugins.map(p => p.callsign));
+                 
+                 // For nested instances, filter and remap the plugins
+                 let mapped;
+                 if (parts.length > 1) {
+                     // Nested instance: filter for plugins starting with the nested part (e.g., BridgeLink2/)
+                     const nestedPrefix = parts.slice(1).join(delimiter); // e.g., "BridgeLink2"
+                     const filteredPlugins = plugins.filter(p => {
+                         const callsign = p.callsign;
+                         return callsign.startsWith(nestedPrefix + delimiter) || callsign === nestedPrefix;
+                     });
+                     // Remap with full prefix
+                     mapped = filteredPlugins.map(p => ({
+                         ...p, 
+                         callsign: parts[0] + delimiter + p.callsign
+                     }));
+                 } else {
+                     // Top-level instance: add the instance prefix to each plugin's callsign
+                     mapped = plugins.map(p => ({...p, callsign: this.selectedInstance + '/' + p.callsign}));
+                 }
+                 
+                  console.log('Menu.render() - plugins after mapping:', mapped.map(p => p.callsign));
+                  return mapped;
+              });
+          }
 
-            // Detect available instances and update selector
-            const availableInstances = this.getAvailableInstances(_plugins);
-            this.updateInstanceSelector(availableInstances);
-
-            // Re-setup composite controller listeners in case instances changed
-            this.setupCompositeControllerListeners();
-
-            let ul = document.createElement('ul');
-
-            for (let i = 0; i<_plugins.length; i++) {
-                const plugin = _plugins[i];
-                const callsign = plugin.callsign;
-
-                // Extract base callsign (remove BridgeLink/ or any other prefix)
-                const delimiter = '/';
-                const delimiterIndex = callsign.indexOf(delimiter);
-                const baseCallsign = delimiterIndex !== -1 ? callsign.substring(delimiterIndex + 1) : callsign;
-                const prefix = delimiterIndex !== -1 ? callsign.substring(0, delimiterIndex) : null;
-
-                // Use cached state if available, otherwise fall back to API state
-                const actualState = this.pluginStateCache.has(callsign) ?
-                    this.pluginStateCache.get(callsign) :
-                    plugin.state;
-
-                // Filter based on selected instance
-                if (this.selectedInstance === null) {
-                    // Show only local plugins (no prefix)
-                    if (prefix !== null)
-                        continue;
-                } else {
-                    // Show only plugins from selected instance
-                    if (prefix !== this.selectedInstance)
-                        continue;
-                }
-
+         statusPromise.then( _plugins => {
+             console.log('Menu.render() - final _plugins:', _plugins.map(p => p.callsign));
+              this.clear();
+             const enabledPlugins = Object.keys(this.plugins);
+ 
+             // Detect available instances and update selector - always use local controller
+             // to discover instances, regardless of which instance is currently selected
+             this.api.getControllerPlugins().then(localPlugins => {
+                 this.getAvailableInstances(localPlugins).then(availableInstances => {
+                     this.updateInstanceSelector(availableInstances);
+                     // Set up listeners for composite controllers
+                     this.setupCompositeControllerListeners();
+                 });
+             });
+ 
+             let ul = document.createElement('ul');
+ 
+             for (let i = 0; i<_plugins.length; i++) {
+                 const plugin = _plugins[i];
+                 const callsign = plugin.callsign;
+ 
+                 // Extract base callsign (remove BridgeLink/ or any other prefix)
+                 const delimiter = '/';
+                 const lastDelimiterIndex = callsign.lastIndexOf(delimiter);
+                 const baseCallsign = lastDelimiterIndex !== -1 ? callsign.substring(lastDelimiterIndex + 1) : callsign;
+                 const prefix = lastDelimiterIndex !== -1 ? callsign.substring(0, lastDelimiterIndex) : null;
+ 
+                 // Use cached state if available, otherwise fall back to API state
+                 const actualState = this.pluginStateCache.has(callsign) ?
+                     this.pluginStateCache.get(callsign) :
+                     plugin.state;
+ 
+                 // Filter based on selected instance
+                 if (this.selectedInstance === null) {
+                     // Show only local plugins (no prefix)
+                     if (prefix !== null)
+                         continue;
+                 } else {
+                     // Show only plugins from selected instance (prefix should match)
+                     // For nested instances like BridgeLink1/BridgeLink2, we prepended the prefix above
+                     if (prefix !== this.selectedInstance)
+                         continue;
+                 }
+ 
                 // check if plugin is available in our loaded plugins (using base callsign)
                 if (enabledPlugins.indexOf(baseCallsign) === -1)
                     continue;
-
+ 
                 const loadedPlugin = this.plugins[ baseCallsign ];
-
+ 
                 // Use actualState instead of plugin.state
                 if (actualState.toLowerCase() !== 'deactivated' && loadedPlugin.renderInMenu === true) {
                     console.debug('Menu :: rendering ' + callsign);
                     var li = document.createElement('li');
                     li.id = "item_" + callsign;
-
+ 
                     if (activePlugin === undefined && i === 0) {
                         li.className = 'menu-item active';
                     } else if (activePlugin === callsign) {
@@ -336,12 +469,12 @@ class Menu {
                     } else {
                         li.className = 'menu-item';
                     }
-
+ 
                     // Use the display name without prefix since we're already filtering by instance
                     const displayName = loadedPlugin.displayName !== undefined ? 
                         loadedPlugin.displayName : 
                         baseCallsign;
-
+ 
                     li.appendChild(document.createTextNode(displayName));
                     li.onclick = this.toggleMenuItem.bind(this, callsign);
                     ul.appendChild(li);
