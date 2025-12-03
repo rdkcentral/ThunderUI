@@ -19,6 +19,12 @@
 /** The side navigation menu provides navigation across the different plugins */
 import { showPlugin } from '../core/application.js';
 
+// Sanitize a string for safe use in DOM element IDs
+// Only allow alphanumeric characters, hyphens, and underscores
+function sanitizeForId(str) {
+    return str.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
 class Menu {
     constructor(plugins, api) {
         this.api                = api;
@@ -445,8 +451,9 @@ class Menu {
                 // Use actualState instead of plugin.state
                 if (actualState.toLowerCase() !== 'deactivated' && loadedPlugin.renderInMenu === true) {
                     var li = document.createElement('li');
-                    li.id = "item_" + callsign;
- 
+                    // Sanitize callsign for use in DOM id to prevent DOM clobbering
+                    li.id = "item_" + sanitizeForId(callsign);
+
                     if (activePlugin === undefined && i === 0) {
                         li.className = 'menu-item active';
                     } else if (activePlugin === callsign) {
@@ -482,7 +489,8 @@ class Menu {
 
         var items = document.getElementsByClassName('menu-item');
         for (var i = 0; i < items.length; i++) {
-            if ('item_' + callsign === items[i].id) {
+            // Use same sanitization as when setting the id
+            if ('item_' + sanitizeForId(callsign) === items[i].id) {
                 items[i].className = 'menu-item active';
             } else {
                 items[i].className = 'menu-item';
