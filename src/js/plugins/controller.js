@@ -336,7 +336,9 @@ class Controller extends Plugin {
     }
 
     clear() {
-        this.mainDiv.innerHTML = '';
+        while (this.mainDiv.firstChild) {
+            this.mainDiv.removeChild(this.mainDiv.firstChild);
+        }
     }
 
     discover() {
@@ -349,11 +351,13 @@ class Controller extends Plugin {
             self.getDiscovery().then( data => {
                 var discoveryList = data.bridges ? data.bridges : data;
                 var container = document.getElementById('discoveryList');
-                container.innerHTML = '';
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
 
                 for (var i=0; i<discoveryList.length; i++) {
                     var li = document.createElement("li");
-                    li.innerHTML = discoveryList[i].locator;
+                    li.textContent = discoveryList[i].locator;
                     container.appendChild(li);
                 }
             });
@@ -373,36 +377,67 @@ class Controller extends Plugin {
         }
 
         this.mainDiv = document.getElementById('main');
-        this.mainDiv.innerHTML = `
-            <div class="title grid__col grid__col--8-of-8">
-                Plugins
-            </div>
-            <div id="controllerPlugins"></div>
-            <div class="title grid__col grid__col--8-of-8">
-                Device actions
-            </div>
-            <div class="text grid__col grid__col--8-of-8">
-                <button type="button" id="persistButton">PERSIST</button>
-            </div>
-            <div class="text grid__col grid__col--8-of-8">
-                <button type="button" id="harakiriButton">REBOOT</button>
-            </div>
-            <div class="title grid__col grid__col--8-of-8">
-                Discover devices
-            </div>
-            <div class="label grid__col grid__col--2-of-8">
-                <button type="button" id="discoverButton">DISCOVER</button>
-            </div>
-            <div class="text grid__col grid__col--6-of-8">
-                <ul id="discoveryList"></ul>
-            </div>
-            </div>
-        `;
+        while (this.mainDiv.firstChild) {
+            this.mainDiv.removeChild(this.mainDiv.firstChild);
+        }
 
-        document.getElementById('persistButton').onclick = this.persist.bind(this);
-        document.getElementById('harakiriButton').onclick = this.harakiri.bind(this);
-        document.getElementById('discoverButton').onclick = this.discover.bind(this);
-        var controllerPluginsDiv = document.getElementById('controllerPlugins');
+        // Build UI using DOM methods instead of innerHTML
+        var pluginsTitle = document.createElement('div');
+        pluginsTitle.className = 'title grid__col grid__col--8-of-8';
+        pluginsTitle.textContent = 'Plugins';
+        this.mainDiv.appendChild(pluginsTitle);
+
+        var controllerPluginsDiv = document.createElement('div');
+        controllerPluginsDiv.id = 'controllerPlugins';
+        this.mainDiv.appendChild(controllerPluginsDiv);
+
+        var deviceActionsTitle = document.createElement('div');
+        deviceActionsTitle.className = 'title grid__col grid__col--8-of-8';
+        deviceActionsTitle.textContent = 'Device actions';
+        this.mainDiv.appendChild(deviceActionsTitle);
+
+        var persistDiv = document.createElement('div');
+        persistDiv.className = 'text grid__col grid__col--8-of-8';
+        var persistButton = document.createElement('button');
+        persistButton.type = 'button';
+        persistButton.id = 'persistButton';
+        persistButton.textContent = 'PERSIST';
+        persistDiv.appendChild(persistButton);
+        this.mainDiv.appendChild(persistDiv);
+
+        var rebootDiv = document.createElement('div');
+        rebootDiv.className = 'text grid__col grid__col--8-of-8';
+        var harakiriButton = document.createElement('button');
+        harakiriButton.type = 'button';
+        harakiriButton.id = 'harakiriButton';
+        harakiriButton.textContent = 'REBOOT';
+        rebootDiv.appendChild(harakiriButton);
+        this.mainDiv.appendChild(rebootDiv);
+
+        var discoverTitle = document.createElement('div');
+        discoverTitle.className = 'title grid__col grid__col--8-of-8';
+        discoverTitle.textContent = 'Discover devices';
+        this.mainDiv.appendChild(discoverTitle);
+
+        var discoverLabelDiv = document.createElement('div');
+        discoverLabelDiv.className = 'label grid__col grid__col--2-of-8';
+        var discoverButton = document.createElement('button');
+        discoverButton.type = 'button';
+        discoverButton.id = 'discoverButton';
+        discoverButton.textContent = 'DISCOVER';
+        discoverLabelDiv.appendChild(discoverButton);
+        this.mainDiv.appendChild(discoverLabelDiv);
+
+        var discoverListDiv = document.createElement('div');
+        discoverListDiv.className = 'text grid__col grid__col--6-of-8';
+        var discoveryList = document.createElement('ul');
+        discoveryList.id = 'discoveryList';
+        discoverListDiv.appendChild(discoveryList);
+        this.mainDiv.appendChild(discoverListDiv);
+
+        persistButton.onclick = this.persist.bind(this);
+        harakiriButton.onclick = this.harakiri.bind(this);
+        discoverButton.onclick = this.discover.bind(this);
 
         // Determine if we're viewing a bridged Controller (e.g., BridgeLink/Controller)
         const delimiter = '/';
@@ -464,7 +499,7 @@ class Controller extends Plugin {
 
                 var label = document.createElement("label");
                 // Display the base callsign without prefix since we're already in context
-                label.innerHTML = baseCallsign;
+                label.textContent = baseCallsign;
                 label.setAttribute("for", callsign);
                 labelDiv.appendChild(label);
 
@@ -510,9 +545,9 @@ class Controller extends Plugin {
                     suspendLabel.setAttribute("for", callsign + "suspend");
                     suspendLabel.id = callsign + "suspendlabel";
                     if (plugin.state == "Suspended") {
-                        suspendLabel.innerHTML = "resume";
+                        suspendLabel.textContent = "resume";
                     } else {
-                        suspendLabel.innerHTML = "suspend";
+                        suspendLabel.textContent = "suspend";
                     }
                     suspend.appendChild(suspendLabel);
                     div.appendChild(suspend);
@@ -525,7 +560,7 @@ class Controller extends Plugin {
 
     updateSuspendLabel(callsign, nextState) {
         var suspendLabel = document.getElementById(callsign + 'suspendlabel');
-        suspendLabel.innerHTML = nextState;
+        suspendLabel.textContent = nextState;
     }
 
     // Detect if a plugin is a composite plugin by probing for its controller
