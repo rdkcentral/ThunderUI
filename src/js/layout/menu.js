@@ -68,23 +68,42 @@ class Menu {
             this.isTouchDevice = true;
         } catch(e) {}
 
-        // add the top header + logo + keyboard hooks
-        this.top.innerHTML = `<div id="header" class="header">
-          <div id="button-left" class="fa fa-bars left"></div>
-          <img id="header-logo" src="img/ml.svg" alt="Metrological" onerror="this.src='UI/img/ml.svg'"/>
-          <div id="instance-buttons" class="instance-buttons" style="display: none;"></div>
-        </div>
+        // Build header using DOM methods to avoid innerHTML XSS concerns
+        this.header = document.createElement('div');
+        this.header.id = 'header';
+        this.header.className = 'header';
 
-        <!--navigation-->
-        <div id="menu" class="navigation"></div>
-        `;
+        const buttonLeft = document.createElement('div');
+        buttonLeft.id = 'button-left';
+        buttonLeft.className = 'fa fa-bars left';
+        this.header.appendChild(buttonLeft);
 
-        this.header = document.getElementById('header');
+        const logo = document.createElement('img');
+        logo.id = 'header-logo';
+        logo.src = 'img/ml.svg';
+        logo.alt = 'Metrological';
+        logo.onerror = function() { this.src = 'UI/img/ml.svg'; };
+        this.header.appendChild(logo);
+
+        this.instanceButtonsContainer = document.createElement('div');
+        this.instanceButtonsContainer.id = 'instance-buttons';
+        this.instanceButtonsContainer.className = 'instance-buttons';
+        this.instanceButtonsContainer.style.display = 'none';
+        this.header.appendChild(this.instanceButtonsContainer);
+
+        this.top.appendChild(this.header);
+
+        // Build navigation menu container
         this.nav = document.getElementById('menu');
-        this.instanceButtonsContainer = document.getElementById('instance-buttons');
+        if (!this.nav) {
+            this.nav = document.createElement('div');
+            this.nav.id = 'menu';
+            this.nav.className = 'navigation';
+            this.top.appendChild(this.nav);
+        }
 
         // hooks
-        document.getElementById('button-left').onclick = this.showMenu.bind(this);
+        buttonLeft.onclick = this.showMenu.bind(this);
 
         window.onresize = function () {
             if (this.isTouchDevice === true)
