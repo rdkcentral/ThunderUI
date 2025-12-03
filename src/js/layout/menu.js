@@ -25,6 +25,13 @@ function sanitizeForId(str) {
     return str.replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
+// Sanitize a string for safe display in the DOM
+// This is used even with textContent/createTextNode for defense in depth
+function sanitizeForDisplay(str) {
+    if (typeof str !== 'string') return '';
+    return str.replace(/[<>&"']/g, '');
+}
+
 class Menu {
     constructor(plugins, api) {
         this.api                = api;
@@ -32,9 +39,12 @@ class Menu {
         this.top                = document.getElementById('top');
         this.renderInMenu       = false;
         // Restore selected instance from localStorage if available
-        this.selectedInstance   = localStorage.getItem('thunderUI_selectedInstance') || null;
+        // Sanitize to prevent any stored XSS payload from being used
+        const storedInstance = localStorage.getItem('thunderUI_selectedInstance');
+        this.selectedInstance   = storedInstance ? sanitizeForId(storedInstance) : null;
         // Restore current plugin from localStorage if available
-        this.currentPlugin      = localStorage.getItem('thunderUI_currentPlugin') || null;
+        const storedPlugin = localStorage.getItem('thunderUI_currentPlugin');
+        this.currentPlugin      = storedPlugin ? sanitizeForId(storedPlugin) : null;
 
         // Also set the API prefix to match the restored selection
         if (this.selectedInstance)
@@ -343,8 +353,8 @@ class Menu {
             // Add buttons for each instance
             instances.forEach(inst => {
                 const btn = document.createElement('button');
-                btn.className = 'instance-button' + (this.selectedInstance === inst ? ' active' : '');
-                btn.textContent = inst;
+                btn.className = 'instance-button' + (this.selectedInstance === sanitizeForId(inst) ? ' active' : '');
+                btn.textContent = sanitizeForDisplay(inst);
                 btn.dataset.instance = inst;
                 btn.onclick = () => this.switchInstance(inst);
                 this.instanceButtonsContainer.appendChild(btn);
@@ -467,7 +477,7 @@ class Menu {
                         loadedPlugin.displayName : 
                         baseCallsign;
  
-                    li.appendChild(document.createTextNode(displayName));
+                    li.appendChild(document.createTextNode(sanitizeForDisplay(displayName)));
                     li.onclick = this.toggleMenuItem.bind(this, callsign);
                     ul.appendChild(li);
                     this.nav.appendChild(ul);
