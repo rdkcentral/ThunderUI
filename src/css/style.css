@@ -885,9 +885,20 @@ input[type=checkbox] {
 
 .instance-buttons {
     display: flex;
-    align-items: center;
     gap: 8px;
-    margin-left: 15px;
+    margin-left: 20px;
+    overflow-x: auto;
+    max-width: calc(100vw - 250px); /* Leave room for logo and hamburger */
+    scrollbar-width: thin; /* Firefox */
+}
+
+.instance-buttons::-webkit-scrollbar {
+    height: 4px;
+}
+
+.instance-buttons::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
 }
 
 .instance-button {

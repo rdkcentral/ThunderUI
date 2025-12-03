@@ -36,10 +36,11 @@ class Menu {
         }
         this.compositeControllerListeners = new Map(); // Track composite controller listeners
         this.renderTimeout      = null; // Track pending render timeout
-        this.pluginStateCache   = new Map();
-
-        // Expose menu instance globally for manual updates
-        window.menu = this;
+        // Separate cache for each instance: key is instance name (null for local), value is Map of callsign -> state
+        this.pluginStateCaches  = new Map();
+   
+         // Expose menu instance globally for manual updates
+         window.menu = this;
 
         var bodyEl = document.getElementsByTagName('body')[0];
 
@@ -82,19 +83,23 @@ class Menu {
         };
 
         // Listen for state change events on Controller
-        this.api.t.on('Controller', 'statechange', _notification => {
+        this.api.t.on('Controller', 'statechange', _notification => {            
             const callsign = _notification.callsign;
-            const state = _notification.params ? _notification.params.state : undefined;
+            const state = _notification.state || (_notification.params ? _notification.params.state : undefined);
 
             if (callsign && state) {
-                // Update the state cache immediately
+                // Cache local plugin states for real-time menu updates.
+                // Use separate cache for each instance to avoid cross-contamination.
                 const normalizedState = state.charAt(0).toUpperCase() + state.slice(1).toLowerCase();
-                this.pluginStateCache.set(callsign, normalizedState);
                 
-                // Re-render to update the menu
-                if (this.renderTimeout) {
+                // Only cache local plugins (no prefix) in the local cache
+                if (!callsign.includes('/'))
+                    this._getInstanceCache(null).set(callsign, normalizedState);
+                 
+                // Trigger a re-render to update the menu
+                if (this.renderTimeout)
                     clearTimeout(this.renderTimeout);
-                }
+
                 this.renderTimeout = setTimeout(() => {
                     this.renderTimeout = null;
                     this.render(this.currentPlugin);
@@ -118,7 +123,12 @@ class Menu {
 
     setupCompositeControllerListeners() {
         // Get the list of plugins to detect composite controllers
-        this.api.getControllerPlugins().then(plugins => {
+        // Bypass cache to get fresh data
+        const _rpc = {
+            plugin: 'Controller',
+            method: 'status'
+        };
+        this.api.req(null, _rpc, { skipPrefix: true }).then(plugins => {
             const delimiter = '/';
             const compositeControllers = new Set();
 
@@ -155,7 +165,9 @@ class Menu {
 
                     // Normalize state and update cache
                     const normalizedState = state.charAt(0).toUpperCase() + state.slice(1).toLowerCase();
-                    this.pluginStateCache.set(fullCallsign, normalizedState);
+                    
+                    // Cache in the instance-specific cache
+                    this._getInstanceCache(prefix).set(fullCallsign, normalizedState);
 
                     // Re-render to update plugin states
                     if (this.renderTimeout) {
@@ -172,6 +184,14 @@ class Menu {
         });
     }
 
+    // Get or create a cache for a specific instance
+    _getInstanceCache(instance) {
+        if (!this.pluginStateCaches.has(instance)) {
+            this.pluginStateCaches.set(instance, new Map());
+        }
+        return this.pluginStateCaches.get(instance);
+    }
+ 
     clear() {
         // Clear only the menu items, not the instance selector
         const ul = this.nav.querySelector('ul');
@@ -182,22 +202,34 @@ class Menu {
 
     // Get composite plugin instances from a list of plugins
     // Returns unique instance names (e.g., ["BridgeLink1", "BridgeLink2"])
-    _extractInstancesFromPlugins(plugins, prefix = '') {
+    // These are plugins that act as composite controllers (expose their own Controller interface)
+    _extractInstancesFromPlugins(plugins) {
         const instances = [];
-        const delimiter = '/';
-        
+
         for (const plugin of plugins) {
             const callsign = plugin.callsign;
-            const delimiterIndex = callsign.indexOf(delimiter);
-            // Found a composite plugin indicator (e.g., has Controller in it)
-            if (delimiterIndex !== -1) {
-                const instanceName = callsign.substring(0, delimiterIndex);
-                const fullPath = prefix ? prefix + delimiter + instanceName : instanceName;
-                if (!instances.includes(fullPath)) {
-                    instances.push(fullPath);
-                }
+            
+            // Skip plugins with a prefix (they are already under a composite)
+            if (callsign.includes('/')) {
+                continue;
+            }
+            
+            // Skip deactivated plugins
+            if (plugin.state === 'Deactivated') {
+                continue;
+            }
+                
+            // Check if this plugin exposes composite plugins (has /Controller suffix plugins)
+            // We detect this by checking if there are any plugins with this callsign as prefix
+            const hasCompositePlugins = plugins.some(p => 
+                p.callsign.startsWith(callsign + '/') && p.callsign !== callsign
+            );
+                        
+            if (hasCompositePlugins && !instances.includes(callsign)) {
+                instances.push(callsign);
             }
         }
+
         return instances;
     }
 
@@ -225,6 +257,7 @@ class Menu {
         // Update the API prefix to match the selected instance
         this.api.setActivePrefix(this.selectedInstance);
 
+        // No need to clear cache - each instance has its own cache
         // If we have a current plugin, try to load the equivalent plugin in the new instance
         if (this.currentPlugin) {
             const delimiter = '/';
@@ -243,8 +276,12 @@ class Menu {
                 newCallsign = this.selectedInstance + delimiter + baseCallsign;
             }
 
-            // Check if the equivalent plugin exists in the new instance
-            this.api.getControllerPlugins().then(_plugins => {
+            // Check if the equivalent plugin exists in the new instance - bypass cache
+            const _rpc = {
+                plugin: 'Controller',
+                method: 'status'
+            };
+            this.api.req(null, _rpc, { skipPrefix: true }).then(_plugins => {
                 const pluginExists = _plugins.some(p => p.callsign === newCallsign && p.state !== 'Deactivated');
 
                 if (pluginExists) {
@@ -316,74 +353,88 @@ class Menu {
         // Determine which controller to query based on selected instance
         let statusPromise;
         if (this.selectedInstance === null) {
-            // Query local controller
-            statusPromise = this.api.getControllerPlugins();
+            // Query local controller - bypass the cache to get fresh data
+            const _rpc = {
+                plugin: 'Controller',
+                method: 'status'
+            };
+            statusPromise = this.api.req(null, _rpc);
         } else {
             // Query the composite controller for the selected instance
             const delimiter = '/';
             const compositeController = this.selectedInstance + delimiter + 'Controller';
-             
-              // Use skipPrefix since we're querying with an absolute path
-              statusPromise = this.api.req(null, {
-                   plugin: compositeController,
-                   method: 'status'
-              }, { skipPrefix: true }).catch(err => {
-                   console.warn('Failed to query composite controller:', compositeController, err);
-                   // Fall back to local controller
-                   this.selectedInstance = null;
-                   localStorage.removeItem('thunderUI_selectedInstance');
-                   return this.api.getControllerPlugins();
-              }).then(response => {
-                  if (this.selectedInstance === null) {
-                      return response;
-                  }
-                   const plugins = response.plugins || response;
-                  // Add the instance prefix to each plugin's callsign
-                  return plugins.map(p => ({...p, callsign: this.selectedInstance + '/' + p.callsign}));
-               });
-           }
+
+            // Use skipPrefix since we're querying with an absolute path
+            statusPromise = this.api.req(null, {
+                plugin: compositeController,
+                method: 'status'
+            }, { skipPrefix: true }).catch(err => {
+                console.warn('Failed to query composite controller:', compositeController, err);
+                // Fall back to local controller
+                this.selectedInstance = null;
+                localStorage.removeItem('thunderUI_selectedInstance');
+                const _rpc = {
+                    plugin: 'Controller',
+                    method: 'status'
+                };
+                return this.api.req(null, _rpc);
+            }).then((response) => {
+                if (this.selectedInstance === null) {
+                    return response;
+                }
+                const plugins = response.plugins || response;
+                // Add the instance prefix to each plugin's callsign
+                return plugins.map(p => ({...p, callsign: this.selectedInstance + '/' + p.callsign}));
+            });
+        }
  
-          statusPromise.then( _plugins => {
-               this.clear();
-              const enabledPlugins = Object.keys(this.plugins);
-  
-              // Detect available instances and update selector - always use local controller
-              // to discover instances, regardless of which instance is currently selected
-              this.api.getControllerPlugins().then(localPlugins => {
-                  const availableInstances = this.getAvailableInstances(localPlugins);
-                  this.updateInstanceButtons(availableInstances);
-                  // Set up listeners for composite controllers
-                  this.setupCompositeControllerListeners();
-               });
- 
-             let ul = document.createElement('ul');
- 
-             for (let i = 0; i<_plugins.length; i++) {
-                 const plugin = _plugins[i];
-                 const callsign = plugin.callsign;
- 
-                 // Extract base callsign (remove BridgeLink/ or any other prefix)
-                 const delimiter = '/';
-                 const lastDelimiterIndex = callsign.lastIndexOf(delimiter);
-                 const baseCallsign = lastDelimiterIndex !== -1 ? callsign.substring(lastDelimiterIndex + 1) : callsign;
-                 const prefix = lastDelimiterIndex !== -1 ? callsign.substring(0, lastDelimiterIndex) : null;
- 
-                 // Use cached state if available, otherwise fall back to API state
-                 const actualState = this.pluginStateCache.has(callsign) ?
-                     this.pluginStateCache.get(callsign) :
-                     plugin.state;
- 
-                 // Filter based on selected instance
-                 if (this.selectedInstance === null) {
-                     // Show only local plugins (no prefix)
-                     if (prefix !== null)
-                         continue;
-                 } else {
-                     // Show only plugins from selected instance (prefix should match)
-                     // For nested instances like BridgeLink1/BridgeLink2, we prepended the prefix above
-                     if (prefix !== this.selectedInstance)
-                         continue;
-                 }
+        statusPromise.then( _plugins => {            
+            this.clear();
+            const enabledPlugins = Object.keys(this.plugins);
+
+            // Detect available instances and update selector - always use local controller
+            // to discover instances, regardless of which instance is currently selected
+            // Bypass cache to get fresh data
+            const _rpc = {
+                plugin: 'Controller',
+                method: 'status'
+            };
+            this.api.req(null, _rpc, { skipPrefix: true }).then(localPlugins => {
+                const availableInstances = this.getAvailableInstances(localPlugins);
+                this.updateInstanceButtons(availableInstances);
+                // Set up listeners for composite controllers
+                this.setupCompositeControllerListeners();
+            });
+
+            let ul = document.createElement('ul');
+
+            for (let i = 0; i<_plugins.length; i++) {
+                const plugin = _plugins[i];
+                const callsign = plugin.callsign;
+
+                // Extract base callsign (remove BridgeLink/ or any other prefix)
+                const delimiter = '/';
+                const lastDelimiterIndex = callsign.lastIndexOf(delimiter);
+                const baseCallsign = lastDelimiterIndex !== -1 ? callsign.substring(lastDelimiterIndex + 1) : callsign;
+                const prefix = lastDelimiterIndex !== -1 ? callsign.substring(0, lastDelimiterIndex) : null;
+
+                // Use cached state from the appropriate instance cache if available,
+                // otherwise fall back to API state.
+                const instanceCache = this._getInstanceCache(prefix);
+                const cachedState = instanceCache.get(callsign);
+                const actualState = cachedState !== undefined ? cachedState : plugin.state;
+
+                // Filter based on selected instance
+                if (this.selectedInstance === null) {
+                    // Show only local plugins (no prefix)
+                    if (prefix !== null)
+                        continue;
+                } else {
+                    // Show only plugins from selected instance (prefix should match)
+                    // For nested instances like BridgeLink1/BridgeLink2, we prepended the prefix above
+                    if (prefix !== this.selectedInstance)
+                        continue;
+                }
  
                 // check if plugin is available in our loaded plugins (using base callsign)
                 if (enabledPlugins.indexOf(baseCallsign) === -1)
@@ -393,7 +444,6 @@ class Menu {
  
                 // Use actualState instead of plugin.state
                 if (actualState.toLowerCase() !== 'deactivated' && loadedPlugin.renderInMenu === true) {
-                    console.debug('Menu :: rendering ' + callsign);
                     var li = document.createElement('li');
                     li.id = "item_" + callsign;
  
