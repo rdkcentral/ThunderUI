@@ -58,6 +58,8 @@ html {
     user-select: none;
     z-index: 1000;
     background-color: rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
 }
 
 .touch .header img {
@@ -633,10 +635,8 @@ div#hide-notifications:hover {
 
 .desktop .header img {
     height: 30px;
-    width: 30px;
-    margin-top: 15px;
-    margin-left: 35px;
-    margin-bottom: 10px;
+    width: auto;
+    margin-left: 15px;
 }
 
 @media screen and (min-width: 960px) {
@@ -883,32 +883,31 @@ input[type=checkbox] {
     -webkit-transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
 
-.instance-selector {
-    padding: 15px;
-    background-color: #1a1a1a;
-    border-bottom: 2px solid #333;
-    margin: 0;
+.instance-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 15px;
 }
 
-.instance-selector select {
-    width: 100%;
-    padding: 10px;
-    background-color: #2a2a2a;
-    color: #fff;
-    border: 1px solid #444;
+.instance-button {
+    background-color: #444;
+    border: 1px solid #555;
     border-radius: 4px;
-    font-size: 14px;
+    color: #ccc;
+    padding: 6px 14px;
+    font-size: 13px;
     cursor: pointer;
-    font-family: inherit;
+    transition: all 0.2s ease;
 }
 
-.instance-selector select:hover {
-    background-color: #333;
-    border-color: #555;
+.instance-button:hover {
+    background-color: #555;
+    color: #fff;
 }
 
-.instance-selector select:focus {
-    outline: none;
-    border-color: #00a8e1;
-    box-shadow: 0 0 5px rgba(0, 168, 225, 0.3);
+.instance-button.active {
+    background-color: #0078d4;
+    border-color: #0078d4;
+    color: #fff;
 }

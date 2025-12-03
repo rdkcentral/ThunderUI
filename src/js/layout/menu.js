@@ -54,96 +54,17 @@ class Menu {
         // add the top header + logo + keyboard hooks
         this.top.innerHTML = `<div id="header" class="header">
           <div id="button-left" class="fa fa-bars left"></div>
+          <img id="header-logo" src="img/ml.svg" alt="Metrological" onerror="this.src='UI/img/ml.svg'"/>
+          <div id="instance-buttons" class="instance-buttons" style="display: none;"></div>
         </div>
 
         <!--navigation-->
-        <div id="menu" class="navigation">
-          <!--instance selector (hidden by default, shown when multiple instances detected)-->
-          <div id="instance-selector" class="instance-selector" style="display: none;">
-            <select id="instance-dropdown">
-              <option value="">Local Thunder</option>
-            </select>
-          </div>
-        </div>
+        <div id="menu" class="navigation"></div>
         `;
 
         this.header = document.getElementById('header');
         this.nav = document.getElementById('menu');
-        this.instanceSelector = document.getElementById('instance-selector');
-        this.instanceDropdown = document.getElementById('instance-dropdown');
-
-        // Hook up the instance selector change event
-        this.instanceDropdown.onchange = (e) => {
-            this.selectedInstance = e.target.value || null;
-            
-            // Persist selection to localStorage
-            if (this.selectedInstance) {
-                localStorage.setItem('thunderUI_selectedInstance', this.selectedInstance);
-            } else {
-                localStorage.removeItem('thunderUI_selectedInstance');
-            }
-            
-            // Update the API prefix to match the selected instance
-            this.api.setActivePrefix(this.selectedInstance);
-
-            // If we're switching instances and have a current plugin, try to load the equivalent plugin
-            if (this.currentPlugin) {
-                const delimiter = '/';
-                const currentDelimiterIndex = this.currentPlugin.indexOf(delimiter);
-                const baseCallsign = currentDelimiterIndex !== -1 ? 
-                    this.currentPlugin.substring(currentDelimiterIndex + 1) : 
-                    this.currentPlugin;
-
-                // Build the new callsign for the selected instance
-                let newCallsign;
-                if (this.selectedInstance === null) {
-                    // Switching to local Thunder
-                    newCallsign = baseCallsign;
-                } else {
-                    // Switching to a BridgeLink instance
-                    newCallsign = this.selectedInstance + delimiter + baseCallsign;
-                }
-
-                // Check if the equivalent plugin exists in the new instance
-                this.api.getControllerPlugins().then(_plugins => {
-                    const pluginExists = _plugins.some(p => p.callsign === newCallsign && p.state !== 'Deactivated');
-
-                    if (pluginExists) {
-                        // Update current plugin and render with it active
-                        this.currentPlugin = newCallsign;
-                        localStorage.setItem('thunderUI_currentPlugin', newCallsign);
-                        this.render(newCallsign);
-                        showPlugin(newCallsign);
-                    } else {
-                        // Plugin doesn't exist in new instance, just render the menu without selecting anything
-                        console.debug(`Plugin ${newCallsign} not found in selected instance`);
-                        this.currentPlugin = null;
-                        localStorage.removeItem('thunderUI_currentPlugin');
-                        this.render();
-                    }
-                });
-            } else {
-                this.render();
-            }
-        };
-
-        // for some reason WPE Framework stores everything under /UI/ and relative paths dont work :( so heres a workaround
-        var logoLoadError = false;
-        var logo = new Image();
-        logo.alt = 'Metrological';
-        logo.onload = () => {
-            this.header.appendChild(logo);
-        };
-
-        logo.onerror= () => {
-            if (logoLoadError === true)
-                return;
-
-            logo.src='UI/img/ml.svg';
-            logoLoadError = true;
-        };
-
-        logo.src='img/ml.svg';
+        this.instanceButtonsContainer = document.getElementById('instance-buttons');
 
         // hooks
         document.getElementById('button-left').onclick = this.showMenu.bind(this);
@@ -289,44 +210,108 @@ class Menu {
         
         return instances;
     }
-
-    // Update the instance selector dropdown
-    updateInstanceSelector(instances) {
-        if (instances.length > 0) {
-            // Show the selector
-            this.instanceSelector.style.display = 'block';
-
-            // Update dropdown options (keep "Local Thunder" as first option)
-            const currentValue = this.instanceDropdown.value;
-            this.instanceDropdown.innerHTML = '<option value="">Local Thunder</option>';
-
-            instances.forEach(instance => {
-                const option = document.createElement('option');
-                option.value = instance;
-                option.textContent = instance;
-                this.instanceDropdown.appendChild(option);
-            });
-
-            // Restore previous selection if it still exists
-            if (currentValue && instances.indexOf(currentValue) !== -1) {
-                this.instanceDropdown.value = currentValue;
-            } else if (currentValue && currentValue !== '') {
-                // Previously selected instance no longer exists, reset to local
-                this.selectedInstance = null;
-                localStorage.removeItem('thunderUI_selectedInstance');
-                this.instanceDropdown.value = '';
-            }
-            
-            // Sync the dropdown with the stored selectedInstance (for page reload)
-            if (this.selectedInstance && instances.includes(this.selectedInstance)) {
-                this.instanceDropdown.value = this.selectedInstance;
-            }
+ 
+    // Switch to a different Thunder instance
+    switchInstance(instance) {
+        this.selectedInstance = instance;
+        
+        // Persist selection to localStorage
+        if (this.selectedInstance) {
+            localStorage.setItem('thunderUI_selectedInstance', this.selectedInstance);
         } else {
-            // Hide the selector if no linked instances
-            this.instanceSelector.style.display = 'none';
+            localStorage.removeItem('thunderUI_selectedInstance');
         }
+        
+        // Update the API prefix to match the selected instance
+        this.api.setActivePrefix(this.selectedInstance);
+
+        // If we have a current plugin, try to load the equivalent plugin in the new instance
+        if (this.currentPlugin) {
+            const delimiter = '/';
+            const currentDelimiterIndex = this.currentPlugin.indexOf(delimiter);
+            const baseCallsign = currentDelimiterIndex !== -1 ? 
+                this.currentPlugin.substring(currentDelimiterIndex + 1) : 
+                this.currentPlugin;
+
+            // Build the new callsign for the selected instance
+            let newCallsign;
+            if (this.selectedInstance === null) {
+                // Switching to local Thunder
+                newCallsign = baseCallsign;
+            } else {
+                // Switching to a BridgeLink instance
+                newCallsign = this.selectedInstance + delimiter + baseCallsign;
+            }
+
+            // Check if the equivalent plugin exists in the new instance
+            this.api.getControllerPlugins().then(_plugins => {
+                const pluginExists = _plugins.some(p => p.callsign === newCallsign && p.state !== 'Deactivated');
+
+                if (pluginExists) {
+                    // Update current plugin and render with it active
+                    this.currentPlugin = newCallsign;
+                    localStorage.setItem('thunderUI_currentPlugin', newCallsign);
+                    this.render(newCallsign);
+                    showPlugin(newCallsign);
+                } else {
+                    // Plugin doesn't exist in new instance, just render the menu without selecting anything
+                    console.debug(`Plugin ${newCallsign} not found in selected instance`);
+                    this.currentPlugin = null;
+                    localStorage.removeItem('thunderUI_currentPlugin');
+                    this.render();
+                }
+            });
+        } else {
+            this.render();
+        }
+        
+        // Update button highlighting
+        this.updateInstanceButtonHighlight();
+    }
+    
+    // Update which instance button is highlighted
+    updateInstanceButtonHighlight() {
+        const buttons = this.instanceButtonsContainer.querySelectorAll('.instance-button');
+        buttons.forEach(btn => {
+            const btnInstance = btn.dataset.instance === '' ? null : btn.dataset.instance;
+            if (btnInstance === this.selectedInstance) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     }
 
+    // Update the instance buttons in the header
+    updateInstanceButtons(instances) {
+         if (instances.length > 0) {
+            // Show the buttons container
+            this.instanceButtonsContainer.style.display = 'flex';
+            this.instanceButtonsContainer.innerHTML = '';
+
+            // Add "Local" button first
+            const localBtn = document.createElement('button');
+            localBtn.className = 'instance-button' + (this.selectedInstance === null ? ' active' : '');
+            localBtn.textContent = 'Local';
+            localBtn.dataset.instance = '';
+            localBtn.onclick = () => this.switchInstance(null);
+            this.instanceButtonsContainer.appendChild(localBtn);
+
+            // Add buttons for each instance
+            instances.forEach(inst => {
+                const btn = document.createElement('button');
+                btn.className = 'instance-button' + (this.selectedInstance === inst ? ' active' : '');
+                btn.textContent = inst;
+                btn.dataset.instance = inst;
+                btn.onclick = () => this.switchInstance(inst);
+                this.instanceButtonsContainer.appendChild(btn);
+             });
+         } else {
+            // Hide the buttons if no linked instances
+            this.instanceButtonsContainer.style.display = 'none';
+         }
+     }
+ 
     render(activePlugin) {
         // Determine which controller to query based on selected instance
         let statusPromise;
@@ -365,11 +350,11 @@ class Menu {
               // Detect available instances and update selector - always use local controller
               // to discover instances, regardless of which instance is currently selected
               this.api.getControllerPlugins().then(localPlugins => {
-                 const availableInstances = this.getAvailableInstances(localPlugins);
-                 this.updateInstanceSelector(availableInstances);
-                 // Set up listeners for composite controllers
-                 this.setupCompositeControllerListeners();
-              });
+                  const availableInstances = this.getAvailableInstances(localPlugins);
+                  this.updateInstanceButtons(availableInstances);
+                  // Set up listeners for composite controllers
+                  this.setupCompositeControllerListeners();
+               });
  
              let ul = document.createElement('ul');
  
