@@ -45,7 +45,9 @@ var plugin              = undefined;
 // private
 var fetchedPlugins  = [];
 var mainDiv         = document.getElementById('main');
-var activePlugin    = window.localStorage.getItem('lastActivePlugin') || undefined;
+// Sanitize localStorage input to prevent stored XSS
+var storedPlugin    = window.localStorage.getItem('lastActivePlugin');
+var activePlugin    = storedPlugin ? sanitizeForId(storedPlugin) : undefined;
 
 /**
 * Main initialization function
@@ -110,12 +112,22 @@ function showPlugin(callsign) {
     plugins[ baseCallsign ].render();
 }
 
+// Sanitize a string for safe use as object key/DOM id
+function sanitizeForId(str) {
+    if (typeof str !== 'string') return '';
+    return str.replace(/[^a-zA-Z0-9_\/-]/g, '_');
+}
+
 /** (global) refresh current active plugin */
 function renderCurrentPlugin() {
     // lets re-render menu too, just to be sure
     plugins.menu.render(activePlugin);
 
-    document.getElementById('main').innerHTML = '';
+    // Use DOM methods instead of innerHTML
+    var main = document.getElementById('main');
+    while (main.firstChild) {
+        main.removeChild(main.firstChild);
+    }
     plugins[ activePlugin ].render();
 };
 
