@@ -888,8 +888,8 @@ input[type=checkbox] {
     gap: 8px;
     margin-left: 20px;
     overflow-x: auto;
-    max-width: calc(100vw - 250px); /* Leave room for logo and hamburger */
-    scrollbar-width: thin; /* Firefox */
+    max-width: calc(100vw - 250px);
+    scrollbar-width: thin;
 }
 
 .instance-buttons::-webkit-scrollbar {

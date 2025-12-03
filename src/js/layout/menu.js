@@ -29,7 +29,7 @@ class Menu {
         this.selectedInstance   = localStorage.getItem('thunderUI_selectedInstance') || null;
         // Restore current plugin from localStorage if available
         this.currentPlugin      = localStorage.getItem('thunderUI_currentPlugin') || null;
-        
+
         // Also set the API prefix to match the restored selection
         if (this.selectedInstance) {
             this.api.setActivePrefix(this.selectedInstance);
@@ -38,9 +38,9 @@ class Menu {
         this.renderTimeout      = null; // Track pending render timeout
         // Separate cache for each instance: key is instance name (null for local), value is Map of callsign -> state
         this.pluginStateCaches  = new Map();
-   
-         // Expose menu instance globally for manual updates
-         window.menu = this;
+
+        // Expose menu instance globally for manual updates
+        window.menu = this;
 
         var bodyEl = document.getElementsByTagName('body')[0];
 
@@ -91,11 +91,11 @@ class Menu {
                 // Cache local plugin states for real-time menu updates.
                 // Use separate cache for each instance to avoid cross-contamination.
                 const normalizedState = state.charAt(0).toUpperCase() + state.slice(1).toLowerCase();
-                
+
                 // Only cache local plugins (no prefix) in the local cache
                 if (!callsign.includes('/'))
                     this._getInstanceCache(null).set(callsign, normalizedState);
-                 
+
                 // Trigger a re-render to update the menu
                 if (this.renderTimeout)
                     clearTimeout(this.renderTimeout);
@@ -208,23 +208,23 @@ class Menu {
 
         for (const plugin of plugins) {
             const callsign = plugin.callsign;
-            
+
             // Skip plugins with a prefix (they are already under a composite)
             if (callsign.includes('/')) {
                 continue;
             }
-            
+
             // Skip deactivated plugins
             if (plugin.state === 'Deactivated') {
                 continue;
             }
-                
+
             // Check if this plugin exposes composite plugins (has /Controller suffix plugins)
             // We detect this by checking if there are any plugins with this callsign as prefix
             const hasCompositePlugins = plugins.some(p => 
                 p.callsign.startsWith(callsign + '/') && p.callsign !== callsign
             );
-                        
+
             if (hasCompositePlugins && !instances.includes(callsign)) {
                 instances.push(callsign);
             }
@@ -239,21 +239,21 @@ class Menu {
         // Nested/chained composites (e.g., BridgeLink1/BridgeLink2) are not supported by Thunder.
         // To access a chained instance, connect directly to the intermediate Thunder's UI.
         const instances = this._extractInstancesFromPlugins(plugins);
-        
+
         return instances;
     }
- 
+
     // Switch to a different Thunder instance
     switchInstance(instance) {
         this.selectedInstance = instance;
-        
+
         // Persist selection to localStorage
         if (this.selectedInstance) {
             localStorage.setItem('thunderUI_selectedInstance', this.selectedInstance);
         } else {
             localStorage.removeItem('thunderUI_selectedInstance');
         }
-        
+
         // Update the API prefix to match the selected instance
         this.api.setActivePrefix(this.selectedInstance);
 
@@ -301,11 +301,11 @@ class Menu {
         } else {
             this.render();
         }
-        
+
         // Update button highlighting
         this.updateInstanceButtonHighlight();
     }
-    
+
     // Update which instance button is highlighted
     updateInstanceButtonHighlight() {
         const buttons = this.instanceButtonsContainer.querySelectorAll('.instance-button');
@@ -321,7 +321,7 @@ class Menu {
 
     // Update the instance buttons in the header
     updateInstanceButtons(instances) {
-         if (instances.length > 0) {
+        if (instances.length > 0) {
             // Show the buttons container
             this.instanceButtonsContainer.style.display = 'flex';
             this.instanceButtonsContainer.innerHTML = '';
@@ -342,13 +342,13 @@ class Menu {
                 btn.dataset.instance = inst;
                 btn.onclick = () => this.switchInstance(inst);
                 this.instanceButtonsContainer.appendChild(btn);
-             });
-         } else {
+            });
+        } else {
             // Hide the buttons if no linked instances
             this.instanceButtonsContainer.style.display = 'none';
-         }
-     }
- 
+        }
+    }
+
     render(activePlugin) {
         // Determine which controller to query based on selected instance
         let statusPromise;
@@ -387,7 +387,7 @@ class Menu {
                 return plugins.map(p => ({...p, callsign: this.selectedInstance + '/' + p.callsign}));
             });
         }
- 
+
         statusPromise.then( _plugins => {            
             this.clear();
             const enabledPlugins = Object.keys(this.plugins);
@@ -435,13 +435,13 @@ class Menu {
                     if (prefix !== this.selectedInstance)
                         continue;
                 }
- 
+
                 // check if plugin is available in our loaded plugins (using base callsign)
                 if (enabledPlugins.indexOf(baseCallsign) === -1)
                     continue;
- 
+
                 const loadedPlugin = this.plugins[ baseCallsign ];
- 
+
                 // Use actualState instead of plugin.state
                 if (actualState.toLowerCase() !== 'deactivated' && loadedPlugin.renderInMenu === true) {
                     var li = document.createElement('li');
