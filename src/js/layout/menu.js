@@ -359,7 +359,10 @@ class Menu {
         if (instances.length > 0) {
             // Show the buttons container
             this.instanceButtonsContainer.style.display = 'flex';
-            this.instanceButtonsContainer.innerHTML = '';
+            // Clear existing buttons using DOM methods instead of innerHTML
+            while (this.instanceButtonsContainer.firstChild) {
+                this.instanceButtonsContainer.removeChild(this.instanceButtonsContainer.firstChild);
+            }
 
             // Add "Local" button first
             const localBtn = document.createElement('button');
