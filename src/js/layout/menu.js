@@ -31,9 +31,9 @@ class Menu {
         this.currentPlugin      = localStorage.getItem('thunderUI_currentPlugin') || null;
 
         // Also set the API prefix to match the restored selection
-        if (this.selectedInstance) {
+        if (this.selectedInstance)
             this.api.setActivePrefix(this.selectedInstance);
-        }
+
         this.compositeControllerListeners = new Map(); // Track composite controller listeners
         this.renderTimeout      = null; // Track pending render timeout
         // Separate cache for each instance: key is instance name (null for local), value is Map of callsign -> state
@@ -236,7 +236,7 @@ class Menu {
     getAvailableInstances(plugins) {
         // Get composite plugin instances from local plugins
         // Note: Only single-level composite plugins are supported (e.g., BridgeLink1, BridgeLink2).
-        // Nested/chained composites (e.g., BridgeLink1/BridgeLink2) are not supported by Thunder.
+        // Nested/chained composites (e.g., BridgeLink1/BridgeLink2) are not supported by Thunder at this point (December 2025)
         // To access a chained instance, connect directly to the intermediate Thunder's UI.
         const instances = this._extractInstancesFromPlugins(plugins);
 
