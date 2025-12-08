@@ -58,6 +58,8 @@ html {
     user-select: none;
     z-index: 1000;
     background-color: rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
 }
 
 .touch .header img {
@@ -633,10 +635,8 @@ div#hide-notifications:hover {
 
 .desktop .header img {
     height: 30px;
-    width: 30px;
-    margin-top: 15px;
-    margin-left: 35px;
-    margin-bottom: 10px;
+    width: auto;
+    margin-left: 15px;
 }
 
 @media screen and (min-width: 960px) {
@@ -881,4 +881,44 @@ input[type=checkbox] {
     transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
     -moz-transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
     -webkit-transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.instance-buttons {
+    display: flex;
+    gap: 8px;
+    margin-left: 20px;
+    overflow-x: auto;
+    max-width: calc(100vw - 250px);
+    scrollbar-width: thin;
+}
+
+.instance-buttons::-webkit-scrollbar {
+    height: 4px;
+}
+
+.instance-buttons::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+.instance-button {
+    background-color: #444;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #ccc;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.instance-button:hover {
+    background-color: #555;
+    color: #fff;
+}
+
+.instance-button.active {
+    background-color: #0078d4;
+    border-color: #0078d4;
+    color: #fff;
 }

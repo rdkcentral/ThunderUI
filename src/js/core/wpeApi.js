@@ -35,6 +35,9 @@ export default class WpeApi {
         this.t = ThunderJS({ 'host' : this.host[0], 'port': this.host[1] });
 
         this.socketListeners = {};
+        
+        // Active prefix for composite plugin support (e.g., "BridgeLink1")
+        this.activePrefix = null;
 
         // might use this later if the requests are getting to slow with the jsonrpc -> rest fallback.
         this.servicesAvailableInJsonRPC = [
@@ -60,6 +63,34 @@ export default class WpeApi {
             'LinearPlaybackControl'
         ];
     };
+
+    /**
+     * Set the active prefix for API calls.
+     * When set, all plugin calls will be prefixed (e.g., "MessageControl" becomes "BridgeLink1/MessageControl").
+     * @param {string|null} prefix - The prefix to apply, or null for local Thunder
+     */
+    setActivePrefix(prefix) {
+        this.activePrefix = prefix;
+    }
+    
+    /**
+     * Get the prefixed plugin name for API calls.
+     * @param {string} pluginName - The base plugin name
+     * @returns {string} The prefixed plugin name (or original if no prefix set)
+     */
+    getPrefixedPlugin(pluginName) {
+        // Don't prefix if no active prefix
+        if (!this.activePrefix) {
+            return pluginName;
+        }
+        
+        // Don't double-prefix if the plugin already has a prefix
+        if (pluginName.includes('/')) {
+            return pluginName;
+        }
+        
+        return this.activePrefix + '/' + pluginName;
+    }
 
     handleRequest(method, URL, body, callback) {
         var self = this;
@@ -109,11 +140,14 @@ export default class WpeApi {
 
     // Compatibility method to deal with transitioning APIs and older version of Thunder
     // note: This assumes the WebSocket to jsonrpc will fail.
-    req(rest, jsonrpc) {
+    req(rest, jsonrpc, options = {}) {
         return new Promise( (resolve, reject) => {
             if (jsonrpc) {
-                console.debug(`<JSON> ${jsonrpc.plugin }.1.${jsonrpc.method}`, jsonrpc.params ? jsonrpc.params : '');
-                this.t.call(jsonrpc.plugin, jsonrpc.method, jsonrpc.params)
+                // Apply active prefix to plugin name unless skipPrefix is set
+                // skipPrefix is used for infrastructure calls with absolute paths
+                const prefixedPlugin = options.skipPrefix ? jsonrpc.plugin : this.getPrefixedPlugin(jsonrpc.plugin);
+                console.debug(`<JSON> ${prefixedPlugin}.1.${jsonrpc.method}`, jsonrpc.params ? jsonrpc.params : '');
+                this.t.call(prefixedPlugin, jsonrpc.method, jsonrpc.params)
                 .then( result => {
                     resolve(result);
                 }).catch( error => {

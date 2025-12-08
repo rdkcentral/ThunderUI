@@ -45,7 +45,9 @@ var plugin              = undefined;
 // private
 var fetchedPlugins  = [];
 var mainDiv         = document.getElementById('main');
-var activePlugin    = window.localStorage.getItem('lastActivePlugin') || undefined;
+// Sanitize localStorage input to prevent stored XSS
+var storedPlugin    = window.localStorage.getItem('lastActivePlugin');
+var activePlugin    = storedPlugin ? sanitizeForId(storedPlugin) : undefined;
 
 /**
 * Main initialization function
@@ -85,24 +87,47 @@ function init(host){
 
 /** (global) renders a plugin in the main div */
 function showPlugin(callsign) {
-    if (plugins[ callsign ] === undefined)
+    // Extract base callsign for plugin lookup (e.g., "DeviceInfo" from "BridgeLink1/DeviceInfo")
+    const delimiter = '/';
+    const lastDelimiterIndex = callsign.lastIndexOf(delimiter);
+    const baseCallsign = lastDelimiterIndex !== -1 ? callsign.substring(lastDelimiterIndex + 1) : callsign;
+    const prefix = lastDelimiterIndex !== -1 ? callsign.substring(0, lastDelimiterIndex) : null;
+
+    if (plugins[ baseCallsign ] === undefined)
         return;
 
-    if (activePlugin !== undefined && plugins[ activePlugin ] !== undefined)
-        plugins[ activePlugin ].close();
+    if (activePlugin !== undefined) {
+        // Get base callsign for the currently active plugin
+        const activeLastDelimiter = activePlugin.lastIndexOf(delimiter);
+        const activeBaseCallsign = activeLastDelimiter !== -1 ? activePlugin.substring(activeLastDelimiter + 1) : activePlugin;
+        if (plugins[ activeBaseCallsign ] !== undefined)
+            plugins[ activeBaseCallsign ].close();
+    }
 
-    document.getElementById('main').innerHTML = '';
-    plugins[ callsign ].render();
     activePlugin = callsign;
-    window.localStorage.setItem('lastActivePlugin', callsign);
-};
+    
+    // Set the active prefix on the API so all subsequent calls use it
+    api.setActivePrefix(prefix);
+    
+    plugins[ baseCallsign ].render();
+}
+
+// Sanitize a string for safe use as object key/DOM id
+function sanitizeForId(str) {
+    if (typeof str !== 'string') return '';
+    return str.replace(/[^a-zA-Z0-9_\/-]/g, '_');
+}
 
 /** (global) refresh current active plugin */
 function renderCurrentPlugin() {
     // lets re-render menu too, just to be sure
     plugins.menu.render(activePlugin);
 
-    document.getElementById('main').innerHTML = '';
+    // Use DOM methods instead of innerHTML
+    var main = document.getElementById('main');
+    while (main.firstChild) {
+        main.removeChild(main.firstChild);
+    }
     plugins[ activePlugin ].render();
 };
 
