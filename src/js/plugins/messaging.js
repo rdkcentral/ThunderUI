@@ -42,14 +42,10 @@ class MessageControl extends Plugin {
         super.close()
     }
 
-    enableControl(module, id, enabled)
+    enableControl(type, module, id, enabled)
     {
        var body = {
-            "type"      :   module === 'SysLog'             ? 'Logging'
-                        :  (module === 'Reporting'          ? 'Reporting'
-                        :  (module === 'OperationalStream'  ? 'OperationalStream'
-                        :  (module === 'Assert'             ? 'Assert'
-                        :   'Tracing'))),
+            "type"      :   type,
             "module"    :   module,
             "category"  :   id,
             "enabled"   :   enabled
@@ -215,7 +211,7 @@ class MessageControl extends Plugin {
     toggleControl(control)
     {
         control.enabled = !control.enabled;
-        this.enableControl(control.module, control.category, control.enabled);
+        this.enableControl(control.type, control.module, control.category, control.enabled);
     }
 
     escapeHtml(unsafe)
