@@ -4,12 +4,12 @@ ThunderUI is a browser-based development and test interface that runs on top of 
 
 ThunderUI provides a single-page web application that communicates with Thunder's Controller plugin over JSON-RPC (via WebSocket) and REST HTTP. On startup, it queries the Controller for the list of active plugins on the device and dynamically constructs a navigation menu and per-plugin views. Each plugin view exposes the operations and data surfaces offered by the corresponding Thunder plugin, ranging from network configuration and device diagnostics to browser control and tracing. The UI runs entirely in the browser; all persistent device state resides in Thunder and is accessed through the API layer. User session state (last active plugin, last navigated URL) is kept in browser `localStorage`.
 
-ThunderUI is deployed as static web assets (`bundle.js`, `index.html`, `img/`) under `${datadir}/WPEFramework/Controller/UI` on the target device and is served directly by the Thunder Controller's built-in HTTP server.
+ThunderUI is deployed as static web assets (`bundle.js`, `index.html`, `img/`) under `${datadir}/Thunder/Controller/UI` on the target device and is served directly by the Thunder Controller's built-in HTTP server.
 
 **Key Features & Responsibilities:**
 
 - **Dynamic plugin discovery**: At startup, ThunderUI queries the Thunder Controller for the full list of active plugins on the device and constructs the navigation menu and plugin views dynamically based on what is present.
-- **Dual-transport API layer**: All Thunder communication is attempted first over JSON-RPC (WebSocket via the ThunderJS library); if that fails, the request automatically falls back to REST over HTTP, maintaining compatibility across Thunder versions.
+- **Dual-transport API layer**: The API layer supports JSON-RPC over WebSocket (via the ThunderJS library) as the primary transport, with optional REST fallback for calls that explicitly provide a REST mapping.
 - **Real-time event console**: A persistent WebSocket connection to the Controller's notification channel surfaces all plugin lifecycle and state-change events in an on-screen console, providing live observability of the Thunder runtime.
 - **Per-plugin management views**: Each supported Thunder plugin has a dedicated UI view that exposes its specific operations — activate, deactivate, suspend, resume, and plugin-specific controls — without requiring any server-side rendering.
 - **Device status footer**: A polled status bar shows device version, serial number, uptime, CPU load, RAM usage (system and GPU), and the last forwarded key press, updated at a configurable interval.
@@ -22,9 +22,9 @@ ThunderUI is deployed as static web assets (`bundle.js`, `index.html`, `img/`) u
 
 ThunderUI is designed as a single-page application (SPA) built with Webpack. The application has a strict separation between the API transport layer, the layout shell, and the per-plugin view modules. The core principle is that the UI is entirely data-driven: the set of visible plugin views is determined at runtime by querying Thunder, not by a static configuration. Each plugin view is an independent ES6 class extending a common `Plugin` base class, giving every plugin a uniform lifecycle (`render`, `close`, `activate`, `deactivate`). The application maintains no server-side session state; all UI state is local to the browser.
 
-Northbound interactions (from the browser to Thunder) use the `WpeApi` class, which wraps the ThunderJS library for JSON-RPC over WebSocket and falls back to `XMLHttpRequest`-based REST calls when the WebSocket path is unavailable. Southbound interactions (from the device to ThunderUI) arrive as WebSocket push notifications from the Controller, dispatched to registered per-plugin callbacks by `WpeApi.addWebSocketListener`.
+Northbound interactions (from the browser to Thunder) use the `WpeApi` class, which wraps the ThunderJS library for JSON-RPC over WebSocket, with optional REST fallback via `XMLHttpRequest` for calls that supply a REST mapping. Southbound interactions (from the device to ThunderUI) arrive as WebSocket push notifications from the Controller, dispatched to registered per-plugin event callbacks.
 
-Communication with the device is mediated entirely through Thunder's built-in HTTP/WebSocket server, using JSON-RPC over WebSocket as the primary transport and REST over HTTP as a fallback.
+Communication with the device is mediated entirely through Thunder's built-in HTTP/WebSocket server, using JSON-RPC over WebSocket as the primary transport, with REST over HTTP available as a fallback where a REST mapping is provided.
 
 ThunderUI reads and displays device state from Thunder on demand. Across browser sessions, the last active plugin and the last manually entered browser URL are preserved in browser `localStorage`.
 
@@ -78,7 +78,7 @@ graph TD
 
 ### RDK-V Platform and Integration Requirements
 
-- **WPEFramework Version**: Requires a Thunder instance exposing the Controller plugin via HTTP on port 80 and WebSocket notification channel at `/Service/Controller`.
+- **WPEFramework Version**: Requires a Thunder instance exposing the Controller plugin via HTTP (defaults to port 80, or whatever port Thunder is configured to use) and WebSocket notification channel at `/Service/Controller`.
 - **Build Dependencies**: Node.js (≥ 17 handled automatically with OpenSSL legacy provider), npm, Webpack 4, ThunderJS v1.2.4, `copy-webpack-plugin`, `css-loader`, `style-loader`, `dotenv-webpack`.
 - **Plugin Dependencies**: Thunder Controller plugin must be active and accessible at boot. Individual feature views are rendered only if the corresponding Thunder plugin is present in the Controller's status response.
 - **Systemd Services**: ThunderUI is served by WPEFramework's internal HTTP server; the WPEFramework service must be running.
@@ -118,7 +118,7 @@ sequenceDiagram
 
 #### Runtime State Changes
 
-Plugin views respond to live Controller WebSocket notifications. The `Notifications` module subscribes to all Controller events and displays them in the on-screen console as they arrive. Individual plugin views (e.g., `WifiControl`, `BluetoothControl`) subscribe to plugin-specific events via `WpeApi.addWebSocketListener` to refresh their displayed state when device conditions change.
+Plugin views respond to live Controller WebSocket notifications. The `Notifications` module subscribes to all Controller events and displays them in the on-screen console as they arrive. Individual plugin views subscribe to plugin-specific events using either ThunderJS subscriptions (`this.api.t.on()`) for standard plugin events (e.g., `WifiControl`, `BluetoothControl`, `Network`), or dedicated plugin-specific WebSocket connections for live streaming data (e.g., `MessageControl`, `TraceControl`).
 
 **State Change Triggers:**
 
@@ -229,14 +229,14 @@ ThunderUI communicates with the Thunder runtime exclusively over JSON-RPC (WebSo
 | **Thunder Plugins**      |                                                                                              |                                                                                                                          |
 | `Controller`             | Plugin lifecycle management: enumerate active plugins, activate, deactivate, suspend, resume | `Controller.1.status`, `Controller.1.activate`, `Controller.1.deactivate`, `Controller.1.suspend`, `Controller.1.resume` |
 | `DeviceInfo`             | Read device identity and resource metrics for the status footer and Device Info view         | `DeviceInfo.1.status` (system info, network interfaces)                                                                  |
-| `Network`                | Read network interface list and IP addresses; set default interface; execute ping            | `Network.1.interfaces`, `Network.1.defaultinterface`, `Network.1.ping`                                                   |
+| `Network`                | Read network interface list and IP addresses; set default interface; execute ping            | `Network.1.getInterfaces`, `Network.1.getDefaultInterface`, `Network.1.setDefaultInterface`, `Network.1.ping`            |
 | `WifiControl`            | Read connected SSID, scan networks, connect/disconnect                                       | `WifiControl.1.networks`, `WifiControl.1.connect`, `WifiControl.1.disconnect`; events: `scanresults`, `connectionchange` |
 | `BluetoothControl`       | Scan for Bluetooth devices, connect, disconnect, pair                                        | `BluetoothControl.1.scan`, `BluetoothControl.1.connect`; device discovery events                                         |
 | `Monitor`                | Read memory and CPU consumption per observed plugin; configure restart thresholds            | `Monitor.1.status`, `Monitor.1.restartlimits`                                                                            |
 | `TraceControl`           | Read and set trace module enable/disable state; stream live trace output                     | `TraceControl.1.set`; WebSocket stream at `/Service/TraceControl`                                                        |
 | `MessageControl`         | Read and set message control enable/disable state; stream live debug messages                | `MessageControl.1.enable`; WebSocket stream at `/Service/MessageControl`                                                 |
 | `Power`                  | Read current power state; trigger power state transitions                                    | `Power.1.state` (read/write)                                                                                             |
-| `DisplaySettings`        | Read/set video resolution, sound mode, zoom setting, connected displays                      | `DisplaySettings.1.currentresolution`, `DisplaySettings.1.supportedresolutions`, `DisplaySettings.1.setsoundmode`        |
+| `DisplaySettings`        | Read/set video resolution, sound mode, zoom setting, connected displays                      | `DisplaySettings.1.getCurrentResolution`, `DisplaySettings.1.getSupportedResolutions`, `DisplaySettings.1.setSoundMode`  |
 | `RemoteControl`          | Send key presses to the device                                                               | `RemoteControl.1.send`                                                                                                   |
 | `ScreenCapture`          | Trigger screenshot upload to a URL                                                           | `ScreenCapture.1.uploadScreenCapture`                                                                                    |
 | `PersistentStore`        | Read, write, and delete namespaced key-value pairs                                           | `PersistentStore.1.setValue`, `PersistentStore.1.getValue`, `PersistentStore.1.deleteNamespace`                          |
@@ -307,10 +307,10 @@ sequenceDiagram
   - Bootstrap and routing: `src/js/core/application.js`
   - Per-plugin lifecycle: `src/js/core/plugin.js`
 
-- **Event Processing**: All incoming WebSocket messages from the Controller notification channel are parsed in `WpeApi.startWebSocket`. Each message is matched against the `socketListeners` array by callsign; listeners registered with callsign `'all'` receive every notification. Individual plugin views register and unregister listeners via `addWebSocketListener` / `removeWebSocketListener`.
+- **Event Processing**: All incoming WebSocket messages from the Controller notification channel are parsed in `WpeApi.startWebSocket`. Each message is matched against the `socketListeners` listener registry by callsign; listeners registered with callsign `'all'` receive every notification. Individual plugin views register and unregister listeners via `addWebSocketListener` / `removeWebSocketListener`.
   - Event dispatch: `src/js/core/wpeApi.js` (`startWebSocket`, `addWebSocketListener`)
 
-- **Error Handling Strategy**: JSON-RPC call failures are caught in `WpeApi.req` and trigger an automatic REST fallback for the same operation. If REST also fails, the Promise is rejected and the calling plugin view typically leaves the UI in its current state without crashing. WebSocket disconnections are handled by scheduling a reconnection after `conf.refresh_interval`.
+- **Error Handling Strategy**: JSON-RPC call failures in `WpeApi.req` trigger a REST fallback only when the calling code supplies a REST mapping; calls without a REST mapping reject immediately. If REST also fails, the Promise is rejected and the calling plugin view typically leaves the UI in its current state without crashing. WebSocket disconnections are handled by scheduling a reconnection after `conf.refresh_interval`.
   - Transport fallback: `src/js/core/wpeApi.js` (`req`)
 
 - **Logging & Diagnostics**: ThunderUI uses browser `console.debug` for JSON-RPC and REST request traces, and `console.error` for unrecoverable errors. No device-side logging is performed. The on-screen Notifications console provides live Thunder event visibility to the operator.
@@ -349,12 +349,13 @@ npm start
 
 Configuration changes (`conf.js` parameters) are not persisted across reboots. They are compiled into the static bundle at build time. The only items written to persistent storage by ThunderUI are browser `localStorage` entries:
 
-| Key                          | Content                                                             |
-| ---------------------------- | ------------------------------------------------------------------- |
-| `lastActivePlugin`           | Callsign of the last active plugin view, restored on next page load |
-| `thunderUI_selectedInstance` | Last selected composite Thunder instance name                       |
-| `thunderUI_currentPlugin`    | Last active plugin in the context of the selected instance          |
-| `paused`                     | Whether the device status footer statistics display was hidden      |
-| `autoFwdKeys`                | Whether automatic key forwarding to RemoteControl is enabled        |
+| Key                                   | Content                                                                                |
+| ------------------------------------- | -------------------------------------------------------------------------------------- |
+| `lastActivePlugin`                    | Callsign of the last active plugin view, restored on next page load                    |
+| `thunderUI_selectedInstance`          | Last selected composite Thunder instance name                                          |
+| `thunderUI_currentPlugin`             | Last active plugin in the context of the selected instance                             |
+| `lastSetUrl` / `lastSetUrl<Callsign>` | Last manually entered URL (e.g., WebKitBrowser/Spark URL field), restored on next load |
+| `paused`                              | Whether the device status footer statistics display was hidden                         |
+| `autoFwdKeys`                         | Whether automatic key forwarding to RemoteControl is enabled                           |
 
 These entries are local to the browser session and have no effect on device-side state.
