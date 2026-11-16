@@ -190,19 +190,13 @@ class Spark extends Plugin {
         console.log('Setting url ' + url + ' for ' + this.callsign);
         document.getElementById(this.callsign + '_linkPresets').selectedIndex = 0;
 
-        const _rest = {
-            method  : 'POST',
-            path    : this.callsign + '/URL',
-            body    : body
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'seturl',
             params : body
         };
 
-        this.api.req(_rest, _rpc);
+        this.api.req(null, _rpc);
     }
 
     getAndSetUrl() {

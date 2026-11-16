@@ -103,10 +103,6 @@ class DataCapture extends Plugin {
 
   enableAudioCapture() {
     console.log(this.bufferDuration.value);
-    const _rest = {
-      method: 'PUT',
-      path: `${this.callsign}`,
-    };
 
     const _rpc = {
       plugin: this.callsign,
@@ -114,7 +110,7 @@ class DataCapture extends Plugin {
       params: { bufferMaxDuration: parseInt(this.bufferDuration.value) },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       console.log(result);
       if (result.success) {
         if (result.error == 0) {
@@ -133,11 +129,6 @@ class DataCapture extends Plugin {
     });
   }
   getAudioClip() {
-    const _rest = {
-      method: 'PUT',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getAudioClip',
@@ -151,7 +142,7 @@ class DataCapture extends Plugin {
       },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       console.log(result);
       if (result.success) {
         this.statusMessage('Request success');

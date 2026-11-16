@@ -99,116 +99,76 @@ class DisplayInfo extends Plugin {
   }
 
   totalGPURam() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'totalgpuram'
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   freeGPURam() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'freegpuram'
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   isAudioPassThrough() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'isaudiopassthrough'
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
 
   isConnected() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'connected'
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   getWidth() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'width'
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   getHeight() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'height'
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   hdcpProtection() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'hdcpprotection'
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   hdrType() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'hdrsetting'
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   update() {

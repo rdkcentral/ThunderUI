@@ -46,18 +46,13 @@ class ScreenCapture extends Plugin {
   }
 
   uploadScreenshot(url, callGUID) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'uploadScreenCapture',
       params: { url: url, callGUID: callGUID },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   render() {

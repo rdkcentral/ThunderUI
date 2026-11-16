@@ -33,17 +33,12 @@ class Monitor extends Plugin {
     }
 
     getMemoryInfo(plugin) {
-       const _rest = {
-            method  : 'GET',
-            path    : 'Monitor'
-        };
-
         const _rpc = {
             plugin : 'Monitor',
             method : 'status'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     render() {
@@ -97,13 +92,6 @@ class Monitor extends Plugin {
     }
     setRestartThreshold(){
         const i = observables.selectedIndex;
-        const restbody = '{"observable" : "' + observables.options[i].text + '","restartlimit" :"' +restart.value+'"}';
-
-        const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}`,
-            body    : restbody
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -119,7 +107,7 @@ class Monitor extends Plugin {
             }
         };
 
-        this.api.req(_rest, _rpc);
+        this.api.req(null, _rpc);
     }
 
     getMonitorDataAndDiv(plugin, callback) {

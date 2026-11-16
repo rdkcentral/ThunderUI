@@ -72,59 +72,39 @@ class AVInput extends Plugin {
   }
 
   numberOfInputs() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'numberOfInputs',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   numberOfInputs() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'numberOfInputs',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   currentVideoMode() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'currentVideoMode',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   contentProtected() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'contentProtected',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   update() {

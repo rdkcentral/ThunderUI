@@ -35,31 +35,21 @@ class OCDM extends Plugin {
     }
 
     drms() {
-        const _rest = {
-            method  : 'GET',
-            path    : this.callsign
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'drms'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     keysystems(drm) {
-        const _rest = {
-            method  : 'GET',
-            path    : this.callsign
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : `keysystems@${drm}`
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     render()        {
@@ -75,22 +65,15 @@ class OCDM extends Plugin {
     }
 
     update() {
-        this.drms().then( resp => {
-            if (resp === undefined || resp === null)
-                return;
+        this.drms().then(systems => {
+            if (!systems) return;
 
-            // backwards compatibility change with REST
-            let _systems = resp.systems ? resp.systems : resp;
-
-            for (let i=0; i<_systems.length; i++) {
-                let system = _systems[i];
-                // backwards compatilbility with rest
-                let keysystems = system.designators ? system.designators : system.keysystems;
-
-                let systemElement = this.ocdmTemplate.replace('{{Name}}', system.name);
-                systemElement = systemElement.replace('{{Designators}}', keysystems.toString());
+            systems.forEach(system => {
+                const systemElement = this.ocdmTemplate
+                    .replace('{{Name}}', system.name)
+                    .replace('{{Designators}}', system.keysystems.toString());
                 this.systemDiv.innerHTML += systemElement;
-            }
+            });
         });
     }
 }

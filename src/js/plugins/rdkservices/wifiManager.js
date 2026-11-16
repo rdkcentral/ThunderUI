@@ -100,18 +100,13 @@ class WifiManager extends Plugin {
   }
 
   scanForNetworks() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'startScan',
       params: { incremental: false, ssid: '', frequency: '' },
     };
 
-    this.api.req(_rest, _rpc).then(resp => {
+    this.api.req(null, _rpc).then(resp => {
       if (!resp.success) {
         this.statusMessage(resp.error, false, true);
       } else {
@@ -153,10 +148,6 @@ class WifiManager extends Plugin {
 
   connect() {
     var idx = this.networkListEl.selectedIndex;
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
 
     const _rpc = {
       plugin: this.callsign,
@@ -168,40 +159,30 @@ class WifiManager extends Plugin {
       },
     };
 
-    this.api.req(_rest, _rpc).then(() => {
+    this.api.req(null, _rpc).then(() => {
       this.connecting = true;
       this.passwordEl.value = '';
     });
   }
 
   disconnect() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'disconnect',
       params: {},
     };
 
-    this.api.req(_rest, _rpc).then(result => {});
+    this.api.req(null, _rpc).then(result => {});
   }
 
   getConnectedSSID() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getConnectedSSID',
       params: {},
     };
 
-    this.api.req(_rest, _rpc).then(result => {
+    this.api.req(null, _rpc).then(result => {
       this.connectedStatus.innerHTML = result.ssid;
       this.renderOptions();
     });

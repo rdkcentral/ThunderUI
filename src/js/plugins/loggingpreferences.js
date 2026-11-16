@@ -47,32 +47,22 @@ class LoggingPreferences extends Plugin {
   }
 
   getKeyStrokeMask() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'isKeystrokeMaskEnabled',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   setKeyStrokeMask(bool) {
-    const _rest = {
-      method: 'PUT',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'setKeystrokeMaskEnabled',
       params: { keystrokeMaskEnabled: bool },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   update() {

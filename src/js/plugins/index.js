@@ -54,7 +54,7 @@ import RemoteControl from './remotecontrol.js';
 import ScreenCapture from './screencapture';
 import Snapshot from './snapshot.js';
 import Spark from './spark.js';
-import Switchboard from './switchboard.js';
+import SwitchBoard from './switchboard.js';
 import SystemServices from './systemServices.js';
 import Timer from './timer.js';
 import TimeSync from './timesync.js';
@@ -108,7 +108,7 @@ export default {
     ScreenCapture,
     Snapshot,
     Spark,
-    Switchboard,
+    SwitchBoard,
     SystemServices,
     Timer,
     TimeSync,

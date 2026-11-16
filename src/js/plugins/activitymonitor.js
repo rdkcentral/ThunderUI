@@ -271,40 +271,25 @@ class ActivityMonitor extends Plugin {
   }
 
   getApplicationMemoryUsage(pid) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getApplicationMemoryUsage',
       params: { pid: pid },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   getAllMemoryUsage() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getAllMemoryUsage',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   enableMonitoring(pid, memoryMB, cpuPercent, cpuSeconds, memorySeconds, cpuIntervalSeconds) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'enableMonitoring',
@@ -322,21 +307,16 @@ class ActivityMonitor extends Plugin {
       },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   disableMonitoring() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'disableMonitoring',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   close() {

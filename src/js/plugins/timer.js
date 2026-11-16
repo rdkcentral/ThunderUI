@@ -119,11 +119,6 @@ class Timer extends Plugin {
   }
 
   startTimer(interval, mode, rep_interval, rem_before) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'startTimer',
@@ -135,7 +130,7 @@ class Timer extends Plugin {
       },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   start() {
@@ -153,18 +148,13 @@ class Timer extends Plugin {
   }
 
   change(state, id) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: state,
       params: { timerId: id },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   click() {
@@ -178,17 +168,12 @@ class Timer extends Plugin {
   }
 
   getAllTimers() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getTimers',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   showAllTimers() {

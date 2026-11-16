@@ -181,19 +181,13 @@ class RemoteControl extends Plugin {
             'code'  : key,
         };
 
-        const _rest = {
-            method  : 'PUT',
-            path    : 'RemoteControl/Web/Send',
-            body    : body
-        };
-
         const _rpc = {
             plugin : 'RemoteControl',
             method : 'send',
             params : body
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     sendKeyPress(key) {
@@ -202,19 +196,13 @@ class RemoteControl extends Plugin {
             'code'  : key,
         };
 
-        const _rest = {
-            method  : 'PUT',
-            path    : 'RemoteControl/Web/Press',
-            body    : body
-        };
-
         const _rpc = {
             plugin : 'RemoteControl',
             method : 'press',
             params : body
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     sendKeyRelease(key) {
@@ -223,19 +211,13 @@ class RemoteControl extends Plugin {
             'code'  : key,
         };
 
-        const _rest = {
-            method  : 'PUT',
-            path    : 'RemoteControl/Web/Release',
-            body    : body
-        };
-
         const _rpc = {
             plugin : 'RemoteControl',
             method : 'release',
             params : body
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
 
@@ -316,32 +298,22 @@ class RemoteControl extends Plugin {
     }
 
     activatePairing(deviceName) {
-        const _rest = {
-            method  : 'PUT',
-            path    : `RemoteControl/${deviceName}/Pair`
-        };
-
         const _rpc = {
             plugin : 'RemoteControl',
             method : 'pair',
             params : { 'device': deviceName }
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     devices() {
-        const _rest = {
-            method  : 'GET',
-            path    : 'RemoteControl'
-        };
-
         const _rpc = {
             plugin : 'RemoteControl',
             method : 'devices'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     render() {

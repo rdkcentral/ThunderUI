@@ -52,17 +52,12 @@ class DeviceIdentification extends Plugin {
   }
 
   deviceIdentification() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'deviceidentification',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   update() {

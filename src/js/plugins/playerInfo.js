@@ -71,19 +71,13 @@ class PlayerInfo extends Plugin {
 
     console.log('Setting dolbymod ' + dolbymod + ' for ' + this.callsign);
 
-    const _rest = {
-      method: 'POST',
-      path: this.callsign + '/dolbymode',
-      body: dolbymod
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'dolbymode',
       params: dolbymod
     };
 
-    this.api.req(_rest, _rpc);
+    this.api.req(null, _rpc);
   }
 
   setDolbymode() {
@@ -91,31 +85,21 @@ class PlayerInfo extends Plugin {
   }
 
   playerInfo() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'playerinfo'
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   dolbymodeInfo() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'dolbymode'
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   update() {

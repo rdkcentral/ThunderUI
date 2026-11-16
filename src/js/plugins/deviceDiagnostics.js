@@ -73,11 +73,6 @@ class DeviceDiagnostics extends Plugin {
   }
 
   getConfiguration(property) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getConfiguration',
@@ -86,7 +81,7 @@ class DeviceDiagnostics extends Plugin {
       },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 }
 

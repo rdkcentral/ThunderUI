@@ -48,17 +48,12 @@ class XCast extends Plugin {
   }
 
   getVersion() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getApiVersionNumber',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.version.innerHTML = result.version;
       } else {
@@ -68,17 +63,12 @@ class XCast extends Plugin {
   }
 
   getQuirks() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getQuirks',
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         if (result.quirks.length == 0) {
           this.quirks.innerHTML = '-';

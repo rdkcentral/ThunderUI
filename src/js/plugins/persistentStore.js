@@ -98,91 +98,61 @@ class PersistentStore extends Plugin {
   }
 
   setPersistValue(namespace, key, value) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'setValue',
       params: { namespace: namespace, key: key, value: value },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   getNameSpaces() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getNamespaces',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   getStorageSize() {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getStorageSize',
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   getKeys(namespace) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getKeys',
       params: { namespace: namespace },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   deleteNameSpaces(namespace) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'deleteNamespace',
       params: { namespace: namespace },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   getKeyValue(namespace, key) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'getValue',
       params: { namespace: namespace, key: key },
     };
 
-    return this.api.req(_rest, _rpc);
+    return this.api.req(null, _rpc);
   }
 
   delete() {
@@ -198,18 +168,13 @@ class PersistentStore extends Plugin {
   }
 
   deleteKey(namespace) {
-    const _rest = {
-      method: 'GET',
-      path: `${this.callsign}`,
-    };
-
     const _rpc = {
       plugin: this.callsign,
       method: 'deleteKey',
       params: { namespace: namespace, key: this.availKeys.value },
     };
 
-    return this.api.req(_rest, _rpc).then(result => {
+    return this.api.req(null, _rpc).then(result => {
       if (result.success) {
         this.getDetails();
       } else {

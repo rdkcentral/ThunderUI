@@ -125,17 +125,12 @@ class NetworkControl extends Plugin {
     }
 
     getInterfaceIsUp(iface) {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/Up/` + iface
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'up@' + iface
         };
 
-        return this.api.req(_rest, _rpc).then( resp => {
+        return this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
 
@@ -150,17 +145,12 @@ class NetworkControl extends Plugin {
     }
 
     getStatus(iface) {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/Status/` + iface
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'status@' + iface
         };
 
-        return this.api.req(_rest, _rpc).then( resp => {
+        return this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
 
@@ -177,17 +167,12 @@ class NetworkControl extends Plugin {
     }
 
     getNetwork(iface) {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/Network/` + iface
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'network@' + iface
         };
 
-        return this.api.req(_rest, _rpc).then( resp => {
+        return this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
 
@@ -203,17 +188,12 @@ class NetworkControl extends Plugin {
     }
 
     getDNS() {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/DNS`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'dns'
         };
 
-        return this.api.req(_rest, _rpc).then( resp => {
+        return this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
 
@@ -234,17 +214,12 @@ class NetworkControl extends Plugin {
         });
     }
     getInterfaces() {
-        const _rest = {
-            method  : 'GET',
-            path    : `${this.callsign}/Interfaces`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'interfaces'
         };
 
-        return this.api.req(_rest, _rpc).then( resp => {
+        return this.api.req(null, _rpc).then( resp => {
             if (resp === undefined)
                 return;
 
@@ -278,11 +253,6 @@ class NetworkControl extends Plugin {
         let iface = this.interfaces[ this.interfacesOptsEl.selectedIndex ];
         let toggledStatus = (this.isUp ? "Down" : "Up");
 
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/${toggledStatus}/${iface}`
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'up@' + iface,
@@ -291,18 +261,13 @@ class NetworkControl extends Plugin {
             }
         };
 
-        return this.api.req(_rest, _rpc).then ( () => {
+        return this.api.req(null, _rpc).then ( () => {
             this.getInterfaceIsUp(iface);
         });
     }
 
     flush() {
         let iface = this.interfaces[ this.interfacesOptsEl.selectedIndex ];
-
-        const _rest = {
-            method  : 'PUT',
-            path    : `${this.callsign}/Flush/${iface}`
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -312,7 +277,7 @@ class NetworkControl extends Plugin {
             }
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     save() {
@@ -328,12 +293,6 @@ class NetworkControl extends Plugin {
         this.networks[0].defaultgateway = this.gatewayEl.value;
         this.networks[0].mask = this.maskEl.value;
 
-        const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}/Network/` + iface,
-            body    : JSON.stringify(this.networks)
-        };
-
         const _rpc = {
             plugin : this.callsign,
             method : 'network@' + iface,
@@ -342,16 +301,11 @@ class NetworkControl extends Plugin {
             }
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     setDNS() {
         this.dns = [this.dnsEl.value];
-        const _rest = {
-            method  : 'POST',
-            path    : `${this.callsign}/DNS`,
-            body    : this.dns.toString().split(',')
-        };
 
         const _rpc = {
             plugin : this.callsign,
@@ -361,7 +315,7 @@ class NetworkControl extends Plugin {
             }
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
     update() {

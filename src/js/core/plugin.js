@@ -39,114 +39,52 @@ class Plugin {
     }
 
     activate(plugin) {
-        const _rest = {
-            method  : 'PUT',
-            path    : `Controller/Activate/${plugin ? plugin : this.callsign}`
-        };
-
         const _rpc = {
             plugin : 'Controller',
             method : 'activate',
             params : {'callsign': plugin ? plugin : this.callsign}
         };
 
-        return this.api.req(_rest, _rpc)
+        return this.api.req(null, _rpc)
     };
 
     deactivate(plugin) {
-        const _rest = {
-            method  : 'PUT',
-            path    : `Controller/Deactivate/${plugin ? plugin : this.callsign}`,
-            body    : null
-        };
-
         const _rpc = {
             plugin : 'Controller',
             method : 'deactivate',
             params : {'callsign': plugin ? plugin : this.callsign}
         };
 
-        return this.api.req(_rest, _rpc)
+        return this.api.req(null, _rpc)
     };
 
     suspend(plugin) {
-        const _rest = {
-            method  : 'PUT',
-            path    : `Controller/Suspend/${plugin ? plugin : this.callsign}`,
-            body    : null
-        };
-
         const _rpc = {
             plugin : 'Controller',
             method : 'suspend',
             params : {'callsign': plugin ? plugin : this.callsign}
         };
 
-        return this.api.req(_rest, _rpc)
+        return this.api.req(null, _rpc)
     };
 
     resume(plugin) {
-        const _rest = {
-            method  : 'PUT',
-            path    : `Controller/Resume/${plugin ? plugin : this.callsign}`,
-            body    : null
-        };
-
         const _rpc = {
             plugin : 'Controller',
             method : 'resume',
             params : {'callsign': plugin ? plugin : this.callsign}
         };
 
-        return this.api.req(_rest, _rpc)
-    };
-
-    show(plugin) {
-        const _rest = {
-            method  : 'POST',
-            path    : `${plugin ? plugin : this.callsign}/Show`,
-            body    : null
-        };
-
-        const _rpc = {
-            plugin : plugin ? plugin : this.callsign,
-            method : 'visibility',
-            params : 'visible'
-        };
-
-        //FIXME JSONRPC show command doesnt work
-        return this.api.req(_rest)
-    };
-
-    hide(plugin) {
-        const _rest = {
-            method  : 'POST',
-            path    : `${plugin ? plugin : this.callsign}/Hide`,
-            body    : null
-        };
-
-        const _rpc = {
-            plugin : this.callsign,
-            method : 'visibility',
-            params : 'hidden'
-        };
-
-        //FIXME JSONRPC hide command doesnt work
-        return this.api.req(_rest)
+        return this.api.req(null, _rpc)
     };
 
     status(plugin) {
-        const _rest = {
-            method  : 'GET',
-            path    : plugin ? plugin : this.callsign
-        };
-
         const _rpc = {
             plugin : plugin ? plugin : this.callsign,
             method : 'status'
         };
 
-        return this.api.req(_rest, _rpc);
+        return this.api.req(null, _rpc);
     }
 
 
